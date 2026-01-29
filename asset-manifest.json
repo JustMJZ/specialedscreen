@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/specialedscreen/static/js/main.c36d6061.js",
+    "main.js": "/specialedscreen/static/js/main.e0db141b.js",
     "index.html": "/specialedscreen/index.html",
-    "main.c36d6061.js.map": "/specialedscreen/static/js/main.c36d6061.js.map"
+    "main.e0db141b.js.map": "/specialedscreen/static/js/main.e0db141b.js.map"
   },
   "entrypoints": [
-    "static/js/main.c36d6061.js"
+    "static/js/main.e0db141b.js"
   ]
 }
