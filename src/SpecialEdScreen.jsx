@@ -377,7 +377,7 @@ const TokenPopup = ({ student, goal, onAddToken, onRemoveToken, onClose }) => {
 };
 
 // Animated student
-const AnimatedStudent = ({ name, photo, stationConfigs, currentGroup, targetGroup, isAnimating, index, onClick }) => {
+const AnimatedStudent = ({ name, photo, stationConfigs, currentGroup, targetGroup, isAnimating, index, groupSize, onClick }) => {
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
   const colors = ['#FF8A7A', '#5BC0BE', '#7BC47F', '#FFD166', '#B39DDB'];
   const group = isAnimating ? targetGroup : currentGroup;
@@ -386,12 +386,33 @@ const AnimatedStudent = ({ name, photo, stationConfigs, currentGroup, targetGrou
 
   // Scale student avatars based on box size
   const minDim = Math.min(config.width, config.height);
-  const avatarScale = Math.max(0.5, Math.min(1, minDim / 80));
-  const avatarSize = Math.max(16, 28 * avatarScale);
-  const nameSize = Math.max(6, 10 * avatarScale);
+  const avatarScale = Math.max(0.5, Math.min(1.5, minDim / 70));
+  const avatarSize = Math.max(22, 36 * avatarScale);
+  const nameSize = Math.max(8, 13 * avatarScale);
 
-  let left = isVertical ? config.left + (config.width / 2) - (avatarSize / 2) : config.left + 12 + (index * (avatarSize + 8));
-  let top = isVertical ? config.top + 18 + (index * (avatarSize + 14)) : config.top + 18;
+  // Reserve space for teacher name header
+  const headerHeight = Math.max(14, 20 * avatarScale);
+  const itemHeight = avatarSize + nameSize + 4;
+  const itemWidth = avatarSize + 8;
+
+  let left, top;
+  if (isVertical) {
+    // Vertical box: stack students vertically, centered horizontally
+    const totalHeight = groupSize * itemHeight;
+    const bodyTop = config.top + headerHeight;
+    const bodyHeight = config.height - headerHeight;
+    const startY = bodyTop + (bodyHeight - totalHeight) / 2;
+    left = config.left + (config.width / 2) - (avatarSize / 2);
+    top = startY + (index * itemHeight);
+  } else {
+    // Horizontal box: lay students horizontally, centered in body
+    const totalWidth = groupSize * itemWidth;
+    const startX = config.left + (config.width - totalWidth) / 2;
+    const bodyTop = config.top + headerHeight;
+    const bodyHeight = config.height - headerHeight;
+    left = startX + (index * itemWidth);
+    top = bodyTop + (bodyHeight - itemHeight) / 2;
+  }
 
   return (
     <div className="absolute flex flex-col items-center gap-0.5 cursor-pointer"
@@ -1001,7 +1022,7 @@ export default function SpecialEdScreen() {
               <div className="absolute inset-2 border-2 border-gray-300 rounded bg-gray-50/50" />
               {ROTATION_ORDER.map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c]} />)}
               {customBoxes.map(b => <DraggableBox key={b.id} box={b} onUpdate={(ub) => setCustomBoxes(p => p.map(x => x.id === ub.id ? ub : x))} isEditMode={isEditMode} containerRef={floorPlanRef} onEdit={setEditingBox} />)}
-              {!isEditMode && students.map(s => { const grp = students.filter(x => x.group === s.group); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={isAnimating} index={grp.findIndex(x => x.id === s.id)} onClick={() => setSelectedStudentId(s.id)} />; })}
+              {!isEditMode && students.map(s => { const grp = students.filter(x => x.group === s.group); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={isAnimating} index={grp.findIndex(x => x.id === s.id)} groupSize={grp.length} onClick={() => setSelectedStudentId(s.id)} />; })}
               <div className="absolute bg-amber-700 rounded" style={{ bottom: 6, left: 40, width: 30, height: 5, zIndex: 4 }} />
               <div className="absolute text-xs text-gray-400" style={{ bottom: 0, left: 38, fontSize: '9px' }}>Door</div>
             </div>
