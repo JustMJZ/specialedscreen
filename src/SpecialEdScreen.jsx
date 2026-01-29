@@ -6,12 +6,20 @@ const COLORS = {
   secondary: '#5BC0BE',
   text: '#3D3D3D',
   stations: {
-    purple: { bg: '#B39DDB', light: '#E1D5F0', name: 'Ms. Angie' },
-    yellow: { bg: '#FFE082', light: '#FFF3C4', name: 'Ms. Maggie' },
-    blue: { bg: '#81D4FA', light: '#D0EFFF', name: 'Mrs. Childress' },
-    green: { bg: '#A5D6A7', light: '#D7F0D8', name: 'Mr. Michael' },
-    pink: { bg: '#F8BBD9', light: '#FDE4F0', name: 'Ms. Sonya' }
+    purple: { bg: '#B39DDB', light: '#E1D5F0' },
+    yellow: { bg: '#FFE082', light: '#FFF3C4' },
+    blue: { bg: '#81D4FA', light: '#D0EFFF' },
+    green: { bg: '#A5D6A7', light: '#D7F0D8' },
+    pink: { bg: '#F8BBD9', light: '#FDE4F0' }
   }
+};
+
+const DEFAULT_TEACHER_NAMES = {
+  purple: 'Ms. Angie',
+  yellow: 'Ms. Maggie',
+  blue: 'Mrs. Childress',
+  green: 'Mr. Michael',
+  pink: 'Ms. Sonya'
 };
 
 const DEFAULT_STUDENTS = [
@@ -159,8 +167,9 @@ const playSound = (soundId) => {
 };
 
 // Student Manager Modal
-const StudentManager = ({ students, onUpdate, onClose }) => {
+const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTeachers }) => {
   const [editingStudents, setEditingStudents] = useState([...students]);
+  const [editingTeachers, setEditingTeachers] = useState({ ...teacherNames });
 
   const handlePhotoUpload = (studentId, file) => {
     if (!file) return;
@@ -197,7 +206,7 @@ const StudentManager = ({ students, onUpdate, onClose }) => {
                 <select value={student.group}
                   onChange={(e) => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, group: e.target.value } : s))}
                   className="px-2 py-1 border rounded text-sm" style={{ backgroundColor: COLORS.stations[student.group].light }}>
-                  {ROTATION_ORDER.map(color => (<option key={color} value={color}>{COLORS.stations[color].name}</option>))}
+                  {ROTATION_ORDER.map(color => (<option key={color} value={color}>{editingTeachers[color]}</option>))}
                 </select>
                 {student.photo && (
                   <button onClick={() => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, photo: null } : s))}
@@ -207,9 +216,22 @@ const StudentManager = ({ students, onUpdate, onClose }) => {
             ))}
           </div>
         </div>
+        <div className="p-3 border-t border-b bg-blue-50">
+          <div className="text-sm font-bold text-gray-700 mb-2">Teacher / Station Names</div>
+          <div className="space-y-1.5">
+            {ROTATION_ORDER.map(color => (
+              <div key={color} className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS.stations[color].bg }} />
+                <input type="text" value={editingTeachers[color]}
+                  onChange={(e) => setEditingTeachers(prev => ({ ...prev, [color]: e.target.value }))}
+                  className="flex-1 px-2 py-1 border rounded text-sm" />
+              </div>
+            ))}
+          </div>
+        </div>
         <div className="p-3 border-t bg-gray-50 flex gap-2 justify-end">
           <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-200 text-sm">Cancel</button>
-          <button onClick={() => { onUpdate(editingStudents); onClose(); }} className="px-3 py-1.5 rounded-lg bg-teal-500 text-white text-sm">Save</button>
+          <button onClick={() => { onUpdate(editingStudents); onUpdateTeachers(editingTeachers); onClose(); }} className="px-3 py-1.5 rounded-lg bg-teal-500 text-white text-sm">Save</button>
         </div>
       </div>
     </div>
@@ -390,7 +412,7 @@ const AnimatedStudent = ({ name, photo, stationConfigs, currentGroup, targetGrou
 };
 
 // Draggable station - FIXED: All text scales with box
-const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, containerRef, students }) => {
+const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, containerRef, students, teacherName }) => {
   const station = COLORS.stations[color];
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -436,7 +458,7 @@ const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, conta
       {/* Teacher name - scales with box */}
       <div className="flex items-center overflow-hidden" style={{ padding, gap: padding }}>
         <div className="rounded-full flex-shrink-0" style={{ backgroundColor: station.bg, width: dotSize, height: dotSize }} />
-        <span className="font-bold text-gray-700 truncate" style={{ fontSize: teacherFontSize, lineHeight: 1.1 }}>{station.name}</span>
+        <span className="font-bold text-gray-700 truncate" style={{ fontSize: teacherFontSize, lineHeight: 1.1 }}>{teacherName}</span>
       </div>
       
       {/* Student names - scale with box */}
@@ -496,21 +518,22 @@ const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit }) => {
   );
 };
 
-// Station Groups (compact)
-const StationGroups = ({ students, isAnimating, animationTargets }) => (
-  <div className="bg-white rounded-lg p-1.5 shadow-md">
-    <div className="text-xs font-bold text-gray-500 mb-1">GROUPS</div>
-    <div className="grid grid-cols-1 gap-0.5">
+// Station Groups
+const StationGroups = ({ students, isAnimating, animationTargets, teacherNames }) => (
+  <div className="bg-white rounded-lg p-2.5 shadow-md">
+    <div className="text-sm font-bold text-gray-500 mb-1.5">GROUPS</div>
+    <div className="grid grid-cols-1 gap-1">
       {ROTATION_ORDER.map(color => {
         const s = COLORS.stations[color];
+        const name = teacherNames[color];
         const grp = students.filter(st => st.group === color);
         const isTarget = isAnimating && Object.values(animationTargets).includes(color);
         return (
-          <div key={color} className="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs" 
+          <div key={color} className="flex items-center gap-1.5 px-2 py-1.5 rounded"
             style={{ backgroundColor: s.light, border: `1px solid ${s.bg}`, opacity: isAnimating && !isTarget ? 0.5 : 1 }}>
-            <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.bg }} />
-            <span className="font-bold text-gray-700">{s.name.split(' ')[1] || s.name}</span>
-            <span className="text-gray-500 truncate flex-1">: {grp.map(st => st.name.split(' ')[0]).join(', ')}</span>
+            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: s.bg }} />
+            <span className="font-bold text-gray-700 text-sm">{name.split(' ')[1] || name}</span>
+            <span className="text-gray-500 truncate flex-1 text-sm">: {grp.map(st => st.name.split(' ')[0]).join(', ')}</span>
           </div>
         );
       })}
@@ -841,25 +864,36 @@ const RotationAnnouncement = ({ show, phase }) => (
   </div>
 );
 
-export default function SpecialEdScreen() {
-  const [students, setStudents] = useState(DEFAULT_STUDENTS);
-  const [totalTime, setTotalTime] = useState(900);
-  const [timeRemaining, setTimeRemaining] = useState(900);
-  const [isRunning, setIsRunning] = useState(false);
-  const [autoRepeat, setAutoRepeat] = useState(true);
-  const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [rightNowText, setRightNowText] = useState('Working Quietly 🤫');
-  const [firstThen, setFirstThen] = useState({ firstIcon: '📚', firstLabel: 'Reading', thenIcon: '🎮', thenLabel: 'Free Time' });
-  const [rotationSound, setRotationSound] = useState('chime');
-  const [voiceLevel, setVoiceLevel] = useState(1);
-  const [countdownEvent, setCountdownEvent] = useState('Lunch');
-  const [countdownTime, setCountdownTime] = useState('12:00');
-  const [quickMessage, setQuickMessage] = useState('Great job! ⭐');
-  const [starPoints, setStarPoints] = useState(0);
-  const [studentGoals, setStudentGoals] = useState({});
+const STORAGE_KEY = 'specialedscreen-state';
 
-  const [stationConfigs, setStationConfigs] = useState(DEFAULT_STATION_CONFIG);
-  const [customBoxes, setCustomBoxes] = useState([{ id: 'tv', ...DEFAULT_TV_CONFIG }]);
+const loadSaved = (key, fallback) => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (saved && key in saved) return saved[key];
+  } catch (e) {}
+  return fallback;
+};
+
+export default function SpecialEdScreen() {
+  const [students, setStudents] = useState(() => loadSaved('students', DEFAULT_STUDENTS));
+  const [totalTime, setTotalTime] = useState(() => loadSaved('totalTime', 900));
+  const [timeRemaining, setTimeRemaining] = useState(() => loadSaved('totalTime', 900));
+  const [isRunning, setIsRunning] = useState(false);
+  const [autoRepeat, setAutoRepeat] = useState(() => loadSaved('autoRepeat', true));
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [rightNowText, setRightNowText] = useState(() => loadSaved('rightNowText', 'Working Quietly 🤫'));
+  const [firstThen, setFirstThen] = useState(() => loadSaved('firstThen', { firstIcon: '📚', firstLabel: 'Reading', thenIcon: '🎮', thenLabel: 'Free Time' }));
+  const [rotationSound, setRotationSound] = useState(() => loadSaved('rotationSound', 'chime'));
+  const [voiceLevel, setVoiceLevel] = useState(() => loadSaved('voiceLevel', 1));
+  const [countdownEvent, setCountdownEvent] = useState(() => loadSaved('countdownEvent', 'Lunch'));
+  const [countdownTime, setCountdownTime] = useState(() => loadSaved('countdownTime', '12:00'));
+  const [quickMessage, setQuickMessage] = useState(() => loadSaved('quickMessage', 'Great job! ⭐'));
+  const [starPoints, setStarPoints] = useState(() => loadSaved('starPoints', 0));
+  const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
+  const [teacherNames, setTeacherNames] = useState(() => loadSaved('teacherNames', DEFAULT_TEACHER_NAMES));
+
+  const [stationConfigs, setStationConfigs] = useState(() => loadSaved('stationConfigs', DEFAULT_STATION_CONFIG));
+  const [customBoxes, setCustomBoxes] = useState(() => loadSaved('customBoxes', [{ id: 'tv', ...DEFAULT_TV_CONFIG }]));
   const [isEditMode, setIsEditMode] = useState(false);
   const [showStudentManager, setShowStudentManager] = useState(false);
   const [showFirstThenEditor, setShowFirstThenEditor] = useState(false);
@@ -871,7 +905,20 @@ export default function SpecialEdScreen() {
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [announcementPhase, setAnnouncementPhase] = useState('start');
   const [animationTargets, setAnimationTargets] = useState({});
-  
+
+  // Persist state to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        students, totalTime, autoRepeat, rightNowText, firstThen,
+        rotationSound, voiceLevel, countdownEvent, countdownTime,
+        quickMessage, starPoints, studentGoals, stationConfigs, customBoxes, teacherNames
+      }));
+    } catch (e) {}
+  }, [students, totalTime, autoRepeat, rightNowText, firstThen,
+      rotationSound, voiceLevel, countdownEvent, countdownTime,
+      quickMessage, starPoints, studentGoals, stationConfigs, customBoxes, teacherNames]);
+
   useEffect(() => {
     if (!isRunning || timeRemaining <= 0) return;
     const timer = setInterval(() => {
@@ -899,7 +946,7 @@ export default function SpecialEdScreen() {
   return (
     <div className="h-screen overflow-hidden p-2 flex flex-col" style={{ backgroundColor: COLORS.background }}>
       <RotationAnnouncement show={showAnnouncement} phase={announcementPhase} />
-      {showStudentManager && <StudentManager students={students} onUpdate={setStudents} onClose={() => setShowStudentManager(false)} />}
+      {showStudentManager && <StudentManager students={students} onUpdate={setStudents} onClose={() => setShowStudentManager(false)} teacherNames={teacherNames} onUpdateTeachers={setTeacherNames} />}
       {showFirstThenEditor && <FirstThenEditor firstThen={firstThen} onUpdate={setFirstThen} onClose={() => setShowFirstThenEditor(false)} />}
       {showGoalEditor && <GoalEditorModal students={students} goals={studentGoals} onUpdate={setStudentGoals} onClose={() => setShowGoalEditor(false)} />}
       {editingBox && <CustomBoxEditor box={editingBox} onUpdate={(b) => setCustomBoxes(p => p.map(x => x.id === b.id ? b : x))} onDelete={(id) => setCustomBoxes(p => p.filter(x => x.id !== id))} onClose={() => setEditingBox(null)} />}
@@ -952,7 +999,7 @@ export default function SpecialEdScreen() {
             <div ref={floorPlanRef} className="flex-1 relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden"
               style={{ border: isEditMode ? '2px dashed #3B82F6' : '2px solid #e5e7eb' }}>
               <div className="absolute inset-2 border-2 border-gray-300 rounded bg-gray-50/50" />
-              {ROTATION_ORDER.map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} />)}
+              {ROTATION_ORDER.map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c]} />)}
               {customBoxes.map(b => <DraggableBox key={b.id} box={b} onUpdate={(ub) => setCustomBoxes(p => p.map(x => x.id === ub.id ? ub : x))} isEditMode={isEditMode} containerRef={floorPlanRef} onEdit={setEditingBox} />)}
               {!isEditMode && students.map(s => { const grp = students.filter(x => x.group === s.group); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={isAnimating} index={grp.findIndex(x => x.id === s.id)} onClick={() => setSelectedStudentId(s.id)} />; })}
               <div className="absolute bg-amber-700 rounded" style={{ bottom: 6, left: 40, width: 30, height: 5, zIndex: 4 }} />
@@ -1001,7 +1048,7 @@ export default function SpecialEdScreen() {
           <FirstThen firstThen={firstThen} onEdit={() => setShowFirstThenEditor(true)} />
 
           {/* Station Groups */}
-          <StationGroups students={students} isAnimating={isAnimating} animationTargets={animationTargets} />
+          <StationGroups students={students} isAnimating={isAnimating} animationTargets={animationTargets} teacherNames={teacherNames} />
         </div>
       </div>
     </div>
