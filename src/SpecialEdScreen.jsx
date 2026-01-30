@@ -333,7 +333,9 @@ const FirstThenEditor = ({ firstThen, onUpdate, onClose }) => {
     { icon: '🧩', label: 'Puzzles' }, { icon: '💻', label: 'Computer' }, { icon: '🏃', label: 'PE' },
     { icon: '🍎', label: 'Snack' }, { icon: '🥪', label: 'Lunch' }, { icon: '🧹', label: 'Clean Up' },
   ];
-  
+  const isCustomFirst = !activities.some(a => a.icon === editing.firstIcon && a.label === editing.firstLabel);
+  const isCustomThen = !activities.some(a => a.icon === editing.thenIcon && a.label === editing.thenLabel);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -347,22 +349,46 @@ const FirstThenEditor = ({ firstThen, onUpdate, onClose }) => {
             <div className="flex flex-wrap gap-1">
               {activities.map(a => (
                 <button key={a.icon} onClick={() => setEditing(p => ({ ...p, firstIcon: a.icon, firstLabel: a.label }))}
-                  className={`px-2 py-1 rounded text-xs ${editing.firstIcon === a.icon ? 'bg-blue-100 ring-2 ring-blue-400' : 'bg-gray-100'}`}>
+                  className={`px-2 py-1 rounded text-xs ${editing.firstIcon === a.icon && editing.firstLabel === a.label ? 'bg-blue-100 ring-2 ring-blue-400' : 'bg-gray-100'}`}>
                   {a.icon} {a.label}
                 </button>
               ))}
+              <button onClick={() => setEditing(p => ({ ...p, firstIcon: '📝', firstLabel: '' }))}
+                className={`px-2 py-1 rounded text-xs ${isCustomFirst ? 'bg-blue-100 ring-2 ring-blue-400' : 'bg-gray-100'}`}>
+                ✏️ Custom
+              </button>
             </div>
+            {isCustomFirst && (
+              <div className="flex gap-1 mt-1">
+                <input type="text" value={editing.firstIcon} onChange={(e) => setEditing(p => ({ ...p, firstIcon: e.target.value }))}
+                  className="w-10 px-1 py-1 border rounded text-center text-sm" placeholder="📝" maxLength={2} />
+                <input type="text" value={editing.firstLabel} onChange={(e) => setEditing(p => ({ ...p, firstLabel: e.target.value }))}
+                  className="flex-1 px-2 py-1 border rounded text-sm" placeholder="Activity name" />
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-bold text-green-600 mb-1">THEN</label>
             <div className="flex flex-wrap gap-1">
               {activities.map(a => (
                 <button key={a.icon} onClick={() => setEditing(p => ({ ...p, thenIcon: a.icon, thenLabel: a.label }))}
-                  className={`px-2 py-1 rounded text-xs ${editing.thenIcon === a.icon ? 'bg-green-100 ring-2 ring-green-400' : 'bg-gray-100'}`}>
+                  className={`px-2 py-1 rounded text-xs ${editing.thenIcon === a.icon && editing.thenLabel === a.label ? 'bg-green-100 ring-2 ring-green-400' : 'bg-gray-100'}`}>
                   {a.icon} {a.label}
                 </button>
               ))}
+              <button onClick={() => setEditing(p => ({ ...p, thenIcon: '📝', thenLabel: '' }))}
+                className={`px-2 py-1 rounded text-xs ${isCustomThen ? 'bg-green-100 ring-2 ring-green-400' : 'bg-gray-100'}`}>
+                ✏️ Custom
+              </button>
             </div>
+            {isCustomThen && (
+              <div className="flex gap-1 mt-1">
+                <input type="text" value={editing.thenIcon} onChange={(e) => setEditing(p => ({ ...p, thenIcon: e.target.value }))}
+                  className="w-10 px-1 py-1 border rounded text-center text-sm" placeholder="📝" maxLength={2} />
+                <input type="text" value={editing.thenLabel} onChange={(e) => setEditing(p => ({ ...p, thenLabel: e.target.value }))}
+                  className="flex-1 px-2 py-1 border rounded text-sm" placeholder="Activity name" />
+              </div>
+            )}
           </div>
         </div>
         <div className="p-3 border-t bg-gray-50 flex gap-2 justify-end">
@@ -438,7 +464,7 @@ const CustomBoxEditor = ({ box, onUpdate, onDelete, onClose, students }) => {
 };
 
 // Token Board Popup
-const TokenPopup = ({ student, goal, onAddToken, onRemoveToken, onClose }) => {
+const TokenPopup = ({ student, goal, onAddToken, onRemoveToken, onResetTokens, onClose }) => {
   if (!goal) return null;
   const progress = (goal.tokens / goal.goal) * 100;
   const isComplete = goal.tokens >= goal.goal;
@@ -469,13 +495,22 @@ const TokenPopup = ({ student, goal, onAddToken, onRemoveToken, onClose }) => {
               ))}
             </div>
             <div className="text-center text-sm text-gray-600 mb-3">Reward: <span className="font-medium">{goal.reward}</span></div>
+            {isComplete && (
+              <div className="text-center mb-3">
+                <div className="text-lg font-bold text-green-600 mb-1">🎉 Goal Reached!</div>
+              </div>
+            )}
             <div className="flex gap-2 justify-center">
               <button onClick={onRemoveToken}
                 className="px-4 py-2 rounded-lg bg-red-100 text-red-600 font-bold text-sm hover:bg-red-200 disabled:opacity-40"
                 disabled={goal.tokens === 0}>− Remove</button>
-              <button onClick={onAddToken}
-                className={`px-4 py-2 rounded-lg font-bold text-sm ${isComplete ? 'bg-green-200 text-green-700' : 'bg-green-100 text-green-600 hover:bg-green-200'} disabled:opacity-40`}
-                disabled={isComplete}>{isComplete ? '✓ Done!' : '+ Add Token'}</button>
+              {isComplete ? (
+                <button onClick={onResetTokens}
+                  className="px-4 py-2 rounded-lg bg-amber-100 text-amber-700 font-bold text-sm hover:bg-amber-200">↺ Reset</button>
+              ) : (
+                <button onClick={onAddToken}
+                  className="px-4 py-2 rounded-lg font-bold text-sm bg-green-100 text-green-600 hover:bg-green-200">+ Add Token</button>
+              )}
             </div>
           </div>
         ) : (
@@ -502,47 +537,58 @@ const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, tar
 
   // Reserve space for teacher name header
   const headerHeight = Math.max(14, 20 * avatarScale);
-  const itemHeight = avatarSize + nameSize + 4;
-  const itemWidth = avatarSize + 8;
+  const firstName = name.split(' ')[0];
+  // Shrink font for longer names
+  const adjustedNameSize = firstName.length > 6 ? nameSize * 0.8 : nameSize;
+  const itemHeight = avatarSize + 4;
+  const itemWidth = avatarSize + 12;
 
   let left, top;
   if (isVertical) {
-    // Vertical box: stack students vertically, centered horizontally
-    const totalHeight = groupSize * itemHeight;
+    // Vertical box: avatar + name side by side, stacked vertically
+    const availHeight = config.height - headerHeight;
+    const spacing = Math.min(itemHeight, availHeight / groupSize);
+    const totalHeight = groupSize * spacing;
     const bodyTop = config.top + headerHeight;
-    const bodyHeight = config.height - headerHeight;
-    const startY = bodyTop + (bodyHeight - totalHeight) / 2;
-    left = config.left + (config.width / 2) - (avatarSize / 2);
-    top = startY + (index * itemHeight);
+    const startY = bodyTop + (availHeight - totalHeight) / 2;
+    left = config.left + (config.width / 2) - (avatarSize / 2) - 2;
+    top = startY + (index * spacing);
   } else {
-    // Horizontal box: lay students horizontally, centered in body
-    const totalWidth = groupSize * itemWidth;
-    const startX = config.left + (config.width - totalWidth) / 2;
+    // Horizontal box: avatar + name stacked, laid out horizontally
+    const availWidth = config.width;
+    const spacing = Math.min(itemWidth, availWidth / groupSize);
+    const totalWidth = groupSize * spacing;
+    const startX = config.left + (availWidth - totalWidth) / 2;
     const bodyTop = config.top + headerHeight;
     const bodyHeight = config.height - headerHeight;
-    left = startX + (index * itemWidth);
-    top = bodyTop + (bodyHeight - itemHeight) / 2;
+    const itemTotalHeight = avatarSize + adjustedNameSize + 6;
+    left = startX + (index * spacing);
+    top = bodyTop + (bodyHeight - itemTotalHeight) / 2;
   }
 
+  const avatarEl = photo ? (
+    <img src={photo} alt={name} className="rounded-full object-cover shadow-lg border-2 border-white flex-shrink-0"
+      style={{ width: avatarSize, height: avatarSize, boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }} />
+  ) : emoji ? (
+    <div className="rounded-full flex items-center justify-center shadow-lg border-2 border-white flex-shrink-0"
+      style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.55, backgroundColor: colors[name.charCodeAt(0) % 5], boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }}>
+      {emoji}
+    </div>
+  ) : (
+    <div className="rounded-full flex items-center justify-center text-white font-bold shadow-lg flex-shrink-0"
+      style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.4, backgroundColor: colors[name.charCodeAt(0) % 5], boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }}>
+      {initials}
+    </div>
+  );
+
+  const nameEl = <span className="font-medium text-gray-700 bg-white/90 px-0.5 rounded shadow-sm whitespace-nowrap" style={{ fontSize: adjustedNameSize }}>{firstName}</span>;
+
   return (
-    <div className="absolute flex flex-col items-center gap-0.5 cursor-pointer"
+    <div className={`absolute cursor-pointer ${isVertical ? 'flex items-center gap-1' : 'flex flex-col items-center gap-0.5'}`}
       style={{ top, left, transition: 'all 2.5s cubic-bezier(0.25, 0.1, 0.25, 1)', zIndex: isAnimating ? 20 : 10 }}
       onClick={onClick}>
-      {photo ? (
-        <img src={photo} alt={name} className="rounded-full object-cover shadow-lg border-2 border-white"
-          style={{ width: avatarSize, height: avatarSize, boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }} />
-      ) : emoji ? (
-        <div className="rounded-full flex items-center justify-center shadow-lg border-2 border-white"
-          style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.55, backgroundColor: colors[name.charCodeAt(0) % 5], boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }}>
-          {emoji}
-        </div>
-      ) : (
-        <div className="rounded-full flex items-center justify-center text-white font-bold shadow-lg"
-          style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.4, backgroundColor: colors[name.charCodeAt(0) % 5], boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }}>
-          {initials}
-        </div>
-      )}
-      <span className="font-medium text-gray-700 bg-white/90 px-0.5 rounded shadow-sm whitespace-nowrap" style={{ fontSize: nameSize }}>{name}</span>
+      {avatarEl}
+      {nameEl}
     </div>
   );
 };
@@ -628,7 +674,7 @@ const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit, student
   const assignedStudents = (box.assignedStudents || []).map(id => (students || []).find(s => s.id === id)).filter(Boolean);
   const avatarScale = Math.max(0.5, Math.min(1.5, minDim / 70));
   const avatarSize = Math.max(16, 36 * avatarScale);
-  const avatarGap = Math.max(1, 3 * avatarScale);
+  const avatarGap = Math.max(4, 6 * avatarScale);
 
   useEffect(() => {
     if (!isDragging && !isResizing) return;
@@ -655,7 +701,7 @@ const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit, student
       onTouchStart={(e) => { if (!isEditMode || e.target.dataset.resize || e.target.dataset.edit) return; const t = e.touches[0]; const r = ref.current.getBoundingClientRect(); setDragOffset({ x: t.clientX - r.left, y: t.clientY - r.top }); setIsDragging(true); }}>
       {box.icon && <div style={{ fontSize: Math.max(10, 16 * scale) }}>{box.icon}</div>}
       <div className="text-white font-bold truncate px-1 text-center w-full" style={{ fontSize: Math.max(6, 9 * scale) }}>{box.label}</div>
-      {assignedStudents.length > 0 && (
+      {assignedStudents.length > 0 && !box.hideStudents && (
         <div className="flex flex-wrap justify-center px-0.5 mt-0.5" style={{ gap: avatarGap }}>
           {assignedStudents.map(s => (
             <div key={s.id} className="flex flex-col items-center" style={{ gap: 1 }}>
@@ -671,10 +717,18 @@ const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit, student
                   {s.name.split(' ').map(n => n[0]).join('').toUpperCase()}
                 </div>
               )}
-              <span className="text-white font-medium whitespace-nowrap" style={{ fontSize: Math.max(6, avatarSize * 0.35), lineHeight: 1 }}>{s.name.split(' ')[0]}</span>
+              <span className="text-white font-medium whitespace-nowrap text-center" style={{ fontSize: Math.max(6, avatarSize * 0.35), lineHeight: 1 }}>{s.name.split(' ')[0]}</span>
             </div>
           ))}
         </div>
+      )}
+      {assignedStudents.length > 0 && (
+        <button data-edit="true" onClick={(e) => { e.stopPropagation(); onUpdate({ ...box, hideStudents: !box.hideStudents }); }}
+          className="absolute bottom-0.5 right-0.5 rounded-full flex items-center justify-center shadow"
+          style={{ width: 14, height: 14, fontSize: 8, backgroundColor: 'rgba(0,0,0,0.35)', color: 'white', zIndex: 10, lineHeight: 1 }}
+          title={box.hideStudents ? 'Show students' : 'Hide students'}>
+          {box.hideStudents ? '👁' : '👁‍🗨'}
+        </button>
       )}
       {isEditMode && <>
         <button data-edit="true" onClick={(e) => { e.stopPropagation(); onEdit(box); }} className="absolute top-0.5 left-0.5 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center shadow" style={{ zIndex: 10 }}>✏️</button>
@@ -722,7 +776,7 @@ const Timer = ({ timeRemaining, totalTime, isRunning, onTimeChange, onTotalTimeC
   return (
     <div className="bg-white rounded-lg p-3 shadow-md">
       <div className="flex items-center justify-between mb-2">
-        <span className="font-bold" style={{ fontSize: '56px', color: COLORS.text, lineHeight: 1 }}>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
+        <span style={{ fontSize: '56px', color: COLORS.text, lineHeight: 1, fontFamily: "'Fredoka One', cursive" }}>{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
         <span className={`text-sm px-2 py-1 rounded-full ${isRunning ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
           {isRunning ? '●' : '○'}
         </span>
@@ -1072,7 +1126,7 @@ const Banner = ({ text, color, onEdit, onColorChange }) => {
   return (
     <div onClick={() => setEditing(true)} className="rounded-xl p-4 text-white text-center cursor-pointer hover:opacity-90 shadow-lg"
       style={{ backgroundColor: color }}>
-      <div className="text-2xl font-bold">{text || '\u00A0'}</div>
+      <div className="text-2xl" style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800 }}>{text || '\u00A0'}</div>
     </div>
   );
 };
@@ -1114,7 +1168,6 @@ export default function SpecialEdScreen() {
   const [quickMessage, setQuickMessage] = useState(() => loadSaved('quickMessage', 'Great job! ⭐'));
   const [starPoints, setStarPoints] = useState(() => loadSaved('starPoints', 0));
   const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
-  const [teacherNames, setTeacherNames] = useState(() => loadSaved('teacherNames', DEFAULT_TEACHER_NAMES));
   const [customSounds, setCustomSounds] = useState(() => loadSaved('customSounds', []));
   const [stationColors, setStationColors] = useState(() => loadSaved('stationColors', DEFAULT_STATION_COLORS));
   const [rotationOrder, setRotationOrder] = useState(() => loadSaved('rotationOrder', DEFAULT_ROTATION_ORDER));
@@ -1122,15 +1175,23 @@ export default function SpecialEdScreen() {
   // Floor plan tabs - migrate from old format if needed
   const [floorPlans, setFloorPlans] = useState(() => {
     const saved = loadSaved('floorPlans', null);
-    if (saved) return saved;
+    if (saved) {
+      // Ensure each floor plan has teacherNames (migration for existing saved data)
+      return saved.map(fp => ({
+        ...fp,
+        teacherNames: fp.teacherNames || loadSaved('teacherNames', DEFAULT_TEACHER_NAMES)
+      }));
+    }
     // Migration: convert old stationConfigs/customBoxes to floor plan tab
     const oldStations = loadSaved('stationConfigs', DEFAULT_STATION_CONFIG);
-    const oldBoxes = loadSaved('customBoxes', [{ id: 'tv', ...DEFAULT_TV_CONFIG }]);
+    const oldBoxes = loadSaved('customBoxes', []);
+    const oldTeachers = loadSaved('teacherNames', DEFAULT_TEACHER_NAMES);
     return [{
       id: 'plan-1',
       name: 'Main Layout',
       stationConfigs: oldStations,
-      customBoxes: oldBoxes
+      customBoxes: oldBoxes,
+      teacherNames: oldTeachers
     }];
   });
   const [activeFloorPlanId, setActiveFloorPlanId] = useState(() => loadSaved('activeFloorPlanId', 'plan-1'));
@@ -1141,6 +1202,7 @@ export default function SpecialEdScreen() {
   const activeFloorPlan = floorPlans.find(fp => fp.id === activeFloorPlanId) || floorPlans[0];
   const stationConfigs = activeFloorPlan.stationConfigs;
   const customBoxes = activeFloorPlan.customBoxes;
+  const teacherNames = activeFloorPlan.teacherNames || DEFAULT_TEACHER_NAMES;
 
   const setStationConfigs = (updater) => {
     setFloorPlans(prev => prev.map(fp => fp.id === activeFloorPlanId
@@ -1151,6 +1213,12 @@ export default function SpecialEdScreen() {
   const setCustomBoxes = (updater) => {
     setFloorPlans(prev => prev.map(fp => fp.id === activeFloorPlanId
       ? { ...fp, customBoxes: typeof updater === 'function' ? updater(fp.customBoxes) : updater }
+      : fp
+    ));
+  };
+  const setTeacherNames = (updater) => {
+    setFloorPlans(prev => prev.map(fp => fp.id === activeFloorPlanId
+      ? { ...fp, teacherNames: typeof updater === 'function' ? updater(fp.teacherNames || DEFAULT_TEACHER_NAMES) : updater }
       : fp
     ));
   };
@@ -1174,12 +1242,12 @@ export default function SpecialEdScreen() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         students, totalTime, autoRepeat, rightNowText, bannerColor, firstThen,
         rotationSound, voiceLevel, countdownEvent, countdownTime,
-        quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, teacherNames, customSounds, stationColors, rotationOrder
+        quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, customSounds, stationColors, rotationOrder
       }));
     } catch (e) {}
   }, [students, totalTime, autoRepeat, rightNowText, bannerColor, firstThen,
       rotationSound, voiceLevel, countdownEvent, countdownTime,
-      quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, teacherNames, customSounds, stationColors, rotationOrder]);
+      quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, customSounds, stationColors, rotationOrder]);
 
   useEffect(() => {
     if (!isRunning || timeRemaining <= 0) return;
@@ -1212,7 +1280,8 @@ export default function SpecialEdScreen() {
       id: newId,
       name: `Layout ${prev.length + 1}`,
       stationConfigs: {},
-      customBoxes: []
+      customBoxes: [],
+      teacherNames: { ...DEFAULT_TEACHER_NAMES }
     }]);
     setActiveFloorPlanId(newId);
   };
@@ -1287,14 +1356,16 @@ export default function SpecialEdScreen() {
           onAddToken={() => {
             const g = studentGoals[selectedStudentId] || { tokens: 0, goal: 5, reward: '🎮 Free Time', active: true };
             if (g.tokens < g.goal) {
-              const newTokens = g.tokens + 1;
-              setStudentGoals(prev => ({ ...prev, [selectedStudentId]: { ...g, tokens: newTokens } }));
-              if (newTokens === g.goal) setTimeout(() => { if (window.confirm(`🎉 ${student.name} reached their goal! Reset tokens?`)) setStudentGoals(prev => ({ ...prev, [selectedStudentId]: { ...g, tokens: 0 } })); }, 100);
+              setStudentGoals(prev => ({ ...prev, [selectedStudentId]: { ...g, tokens: g.tokens + 1 } }));
             }
           }}
           onRemoveToken={() => {
             const g = studentGoals[selectedStudentId] || { tokens: 0, goal: 5, reward: '🎮 Free Time', active: true };
             if (g.tokens > 0) setStudentGoals(prev => ({ ...prev, [selectedStudentId]: { ...g, tokens: g.tokens - 1 } }));
+          }}
+          onResetTokens={() => {
+            const g = studentGoals[selectedStudentId] || { tokens: 0, goal: 5, reward: '🎮 Free Time', active: true };
+            setStudentGoals(prev => ({ ...prev, [selectedStudentId]: { ...g, tokens: 0 } }));
           }}
           onClose={() => setSelectedStudentId(null)} />;
       })()}
@@ -1307,7 +1378,7 @@ export default function SpecialEdScreen() {
           <Clock />
         </div>
         <div className="flex gap-1">
-          <button onClick={() => setShowStudentManager(true)} className="px-2 py-1 bg-white rounded shadow-sm text-xs">👥 Students</button>
+          <button onClick={() => setShowStudentManager(true)} className="px-2 py-1 bg-white rounded shadow-sm text-xs">👥 Students/Teachers</button>
           {isEditMode && <button onClick={addBox} className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">➕ Box</button>}
           {isEditMode && <button onClick={equalizeStationSizes} className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs">⬜ Equal Size</button>}
           {isEditMode && (() => {
@@ -1386,8 +1457,6 @@ export default function SpecialEdScreen() {
               {rotationOrder.filter(c => stationConfigs[c]).map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c]} stationColors={stationColors} onRemove={removeStationFromTab} />)}
               {customBoxes.map(b => <DraggableBox key={b.id} box={b} onUpdate={(ub) => setCustomBoxes(p => p.map(x => x.id === ub.id ? ub : x))} isEditMode={isEditMode} containerRef={floorPlanRef} onEdit={setEditingBox} students={students} />)}
               {!isEditMode && students.filter(s => stationConfigs[s.group]).map(s => { const grp = students.filter(x => x.group === s.group && stationConfigs[x.group]); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} emoji={s.emoji} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={isAnimating} index={grp.findIndex(x => x.id === s.id)} groupSize={grp.length} onClick={() => setSelectedStudentId(s.id)} />; })}
-              <div className="absolute bg-amber-700 rounded" style={{ bottom: 6, left: 40, width: 30, height: 5, zIndex: 4 }} />
-              <div className="absolute text-xs text-gray-400" style={{ bottom: 0, left: 38, fontSize: '9px' }}>Door</div>
             </div>
           </div>
         </div>
