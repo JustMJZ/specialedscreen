@@ -35,7 +35,7 @@ const DEFAULT_STUDENTS = [
   { id: 10, name: 'William', group: 'pink', photo: null }
 ];
 
-const ROTATION_ORDER = ['purple', 'yellow', 'blue', 'green', 'pink'];
+const DEFAULT_ROTATION_ORDER = ['purple', 'yellow', 'blue', 'green', 'pink'];
 
 const DEFAULT_STATION_CONFIG = {
   yellow: { top: 12, left: 40, width: 100, height: 65 },
@@ -49,127 +49,177 @@ const DEFAULT_TV_CONFIG = { top: 95, left: 330, width: 38, height: 100, label: '
 
 const EMOJI_OPTIONS = ['📺', '🚪', '📚', '🎨', '🧸', '🪑', '🗄️', '🖥️', '📦', '🎵', '🧩', '✏️', '📐', '🗑️', '🚿', '🪴'];
 
-// Sound options
-const ROTATION_SOUNDS = [
-  { id: 'none', name: '🔇 None' },
-  { id: 'chime', name: '🔔 Chime' },
-  { id: 'buzzer', name: '📢 Buzzer' },
-  { id: 'bell', name: '🛎️ School Bell' },
-  { id: 'whistle', name: '📯 Whistle' },
-  { id: 'marimba', name: '🎵 Marimba' },
-  { id: 'gong', name: '🔊 Gong' },
-  { id: 'birds', name: '🐦 Birds Chirping' },
-  { id: 'clap', name: '👏 Clap Pattern' },
-  { id: 'train', name: '🚂 Train Horn' },
+const STATION_COLOR_OPTIONS = [
+  { label: 'Purple', bg: '#B39DDB', light: '#E1D5F0' },
+  { label: 'Yellow', bg: '#FFE082', light: '#FFF3C4' },
+  { label: 'Blue', bg: '#81D4FA', light: '#D0EFFF' },
+  { label: 'Green', bg: '#A5D6A7', light: '#D7F0D8' },
+  { label: 'Pink', bg: '#F8BBD9', light: '#FDE4F0' },
+  { label: 'Red', bg: '#EF9A9A', light: '#FFCDD2' },
+  { label: 'Orange', bg: '#FFCC80', light: '#FFE0B2' },
+  { label: 'Teal', bg: '#80CBC4', light: '#B2DFDB' },
+  { label: 'Indigo', bg: '#9FA8DA', light: '#C5CAE9' },
+  { label: 'Brown', bg: '#BCAAA4', light: '#D7CCC8' },
 ];
 
-// Play distinct sounds
-const playSound = (soundId) => {
-  if (soundId === 'none') return;
-  
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    
-    const playTone = (freq, start, duration, type = 'sine', gain = 0.3) => {
-      const osc = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      osc.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      osc.frequency.value = freq;
-      osc.type = type;
-      gainNode.gain.setValueAtTime(gain, audioContext.currentTime + start);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + start + duration);
-      osc.start(audioContext.currentTime + start);
-      osc.stop(audioContext.currentTime + start + duration);
-    };
-    
-    const playNoise = (start, duration, gain = 0.2) => {
-      const bufferSize = audioContext.sampleRate * duration;
-      const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-      const noise = audioContext.createBufferSource();
-      const gainNode = audioContext.createGain();
-      const filter = audioContext.createBiquadFilter();
-      noise.buffer = buffer;
-      filter.type = 'lowpass';
-      filter.frequency.value = 1000;
-      noise.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      gainNode.gain.setValueAtTime(gain, audioContext.currentTime + start);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + start + duration);
-      noise.start(audioContext.currentTime + start);
-      noise.stop(audioContext.currentTime + start + duration);
-    };
+const DEFAULT_STATION_COLORS = {
+  purple: { bg: '#B39DDB', light: '#E1D5F0' },
+  yellow: { bg: '#FFE082', light: '#FFF3C4' },
+  blue: { bg: '#81D4FA', light: '#D0EFFF' },
+  green: { bg: '#A5D6A7', light: '#D7F0D8' },
+  pink: { bg: '#F8BBD9', light: '#FDE4F0' }
+};
 
-    switch (soundId) {
-      case 'chime':
-        playTone(523, 0, 0.4, 'sine', 0.2);
-        playTone(659, 0.15, 0.4, 'sine', 0.2);
-        playTone(784, 0.3, 0.6, 'sine', 0.25);
-        break;
-      case 'buzzer':
-        playTone(220, 0, 0.15, 'sawtooth', 0.4);
-        playTone(220, 0.2, 0.15, 'sawtooth', 0.4);
-        playTone(220, 0.4, 0.3, 'sawtooth', 0.5);
-        break;
-      case 'bell':
-        playTone(880, 0, 0.5, 'sine', 0.3);
-        playTone(880, 0.08, 0.4, 'sine', 0.2);
-        playTone(880, 0.5, 0.5, 'sine', 0.3);
-        playTone(880, 0.58, 0.4, 'sine', 0.2);
-        break;
-      case 'whistle':
-        playTone(1800, 0, 0.1, 'sine', 0.3);
-        playTone(2200, 0.1, 0.4, 'sine', 0.4);
-        playTone(1800, 0.5, 0.1, 'sine', 0.3);
-        playTone(2200, 0.6, 0.3, 'sine', 0.35);
-        break;
-      case 'marimba':
-        playTone(392, 0, 0.3, 'sine', 0.3);
-        playTone(440, 0.2, 0.3, 'sine', 0.3);
-        playTone(523, 0.4, 0.3, 'sine', 0.3);
-        playTone(659, 0.6, 0.5, 'sine', 0.35);
-        break;
-      case 'gong':
-        playTone(80, 0, 1.5, 'sine', 0.5);
-        playTone(120, 0, 1.2, 'sine', 0.3);
-        playTone(160, 0, 1.0, 'sine', 0.2);
-        playNoise(0, 0.3, 0.15);
-        break;
-      case 'birds':
-        playTone(2000, 0, 0.08, 'sine', 0.2);
-        playTone(2400, 0.1, 0.08, 'sine', 0.2);
-        playTone(2000, 0.2, 0.08, 'sine', 0.2);
-        playTone(1800, 0.35, 0.1, 'sine', 0.2);
-        playTone(2200, 0.5, 0.08, 'sine', 0.2);
-        playTone(2600, 0.6, 0.15, 'sine', 0.25);
-        break;
-      case 'clap':
-        playNoise(0, 0.05, 0.5);
-        playNoise(0.2, 0.05, 0.5);
-        playNoise(0.4, 0.05, 0.4);
-        playNoise(0.5, 0.05, 0.4);
-        playNoise(0.6, 0.05, 0.5);
-        break;
-      case 'train':
-        playTone(277, 0, 0.8, 'sawtooth', 0.25);
-        playTone(311, 0, 0.8, 'sawtooth', 0.25);
-        playTone(370, 0, 0.8, 'sawtooth', 0.2);
-        break;
-      default:
-        playTone(440, 0, 0.3, 'sine', 0.3);
+// Built-in synthesized sounds using Web Audio API
+const ROTATION_SOUNDS = [
+  { id: 'none', name: '🔇 None', type: 'none' },
+  { id: 'chime', name: '✨ Wind Chime', type: 'synth' },
+  { id: 'buzzer', name: '📢 Buzzer', type: 'synth' },
+  { id: 'bell', name: '🛎️ School Bell', type: 'synth' },
+  { id: 'whistle', name: '🎵 Whistle', type: 'synth' },
+  { id: 'marimba', name: '🎹 Marimba', type: 'synth' },
+  { id: 'gong', name: '🔔 Gong', type: 'synth' },
+  { id: 'birds', name: '🐦 Birds', type: 'synth' },
+  { id: 'clap', name: '👏 Clap', type: 'synth' },
+  { id: 'train', name: '🚂 Train', type: 'synth' },
+];
+
+const playSynthSound = (soundId) => {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const now = ctx.currentTime;
+
+    if (soundId === 'chime') {
+      [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, now + i * 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 1);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 1);
+      });
+    } else if (soundId === 'buzzer') {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sawtooth'; osc.frequency.value = 220;
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.5);
+    } else if (soundId === 'bell') {
+      [830, 1245, 1660].forEach((freq) => {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now); osc.stop(now + 1.5);
+      });
+    } else if (soundId === 'whistle') {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, now);
+      osc.frequency.linearRampToValueAtTime(1200, now + 0.3);
+      osc.frequency.linearRampToValueAtTime(800, now + 0.6);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 0.8);
+    } else if (soundId === 'marimba') {
+      [262, 330, 392, 523, 392, 330].forEach((freq, i) => {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'triangle'; osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.3, now + i * 0.12);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.4);
+      });
+    } else if (soundId === 'gong') {
+      [130, 260, 390].forEach((freq) => {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq;
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.98, now + 3);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 3);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now); osc.stop(now + 3);
+      });
+    } else if (soundId === 'birds') {
+      for (let i = 0; i < 5; i++) {
+        const osc = ctx.createOscillator(); const gain = ctx.createGain();
+        osc.type = 'sine';
+        const baseFreq = 2000 + Math.random() * 1000;
+        osc.frequency.setValueAtTime(baseFreq, now + i * 0.2);
+        osc.frequency.linearRampToValueAtTime(baseFreq + 500, now + i * 0.2 + 0.05);
+        osc.frequency.linearRampToValueAtTime(baseFreq - 200, now + i * 0.2 + 0.1);
+        gain.gain.setValueAtTime(0.15, now + i * 0.2);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.15);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + i * 0.2); osc.stop(now + i * 0.2 + 0.15);
+      }
+    } else if (soundId === 'clap') {
+      for (let i = 0; i < 3; i++) {
+        const bufferSize = ctx.sampleRate * 0.05;
+        const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let j = 0; j < bufferSize; j++) data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (bufferSize * 0.2));
+        const source = ctx.createBufferSource(); const gain = ctx.createGain();
+        source.buffer = buffer;
+        gain.gain.setValueAtTime(0.5, now + i * 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.1);
+        source.connect(gain); gain.connect(ctx.destination);
+        source.start(now + i * 0.15);
+      }
+    } else if (soundId === 'train') {
+      const osc = ctx.createOscillator(); const gain = ctx.createGain();
+      osc.type = 'sawtooth'; osc.frequency.value = 440;
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.setValueAtTime(0.2, now + 0.3);
+      gain.gain.setValueAtTime(0.001, now + 0.35);
+      gain.gain.setValueAtTime(0.25, now + 0.5);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now); osc.stop(now + 1.2);
     }
+
+    setTimeout(() => ctx.close(), 4000);
   } catch (e) {
-    console.log('Audio not supported');
+    console.log('Web Audio not supported');
+  }
+};
+
+// Play sound - handles synth, custom uploaded, or none
+const playSound = (soundId, customSounds) => {
+  if (soundId === 'none') return;
+
+  // Check built-in synth sounds
+  const builtIn = ROTATION_SOUNDS.find(s => s.id === soundId);
+  if (builtIn && builtIn.type === 'synth') {
+    playSynthSound(soundId);
+    return;
+  }
+
+  // Check custom sounds
+  const custom = (customSounds || []).find(s => s.id === soundId);
+  if (custom && custom.dataUrl) {
+    try {
+      const audio = new Audio(custom.dataUrl);
+      audio.volume = 0.7;
+      audio.play().catch(e => console.log('Audio playback failed:', e.message));
+    } catch (e) {
+      console.log('Audio playback error');
+    }
   }
 };
 
 // Student Manager Modal
-const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTeachers }) => {
+const STUDENT_EMOJI_OPTIONS = ['🐉', '🦄', '🐱', '🐶', '🐸', '🦊', '🐼', '🐨', '🦁', '🐯', '🐻', '🐰', '🐙', '🦋', '🐢', '🌟', '🚀', '🎨', '🎮', '🏀', '⚽', '🎸', '👑', '💎', '🌈'];
+
+const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTeachers, stationColors, onUpdateStationColors, rotationOrder, onUpdateRotationOrder }) => {
   const [editingStudents, setEditingStudents] = useState([...students]);
   const [editingTeachers, setEditingTeachers] = useState({ ...teacherNames });
+  const [editingColors, setEditingColors] = useState({ ...stationColors });
+  const [editingOrder, setEditingOrder] = useState([...rotationOrder]);
+  const [emojiPickerFor, setEmojiPickerFor] = useState(null);
 
   const handlePhotoUpload = (studentId, file) => {
     if (!file) return;
@@ -182,56 +232,92 @@ const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTea
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-hidden">
-        <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[80vh] overflow-y-auto">
+        <div className="p-3 border-b bg-gray-50 flex items-center justify-between sticky top-0 z-10">
           <h2 className="text-lg font-bold text-gray-800">✏️ Edit Students</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
         </div>
-        <div className="p-3 overflow-y-auto max-h-[50vh]">
+        <div className="p-3">
           <div className="space-y-2">
             {editingStudents.map(student => (
-              <div key={student.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                <label className="cursor-pointer flex-shrink-0">
-                  <input type="file" accept="image/*" className="hidden"
-                    onChange={(e) => handlePhotoUpload(student.id, e.target.files[0])} />
-                  {student.photo ? (
-                    <img src={student.photo} alt={student.name} className="w-10 h-10 rounded-full object-cover border-2 border-gray-300" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 border-2 border-gray-400">📷</div>
+              <div key={student.id} className="p-2 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <div className="flex-shrink-0 relative">
+                    {student.photo ? (
+                      <img src={student.photo} alt={student.name} className="w-10 h-10 rounded-full object-cover border-2 border-gray-300" />
+                    ) : student.emoji ? (
+                      <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-xl border-2 border-purple-300">{student.emoji}</div>
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-xs text-gray-600 border-2 border-gray-400">
+                        {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <input type="text" value={student.name}
+                    onChange={(e) => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, name: e.target.value } : s))}
+                    className="flex-1 px-2 py-1 border rounded text-sm" />
+                  <select value={student.group}
+                    onChange={(e) => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, group: e.target.value } : s))}
+                    className="px-2 py-1 border rounded text-sm" style={{ backgroundColor: editingColors[student.group]?.light || '#eee' }}>
+                    {editingOrder.map(color => (<option key={color} value={color}>{editingTeachers[color]}</option>))}
+                  </select>
+                </div>
+                <div className="flex items-center gap-1 mt-1 ml-12">
+                  <label className="cursor-pointer text-xs px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100">
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(student.id, e.target.files[0])} />
+                    📷 Photo
+                  </label>
+                  <button onClick={() => setEmojiPickerFor(emojiPickerFor === student.id ? null : student.id)}
+                    className={`text-xs px-1.5 py-0.5 rounded ${emojiPickerFor === student.id ? 'bg-purple-200 text-purple-700' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'}`}>
+                    😀 Emoji
+                  </button>
+                  {(student.photo || student.emoji) && (
+                    <button onClick={() => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, photo: null, emoji: null } : s))}
+                      className="text-xs px-1.5 py-0.5 bg-red-50 text-red-500 rounded hover:bg-red-100">✕ Clear</button>
                   )}
-                </label>
-                <input type="text" value={student.name}
-                  onChange={(e) => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, name: e.target.value } : s))}
-                  className="flex-1 px-2 py-1 border rounded text-sm" />
-                <select value={student.group}
-                  onChange={(e) => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, group: e.target.value } : s))}
-                  className="px-2 py-1 border rounded text-sm" style={{ backgroundColor: COLORS.stations[student.group].light }}>
-                  {ROTATION_ORDER.map(color => (<option key={color} value={color}>{editingTeachers[color]}</option>))}
-                </select>
-                {student.photo && (
-                  <button onClick={() => setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, photo: null } : s))}
-                    className="text-red-500 hover:text-red-700 text-xs">🗑️</button>
+                </div>
+                {emojiPickerFor === student.id && (
+                  <div className="flex flex-wrap gap-1 mt-1 ml-12 p-1 bg-white rounded border">
+                    {STUDENT_EMOJI_OPTIONS.map(em => (
+                      <button key={em} onClick={() => { setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, emoji: em, photo: null } : s)); setEmojiPickerFor(null); }}
+                        className={`w-7 h-7 rounded text-base hover:bg-gray-100 ${student.emoji === em ? 'bg-purple-100 ring-1 ring-purple-400' : ''}`}>{em}</button>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}
           </div>
         </div>
         <div className="p-3 border-t border-b bg-blue-50">
-          <div className="text-sm font-bold text-gray-700 mb-2">Teacher / Station Names</div>
-          <div className="space-y-1.5">
-            {ROTATION_ORDER.map(color => (
-              <div key={color} className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: COLORS.stations[color].bg }} />
-                <input type="text" value={editingTeachers[color]}
-                  onChange={(e) => setEditingTeachers(prev => ({ ...prev, [color]: e.target.value }))}
-                  className="flex-1 px-2 py-1 border rounded text-sm" />
+          <div className="text-sm font-bold text-gray-700 mb-2">Stations & Rotation Order</div>
+          <div className="space-y-2">
+            {editingOrder.map((color, idx) => (
+              <div key={color} className="rounded-lg overflow-hidden border" style={{ borderColor: editingColors[color]?.bg || '#ccc' }}>
+                <div className="flex items-center gap-2 px-2 py-1.5" style={{ backgroundColor: editingColors[color]?.light || '#eee' }}>
+                  <span className="text-xs font-bold text-gray-500 w-4">{idx + 1}.</span>
+                  <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: editingColors[color]?.bg || '#ccc' }} />
+                  <input type="text" value={editingTeachers[color]}
+                    onChange={(e) => setEditingTeachers(prev => ({ ...prev, [color]: e.target.value }))}
+                    className="flex-1 px-2 py-1 border rounded text-sm bg-white" />
+                  <button onClick={() => { if (idx === 0) return; setEditingOrder(prev => { const n = [...prev]; [n[idx - 1], n[idx]] = [n[idx], n[idx - 1]]; return n; }); }}
+                    className="text-xs px-1.5 py-1 bg-white rounded hover:bg-gray-100 disabled:opacity-30" disabled={idx === 0}>▲</button>
+                  <button onClick={() => { if (idx === editingOrder.length - 1) return; setEditingOrder(prev => { const n = [...prev]; [n[idx], n[idx + 1]] = [n[idx + 1], n[idx]]; return n; }); }}
+                    className="text-xs px-1.5 py-1 bg-white rounded hover:bg-gray-100 disabled:opacity-30" disabled={idx === editingOrder.length - 1}>▼</button>
+                </div>
+                <div className="flex gap-1 px-2 py-1 bg-white/60">
+                  {STATION_COLOR_OPTIONS.map(opt => (
+                    <button key={opt.label} onClick={() => setEditingColors(prev => ({ ...prev, [color]: { bg: opt.bg, light: opt.light } }))}
+                      className={`w-5 h-5 rounded-full border-2 ${editingColors[color]?.bg === opt.bg ? 'border-gray-800 ring-1 ring-gray-400' : 'border-transparent'}`}
+                      style={{ backgroundColor: opt.bg }} title={opt.label} />
+                  ))}
+                </div>
               </div>
             ))}
           </div>
         </div>
         <div className="p-3 border-t bg-gray-50 flex gap-2 justify-end">
           <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-200 text-sm">Cancel</button>
-          <button onClick={() => { onUpdate(editingStudents); onUpdateTeachers(editingTeachers); onClose(); }} className="px-3 py-1.5 rounded-lg bg-teal-500 text-white text-sm">Save</button>
+          <button onClick={() => { onUpdate(editingStudents); onUpdateTeachers(editingTeachers); onUpdateStationColors(editingColors); onUpdateRotationOrder(editingOrder); onClose(); }} className="px-3 py-1.5 rounded-lg bg-teal-500 text-white text-sm">Save</button>
         </div>
       </div>
     </div>
@@ -289,13 +375,22 @@ const FirstThenEditor = ({ firstThen, onUpdate, onClose }) => {
 };
 
 // Custom Box Editor
-const CustomBoxEditor = ({ box, onUpdate, onDelete, onClose }) => {
-  const [editing, setEditing] = useState({ ...box });
-  
+const CustomBoxEditor = ({ box, onUpdate, onDelete, onClose, students }) => {
+  const [editing, setEditing] = useState({ ...box, assignedStudents: box.assignedStudents || [] });
+
+  const toggleStudent = (studentId) => {
+    setEditing(p => ({
+      ...p,
+      assignedStudents: p.assignedStudents.includes(studentId)
+        ? p.assignedStudents.filter(id => id !== studentId)
+        : [...p.assignedStudents, studentId]
+    }));
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs overflow-hidden">
-        <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xs overflow-hidden max-h-[80vh] overflow-y-auto">
+        <div className="p-3 border-b bg-gray-50 flex items-center justify-between sticky top-0 z-10">
           <h2 className="font-bold text-gray-800">✏️ Edit Box</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl">✕</button>
         </div>
@@ -303,17 +398,32 @@ const CustomBoxEditor = ({ box, onUpdate, onDelete, onClose }) => {
           <input type="text" value={editing.label} onChange={(e) => setEditing(p => ({ ...p, label: e.target.value }))}
             className="w-full px-2 py-1 border rounded text-sm mb-2" placeholder="Label" />
           <div className="flex flex-wrap gap-1 mb-2">
+            <button onClick={() => setEditing(p => ({ ...p, icon: '' }))}
+              className={`w-8 h-8 rounded text-sm font-bold ${!editing.icon ? 'bg-red-100 ring-2 ring-red-400 text-red-500' : 'bg-gray-100 text-gray-400'}`}>✕</button>
             {EMOJI_OPTIONS.map(e => (
               <button key={e} onClick={() => setEditing(p => ({ ...p, icon: e }))}
                 className={`w-8 h-8 rounded text-lg ${editing.icon === e ? 'bg-blue-100 ring-2 ring-blue-400' : 'bg-gray-100'}`}>{e}</button>
             ))}
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 mb-2">
             {['#6B7280', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map(c => (
               <button key={c} onClick={() => setEditing(p => ({ ...p, color: c }))}
                 className={`w-6 h-6 rounded-full ${editing.color === c ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`} style={{ backgroundColor: c }} />
             ))}
           </div>
+          {students && students.length > 0 && (
+            <div>
+              <div className="text-xs font-bold text-gray-500 mb-1">STUDENTS IN BOX</div>
+              <div className="flex flex-wrap gap-1">
+                {students.map(s => (
+                  <label key={s.id} className={`flex items-center gap-1 px-2 py-1 rounded text-xs cursor-pointer ${editing.assignedStudents.includes(s.id) ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>
+                    <input type="checkbox" checked={editing.assignedStudents.includes(s.id)} onChange={() => toggleStudent(s.id)} className="rounded" style={{ width: 12, height: 12 }} />
+                    {s.name.split(' ')[0]}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
         <div className="p-3 border-t bg-gray-50 flex justify-between">
           <button onClick={() => { onDelete(box.id); onClose(); }} className="px-3 py-1.5 rounded-lg bg-red-100 text-red-600 text-sm">🗑️</button>
@@ -354,7 +464,7 @@ const TokenPopup = ({ student, goal, onAddToken, onRemoveToken, onClose }) => {
             <div className="flex flex-wrap gap-1 justify-center mb-3">
               {Array.from({ length: goal.goal }).map((_, i) => (
                 <div key={i} className={`w-7 h-7 rounded-full flex items-center justify-center text-sm border-2 ${i < goal.tokens ? 'bg-yellow-400 border-yellow-500 text-yellow-800' : 'bg-gray-100 border-gray-300 text-gray-400'}`}>
-                  {i < goal.tokens ? '⭐' : '○'}
+                  {i < goal.tokens ? (goal.tokenEmoji || '⭐') : '○'}
                 </div>
               ))}
             </div>
@@ -377,7 +487,7 @@ const TokenPopup = ({ student, goal, onAddToken, onRemoveToken, onClose }) => {
 };
 
 // Animated student
-const AnimatedStudent = ({ name, photo, stationConfigs, currentGroup, targetGroup, isAnimating, index, groupSize, onClick }) => {
+const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, targetGroup, isAnimating, index, groupSize, onClick }) => {
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
   const colors = ['#FF8A7A', '#5BC0BE', '#7BC47F', '#FFD166', '#B39DDB'];
   const group = isAnimating ? targetGroup : currentGroup;
@@ -421,6 +531,11 @@ const AnimatedStudent = ({ name, photo, stationConfigs, currentGroup, targetGrou
       {photo ? (
         <img src={photo} alt={name} className="rounded-full object-cover shadow-lg border-2 border-white"
           style={{ width: avatarSize, height: avatarSize, boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }} />
+      ) : emoji ? (
+        <div className="rounded-full flex items-center justify-center shadow-lg border-2 border-white"
+          style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.55, backgroundColor: colors[name.charCodeAt(0) % 5], boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }}>
+          {emoji}
+        </div>
       ) : (
         <div className="rounded-full flex items-center justify-center text-white font-bold shadow-lg"
           style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.4, backgroundColor: colors[name.charCodeAt(0) % 5], boxShadow: isAnimating ? `0 4px 15px ${colors[name.charCodeAt(0) % 5]}80` : '0 2px 6px rgba(0,0,0,0.15)' }}>
@@ -433,8 +548,8 @@ const AnimatedStudent = ({ name, photo, stationConfigs, currentGroup, targetGrou
 };
 
 // Draggable station - FIXED: All text scales with box
-const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, containerRef, students, teacherName }) => {
-  const station = COLORS.stations[color];
+const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, containerRef, students, teacherName, stationColors, onRemove }) => {
+  const station = stationColors[color] || COLORS.stations[color];
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -491,22 +606,30 @@ const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, conta
         </div>
       )}
       
-      {isEditMode && <div data-resize="true" className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" style={{ background: `linear-gradient(135deg, transparent 50%, ${station.bg} 50%)` }}
-        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setIsResizing(true); }} onTouchStart={(e) => { e.stopPropagation(); setIsResizing(true); }} />}
+      {isEditMode && <>
+        <div data-resize="true" className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" style={{ background: `linear-gradient(135deg, transparent 50%, ${station.bg} 50%)` }}
+          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setIsResizing(true); }} onTouchStart={(e) => { e.stopPropagation(); setIsResizing(true); }} />
+        {onRemove && <button data-resize="true" onClick={(e) => { e.stopPropagation(); onRemove(color); }}
+          className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow hover:bg-red-600" style={{ fontSize: 9, lineHeight: 1, zIndex: 10 }}>✕</button>}
+      </>}
     </div>
   );
 };
 
 // Draggable custom box
-const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit }) => {
+const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit, students }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const ref = useRef(null);
-  
+
   const minDim = Math.min(box.width, box.height);
   const scale = Math.max(0.5, Math.min(1, minDim / 50));
-  
+  const assignedStudents = (box.assignedStudents || []).map(id => (students || []).find(s => s.id === id)).filter(Boolean);
+  const avatarScale = Math.max(0.5, Math.min(1.5, minDim / 70));
+  const avatarSize = Math.max(16, 36 * avatarScale);
+  const avatarGap = Math.max(1, 3 * avatarScale);
+
   useEffect(() => {
     if (!isDragging && !isResizing) return;
     const handleMove = (x, y) => {
@@ -522,16 +645,39 @@ const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit }) => {
     document.addEventListener('touchmove', onTM); document.addEventListener('touchend', onEnd);
     return () => { document.removeEventListener('mousemove', onMM); document.removeEventListener('mouseup', onEnd); document.removeEventListener('touchmove', onTM); document.removeEventListener('touchend', onEnd); };
   }, [isDragging, isResizing, dragOffset, box, onUpdate, containerRef]);
-  
+
+  const colors = ['#FF8A7A', '#5BC0BE', '#7BC47F', '#FFD166', '#B39DDB'];
+
   return (
     <div ref={ref} className={`absolute rounded flex flex-col items-center justify-center shadow-lg select-none overflow-hidden ${isEditMode ? 'cursor-move' : ''}`}
       style={{ top: box.top, left: box.left, width: box.width, height: box.height, backgroundColor: box.color, zIndex: isDragging || isResizing ? 100 : 4 }}
       onMouseDown={(e) => { if (!isEditMode || e.target.dataset.resize || e.target.dataset.edit) return; e.preventDefault(); const r = ref.current.getBoundingClientRect(); setDragOffset({ x: e.clientX - r.left, y: e.clientY - r.top }); setIsDragging(true); }}
       onTouchStart={(e) => { if (!isEditMode || e.target.dataset.resize || e.target.dataset.edit) return; const t = e.touches[0]; const r = ref.current.getBoundingClientRect(); setDragOffset({ x: t.clientX - r.left, y: t.clientY - r.top }); setIsDragging(true); }}>
-      <div style={{ fontSize: Math.max(10, 16 * scale) }}>{box.icon}</div>
+      {box.icon && <div style={{ fontSize: Math.max(10, 16 * scale) }}>{box.icon}</div>}
       <div className="text-white font-bold truncate px-1 text-center w-full" style={{ fontSize: Math.max(6, 9 * scale) }}>{box.label}</div>
+      {assignedStudents.length > 0 && (
+        <div className="flex flex-wrap justify-center px-0.5 mt-0.5" style={{ gap: avatarGap }}>
+          {assignedStudents.map(s => (
+            <div key={s.id} className="flex flex-col items-center" style={{ gap: 1 }}>
+              {s.photo ? (
+                <img src={s.photo} alt={s.name} className="rounded-full object-cover border-2 border-white/60"
+                  style={{ width: avatarSize, height: avatarSize }} />
+              ) : s.emoji ? (
+                <div className="rounded-full flex items-center justify-center border-2 border-white/60"
+                  style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.75, backgroundColor: colors[s.name.charCodeAt(0) % 5] }}>{s.emoji}</div>
+              ) : (
+                <div className="rounded-full flex items-center justify-center text-white font-bold border-2 border-white/60"
+                  style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.4, backgroundColor: colors[s.name.charCodeAt(0) % 5] }}>
+                  {s.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </div>
+              )}
+              <span className="text-white font-medium whitespace-nowrap" style={{ fontSize: Math.max(6, avatarSize * 0.35), lineHeight: 1 }}>{s.name.split(' ')[0]}</span>
+            </div>
+          ))}
+        </div>
+      )}
       {isEditMode && <>
-        <button data-edit="true" onClick={(e) => { e.stopPropagation(); onEdit(box); }} className="absolute -top-1 -left-1 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center">✏️</button>
+        <button data-edit="true" onClick={(e) => { e.stopPropagation(); onEdit(box); }} className="absolute top-0.5 left-0.5 w-4 h-4 bg-blue-500 rounded-full text-white text-xs flex items-center justify-center shadow" style={{ zIndex: 10 }}>✏️</button>
         <div data-resize="true" className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize" style={{ background: 'linear-gradient(135deg, transparent 50%, rgba(255,255,255,0.5) 50%)' }}
           onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setIsResizing(true); }} onTouchStart={(e) => { e.stopPropagation(); setIsResizing(true); }} />
       </>}
@@ -540,12 +686,12 @@ const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit }) => {
 };
 
 // Station Groups
-const StationGroups = ({ students, isAnimating, animationTargets, teacherNames }) => (
+const StationGroups = ({ students, isAnimating, animationTargets, teacherNames, stationColors, rotationOrder }) => (
   <div className="bg-white rounded-lg p-2.5 shadow-md">
     <div className="text-sm font-bold text-gray-500 mb-1.5">GROUPS</div>
     <div className="grid grid-cols-1 gap-1">
-      {ROTATION_ORDER.map(color => {
-        const s = COLORS.stations[color];
+      {rotationOrder.map(color => {
+        const s = stationColors[color] || COLORS.stations[color];
         const name = teacherNames[color];
         const grp = students.filter(st => st.group === color);
         const isTarget = isAnimating && Object.values(animationTargets).includes(color);
@@ -610,19 +756,53 @@ const Timer = ({ timeRemaining, totalTime, isRunning, onTimeChange, onTotalTimeC
   );
 };
 
-// Sound Dropdown Selector
-const SoundSelector = ({ selectedSound, onSelect }) => (
-  <div className="bg-white rounded-lg p-2 shadow-md">
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-bold text-gray-500">🔊 SOUND:</span>
-      <select value={selectedSound} onChange={(e) => { onSelect(e.target.value); playSound(e.target.value); }}
-        className="flex-1 px-2 py-1 text-sm border rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300">
-        {ROTATION_SOUNDS.map(sound => (<option key={sound.id} value={sound.id}>{sound.name}</option>))}
-      </select>
-      <button onClick={() => playSound(selectedSound)} className="px-2 py-1 text-xs bg-purple-100 text-purple-600 rounded hover:bg-purple-200">▶</button>
+// Sound Dropdown Selector with custom upload
+const SoundSelector = ({ selectedSound, onSelect, customSounds, onCustomSoundsChange }) => {
+  const fileInputRef = useRef(null);
+
+  const handleUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const name = window.prompt('Name for this sound:', file.name.replace(/\.[^.]+$/, ''));
+    if (!name) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const newSound = { id: `custom-${Date.now()}`, name, dataUrl: ev.target.result };
+      onCustomSoundsChange([...customSounds, newSound]);
+      onSelect(newSound.id);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const handleDelete = (id) => {
+    if (!window.confirm('Delete this custom sound?')) return;
+    onCustomSoundsChange(customSounds.filter(s => s.id !== id));
+    if (selectedSound === id) onSelect('none');
+  };
+
+  const allSounds = [...ROTATION_SOUNDS, ...customSounds.map(s => ({ id: s.id, name: `🎵 ${s.name}`, type: 'custom' }))];
+
+  return (
+    <div className="bg-white rounded-lg p-2 shadow-md">
+      <div className="flex items-center gap-2">
+        <span className="text-xs font-bold text-gray-500">🔊 SOUND:</span>
+        <select value={selectedSound} onChange={(e) => { onSelect(e.target.value); playSound(e.target.value, customSounds); }}
+          className="flex-1 px-2 py-1 text-sm border rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-300">
+          {allSounds.map(sound => (<option key={sound.id} value={sound.id}>{sound.name}</option>))}
+        </select>
+        <button onClick={() => playSound(selectedSound, customSounds)} className="px-2 py-1 text-xs bg-purple-100 text-purple-600 rounded hover:bg-purple-200">▶</button>
+      </div>
+      <div className="flex items-center gap-1 mt-1">
+        <input ref={fileInputRef} type="file" accept=".mp3,.wav,.ogg" className="hidden" onChange={handleUpload} />
+        <button onClick={() => fileInputRef.current.click()} className="text-xs bg-gray-100 hover:bg-gray-200 px-2 py-0.5 rounded text-gray-600">+ Upload Sound</button>
+        {customSounds.find(s => s.id === selectedSound) && (
+          <button onClick={() => handleDelete(selectedSound)} className="text-xs bg-red-50 hover:bg-red-100 px-2 py-0.5 rounded text-red-500">🗑️ Delete</button>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Voice Level Widget
 const VoiceLevel = ({ level, onChange }) => {
@@ -750,6 +930,8 @@ const StarPoints = ({ points, onAdd, onSubtract, onReset }) => (
 );
 
 // Goal Editor Modal
+const TOKEN_EMOJI_OPTIONS = ['⭐', '🌟', '💎', '🔥', '❤️', '🍀', '🎯', '🏅', '👑', '🦄', '🐾', '🌈', '🍎', '🎵', '🚀', '💜'];
+
 const GoalEditorModal = ({ students, goals, onUpdate, onClose }) => {
   const [editingGoals, setEditingGoals] = useState({ ...goals });
 
@@ -759,7 +941,7 @@ const GoalEditorModal = ({ students, goals, onUpdate, onClose }) => {
   const handleGoalChange = (studentId, field, value) => {
     setEditingGoals(prev => ({
       ...prev,
-      [studentId]: { ...(prev[studentId] || { tokens: 0, goal: 5, reward: '🎮 Free Time', active: true }), [field]: value }
+      [studentId]: { ...(prev[studentId] || { tokens: 0, goal: 5, reward: '🎮 Free Time', active: true, tokenEmoji: '⭐' }), [field]: value }
     }));
   };
 
@@ -803,11 +985,25 @@ const GoalEditorModal = ({ students, goals, onUpdate, onClose }) => {
                       </div>
                       <div>
                         <label className="text-xs text-gray-600">Reward</label>
-                        <select value={goal.reward}
-                          onChange={(e) => handleGoalChange(student.id, 'reward', e.target.value)}
+                        <select value={rewardOptions.includes(goal.reward) ? goal.reward : '__custom__'}
+                          onChange={(e) => { if (e.target.value !== '__custom__') handleGoalChange(student.id, 'reward', e.target.value); else handleGoalChange(student.id, 'reward', ''); }}
                           className="w-full px-2 py-1 border rounded text-sm">
                           {rewardOptions.map(r => <option key={r} value={r}>{r}</option>)}
+                          <option value="__custom__">✏️ Custom...</option>
                         </select>
+                        {!rewardOptions.includes(goal.reward) && (
+                          <input type="text" value={goal.reward} onChange={(e) => handleGoalChange(student.id, 'reward', e.target.value)}
+                            placeholder="Type custom reward..." className="w-full px-2 py-1 border rounded text-sm mt-1" />
+                        )}
+                      </div>
+                      <div className="mt-1">
+                        <label className="text-xs text-gray-600">Token Emoji</label>
+                        <div className="flex flex-wrap gap-1 mt-0.5">
+                          {TOKEN_EMOJI_OPTIONS.map(em => (
+                            <button key={em} onClick={() => handleGoalChange(student.id, 'tokenEmoji', em)}
+                              className={`w-7 h-7 rounded text-base hover:bg-gray-100 ${(goal.tokenEmoji || '⭐') === em ? 'bg-blue-100 ring-2 ring-blue-400' : 'bg-gray-50'}`}>{em}</button>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )}
@@ -853,24 +1049,30 @@ const FirstThen = ({ firstThen, onEdit }) => (
   </div>
 );
 
-// Right Now Widget
-const RightNow = ({ text, onEdit }) => {
+// Custom Banner
+const BANNER_COLORS = ['#0D9488', '#3B82F6', '#8B5CF6', '#EC4899', '#EF4444', '#F59E0B', '#10B981', '#6366F1', '#1a1a2e'];
+const Banner = ({ text, color, onEdit, onColorChange }) => {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(text);
   if (editing) return (
-    <div className="bg-gradient-to-r from-teal-400 to-cyan-400 rounded-xl p-3 text-white">
-      <input value={val} onChange={e => setVal(e.target.value)} className="w-full px-3 py-2 rounded text-gray-800 text-lg" autoFocus 
+    <div className="rounded-xl p-3 text-white" style={{ backgroundColor: color }}>
+      <input value={val} onChange={e => setVal(e.target.value)} className="w-full px-3 py-2 rounded text-gray-800 text-lg" autoFocus
         onKeyDown={e => { if (e.key === 'Enter') { onEdit(val); setEditing(false); }}} />
-      <div className="flex gap-2 mt-2 justify-end">
+      <div className="flex items-center gap-1 mt-2">
+        {BANNER_COLORS.map(c => (
+          <button key={c} onClick={() => onColorChange(c)}
+            className={`w-5 h-5 rounded-full ${color === c ? 'ring-2 ring-offset-1 ring-white' : ''}`} style={{ backgroundColor: c }} />
+        ))}
+        <div className="flex-1" />
         <button onClick={() => setEditing(false)} className="px-3 py-1 bg-white/20 rounded text-sm">Cancel</button>
         <button onClick={() => { onEdit(val); setEditing(false); }} className="px-3 py-1 bg-white/30 rounded font-medium text-sm">Save</button>
       </div>
     </div>
   );
   return (
-    <div onClick={() => setEditing(true)} className="bg-gradient-to-r from-teal-400 to-cyan-400 rounded-xl p-4 text-white text-center cursor-pointer hover:opacity-90 shadow-lg">
-      <div className="text-sm opacity-90 font-medium">RIGHT NOW WE ARE...</div>
-      <div className="text-2xl font-bold mt-1">{text}</div>
+    <div onClick={() => setEditing(true)} className="rounded-xl p-4 text-white text-center cursor-pointer hover:opacity-90 shadow-lg"
+      style={{ backgroundColor: color }}>
+      <div className="text-2xl font-bold">{text || '\u00A0'}</div>
     </div>
   );
 };
@@ -902,7 +1104,8 @@ export default function SpecialEdScreen() {
   const [isRunning, setIsRunning] = useState(false);
   const [autoRepeat, setAutoRepeat] = useState(() => loadSaved('autoRepeat', true));
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [rightNowText, setRightNowText] = useState(() => loadSaved('rightNowText', 'Working Quietly 🤫'));
+  const [rightNowText, setRightNowText] = useState(() => loadSaved('rightNowText', 'Working Quietly'));
+  const [bannerColor, setBannerColor] = useState(() => loadSaved('bannerColor', '#0D9488'));
   const [firstThen, setFirstThen] = useState(() => loadSaved('firstThen', { firstIcon: '📚', firstLabel: 'Reading', thenIcon: '🎮', thenLabel: 'Free Time' }));
   const [rotationSound, setRotationSound] = useState(() => loadSaved('rotationSound', 'chime'));
   const [voiceLevel, setVoiceLevel] = useState(() => loadSaved('voiceLevel', 1));
@@ -912,10 +1115,48 @@ export default function SpecialEdScreen() {
   const [starPoints, setStarPoints] = useState(() => loadSaved('starPoints', 0));
   const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
   const [teacherNames, setTeacherNames] = useState(() => loadSaved('teacherNames', DEFAULT_TEACHER_NAMES));
+  const [customSounds, setCustomSounds] = useState(() => loadSaved('customSounds', []));
+  const [stationColors, setStationColors] = useState(() => loadSaved('stationColors', DEFAULT_STATION_COLORS));
+  const [rotationOrder, setRotationOrder] = useState(() => loadSaved('rotationOrder', DEFAULT_ROTATION_ORDER));
 
-  const [stationConfigs, setStationConfigs] = useState(() => loadSaved('stationConfigs', DEFAULT_STATION_CONFIG));
-  const [customBoxes, setCustomBoxes] = useState(() => loadSaved('customBoxes', [{ id: 'tv', ...DEFAULT_TV_CONFIG }]));
+  // Floor plan tabs - migrate from old format if needed
+  const [floorPlans, setFloorPlans] = useState(() => {
+    const saved = loadSaved('floorPlans', null);
+    if (saved) return saved;
+    // Migration: convert old stationConfigs/customBoxes to floor plan tab
+    const oldStations = loadSaved('stationConfigs', DEFAULT_STATION_CONFIG);
+    const oldBoxes = loadSaved('customBoxes', [{ id: 'tv', ...DEFAULT_TV_CONFIG }]);
+    return [{
+      id: 'plan-1',
+      name: 'Main Layout',
+      stationConfigs: oldStations,
+      customBoxes: oldBoxes
+    }];
+  });
+  const [activeFloorPlanId, setActiveFloorPlanId] = useState(() => loadSaved('activeFloorPlanId', 'plan-1'));
+  const [renamingTabId, setRenamingTabId] = useState(null);
+  const [renameValue, setRenameValue] = useState('');
+
+  // Derive current floor plan data from active tab
+  const activeFloorPlan = floorPlans.find(fp => fp.id === activeFloorPlanId) || floorPlans[0];
+  const stationConfigs = activeFloorPlan.stationConfigs;
+  const customBoxes = activeFloorPlan.customBoxes;
+
+  const setStationConfigs = (updater) => {
+    setFloorPlans(prev => prev.map(fp => fp.id === activeFloorPlanId
+      ? { ...fp, stationConfigs: typeof updater === 'function' ? updater(fp.stationConfigs) : updater }
+      : fp
+    ));
+  };
+  const setCustomBoxes = (updater) => {
+    setFloorPlans(prev => prev.map(fp => fp.id === activeFloorPlanId
+      ? { ...fp, customBoxes: typeof updater === 'function' ? updater(fp.customBoxes) : updater }
+      : fp
+    ));
+  };
+
   const [isEditMode, setIsEditMode] = useState(false);
+  const [showAddStationMenu, setShowAddStationMenu] = useState(false);
   const [showStudentManager, setShowStudentManager] = useState(false);
   const [showFirstThenEditor, setShowFirstThenEditor] = useState(false);
   const [showGoalEditor, setShowGoalEditor] = useState(false);
@@ -931,14 +1172,14 @@ export default function SpecialEdScreen() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        students, totalTime, autoRepeat, rightNowText, firstThen,
+        students, totalTime, autoRepeat, rightNowText, bannerColor, firstThen,
         rotationSound, voiceLevel, countdownEvent, countdownTime,
-        quickMessage, starPoints, studentGoals, stationConfigs, customBoxes, teacherNames
+        quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, teacherNames, customSounds, stationColors, rotationOrder
       }));
     } catch (e) {}
-  }, [students, totalTime, autoRepeat, rightNowText, firstThen,
+  }, [students, totalTime, autoRepeat, rightNowText, bannerColor, firstThen,
       rotationSound, voiceLevel, countdownEvent, countdownTime,
-      quickMessage, starPoints, studentGoals, stationConfigs, customBoxes, teacherNames]);
+      quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, teacherNames, customSounds, stationColors, rotationOrder]);
 
   useEffect(() => {
     if (!isRunning || timeRemaining <= 0) return;
@@ -951,26 +1192,94 @@ export default function SpecialEdScreen() {
     return () => clearInterval(timer);
   }, [isRunning, autoRepeat, totalTime]);
   
-  const getNextGroup = (g) => ROTATION_ORDER[(ROTATION_ORDER.indexOf(g) + 1) % 5];
+  const getNextGroup = (g) => rotationOrder[(rotationOrder.indexOf(g) + 1) % rotationOrder.length];
   
   const triggerRotation = () => {
     if (isAnimating || isEditMode) return;
-    playSound(rotationSound);
+    playSound(rotationSound, customSounds);
     setShowAnnouncement(true); setAnnouncementPhase('start');
     setTimeout(() => { setAnnouncementPhase('moving'); setIsAnimating(true); const t = {}; students.forEach(s => { t[s.id] = getNextGroup(s.group); }); setAnimationTargets(t); }, 1500);
     setTimeout(() => setShowAnnouncement(false), 3000);
     setTimeout(() => { setStudents(p => p.map(s => ({ ...s, group: getNextGroup(s.group) }))); setAnimationTargets({}); setIsAnimating(false); }, 4500);
   };
   
-  const addBox = () => setCustomBoxes(p => [...p, { id: `box-${Date.now()}`, top: 120, left: 180, width: 45, height: 45, label: 'New', icon: '📦', color: '#6B7280' }]);
+  const addBox = () => setCustomBoxes(p => [...p, { id: `box-${Date.now()}`, top: 120, left: 180, width: 45, height: 45, label: '', icon: '', color: '#6B7280', assignedStudents: [] }]);
+
+  // Floor plan tab management
+  const addFloorPlan = () => {
+    const newId = `plan-${Date.now()}`;
+    setFloorPlans(prev => [...prev, {
+      id: newId,
+      name: `Layout ${prev.length + 1}`,
+      stationConfigs: {},
+      customBoxes: []
+    }]);
+    setActiveFloorPlanId(newId);
+  };
+
+  const addStationToTab = (color) => {
+    const defaultPositions = DEFAULT_STATION_CONFIG[color] || { top: 50, left: 50, width: 100, height: 65 };
+    setStationConfigs(p => ({ ...p, [color]: { ...defaultPositions } }));
+  };
+
+  const removeStationFromTab = (color) => {
+    setStationConfigs(p => {
+      const next = { ...p };
+      delete next[color];
+      return next;
+    });
+  };
+
+  const equalizeStationSizes = () => {
+    const stationKeys = rotationOrder.filter(c => stationConfigs[c]);
+    // Gather all items: stations + custom boxes
+    const allItems = [];
+    stationKeys.forEach(c => allItems.push({ type: 'station', key: c, w: stationConfigs[c].width, h: stationConfigs[c].height }));
+    customBoxes.forEach(b => allItems.push({ type: 'box', key: b.id, w: b.width, h: b.height }));
+    if (allItems.length === 0) return;
+    // Use the first item as the reference size
+    const targetW = allItems[0].w;
+    const targetH = allItems[0].h;
+    if (stationKeys.length > 0) {
+      setStationConfigs(p => {
+        const next = { ...p };
+        stationKeys.forEach(c => { next[c] = { ...next[c], width: targetW, height: targetH }; });
+        return next;
+      });
+    }
+    if (customBoxes.length > 0) {
+      setCustomBoxes(p => p.map(b => ({ ...b, width: targetW, height: targetH })));
+    }
+  };
+
+  const deleteFloorPlan = (id) => {
+    if (floorPlans.length <= 1) return;
+    if (!window.confirm('Delete this floor plan layout?')) return;
+    setFloorPlans(prev => prev.filter(fp => fp.id !== id));
+    if (activeFloorPlanId === id) {
+      setActiveFloorPlanId(floorPlans.find(fp => fp.id !== id).id);
+    }
+  };
+
+  const startRenamingTab = (id, currentName) => {
+    setRenamingTabId(id);
+    setRenameValue(currentName);
+  };
+
+  const finishRenamingTab = () => {
+    if (renamingTabId && renameValue.trim()) {
+      setFloorPlans(prev => prev.map(fp => fp.id === renamingTabId ? { ...fp, name: renameValue.trim() } : fp));
+    }
+    setRenamingTabId(null);
+  };
 
   return (
     <div className="h-screen overflow-hidden p-2 flex flex-col" style={{ backgroundColor: COLORS.background }}>
       <RotationAnnouncement show={showAnnouncement} phase={announcementPhase} />
-      {showStudentManager && <StudentManager students={students} onUpdate={setStudents} onClose={() => setShowStudentManager(false)} teacherNames={teacherNames} onUpdateTeachers={setTeacherNames} />}
+      {showStudentManager && <StudentManager students={students} onUpdate={setStudents} onClose={() => setShowStudentManager(false)} teacherNames={teacherNames} onUpdateTeachers={setTeacherNames} stationColors={stationColors} onUpdateStationColors={setStationColors} rotationOrder={rotationOrder} onUpdateRotationOrder={setRotationOrder} />}
       {showFirstThenEditor && <FirstThenEditor firstThen={firstThen} onUpdate={setFirstThen} onClose={() => setShowFirstThenEditor(false)} />}
       {showGoalEditor && <GoalEditorModal students={students} goals={studentGoals} onUpdate={setStudentGoals} onClose={() => setShowGoalEditor(false)} />}
-      {editingBox && <CustomBoxEditor box={editingBox} onUpdate={(b) => setCustomBoxes(p => p.map(x => x.id === b.id ? b : x))} onDelete={(id) => setCustomBoxes(p => p.filter(x => x.id !== id))} onClose={() => setEditingBox(null)} />}
+      {editingBox && <CustomBoxEditor box={editingBox} onUpdate={(b) => setCustomBoxes(p => p.map(x => x.id === b.id ? b : x))} onDelete={(id) => setCustomBoxes(p => p.filter(x => x.id !== id))} onClose={() => setEditingBox(null)} students={students} />}
       {selectedStudentId && (() => {
         const student = students.find(s => s.id === selectedStudentId);
         const goal = studentGoals[selectedStudentId] || { tokens: 0, goal: 5, reward: '🎮 Free Time', active: false };
@@ -1000,7 +1309,30 @@ export default function SpecialEdScreen() {
         <div className="flex gap-1">
           <button onClick={() => setShowStudentManager(true)} className="px-2 py-1 bg-white rounded shadow-sm text-xs">👥 Students</button>
           {isEditMode && <button onClick={addBox} className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs">➕ Box</button>}
-          <button onClick={() => setIsEditMode(!isEditMode)} className={`px-2 py-1 rounded text-xs ${isEditMode ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
+          {isEditMode && <button onClick={equalizeStationSizes} className="px-2 py-1 bg-amber-100 text-amber-700 rounded text-xs">⬜ Equal Size</button>}
+          {isEditMode && (() => {
+            const missingStations = rotationOrder.filter(c => !stationConfigs[c]);
+            return missingStations.length > 0 && (
+              <div className="relative">
+                <button onClick={() => setShowAddStationMenu(!showAddStationMenu)} className="px-2 py-1 bg-teal-100 text-teal-700 rounded text-xs">➕ Station</button>
+                {showAddStationMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border z-50 py-1 min-w-[120px]">
+                    {missingStations.map(c => {
+                      const s = stationColors[c] || COLORS.stations[c];
+                      return (
+                        <button key={c} onClick={() => { addStationToTab(c); setShowAddStationMenu(false); }}
+                          className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: s.bg }} />
+                          {teacherNames[c]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          <button onClick={() => { setIsEditMode(!isEditMode); setShowAddStationMenu(false); }} className={`px-2 py-1 rounded text-xs ${isEditMode ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}>
             {isEditMode ? '✓ Done' : '✏️ Edit'}
           </button>
         </div>
@@ -1008,21 +1340,52 @@ export default function SpecialEdScreen() {
       
       {/* Right Now */}
       <div className="mb-2 flex-shrink-0">
-        <RightNow text={rightNowText} onEdit={setRightNowText} />
+        <Banner text={rightNowText} color={bannerColor} onEdit={setRightNowText} onColorChange={setBannerColor} />
       </div>
       
       {/* Main Content */}
       <div className="flex-1 flex gap-2 min-h-0">
         {/* Left Column: Floor Plan */}
-        <div className="flex flex-col gap-2" style={{ width: '55%' }}>
+        <div className="flex flex-col gap-0" style={{ width: '55%' }}>
+          {/* Floor Plan Tab Bar */}
+          <div className="flex items-center gap-0.5 px-1 pb-0 bg-transparent">
+            {floorPlans.map(fp => (
+              <div key={fp.id}
+                className={`group flex items-center gap-1 px-2 py-1 rounded-t-lg text-xs cursor-pointer select-none ${fp.id === activeFloorPlanId ? 'bg-white shadow-sm font-bold text-gray-800' : 'bg-gray-200/70 text-gray-500 hover:bg-gray-200'}`}
+                onClick={() => setActiveFloorPlanId(fp.id)}
+                onDoubleClick={() => startRenamingTab(fp.id, fp.name)}>
+                {renamingTabId === fp.id ? (
+                  <input
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    onBlur={finishRenamingTab}
+                    onKeyDown={(e) => { if (e.key === 'Enter') finishRenamingTab(); if (e.key === 'Escape') setRenamingTabId(null); }}
+                    className="w-20 px-1 py-0 text-xs border rounded bg-white"
+                    autoFocus
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <span className="truncate max-w-[100px]">{fp.name}</span>
+                )}
+                {floorPlans.length > 1 && fp.id === activeFloorPlanId && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteFloorPlan(fp.id); }}
+                    className="text-gray-400 hover:text-red-500 text-xs leading-none ml-0.5">
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+            <button onClick={addFloorPlan} className="px-1.5 py-1 rounded-t-lg text-xs bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600" title="Add new layout">+</button>
+          </div>
           {/* Floor Plan */}
-          <div className="bg-white rounded-xl shadow-lg p-2 flex-1 flex flex-col min-h-0">
+          <div className="bg-white rounded-b-xl rounded-tr-xl shadow-lg p-2 flex-1 flex flex-col min-h-0">
             <div ref={floorPlanRef} className="flex-1 relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden"
               style={{ border: isEditMode ? '2px dashed #3B82F6' : '2px solid #e5e7eb' }}>
               <div className="absolute inset-2 border-2 border-gray-300 rounded bg-gray-50/50" />
-              {ROTATION_ORDER.map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c]} />)}
-              {customBoxes.map(b => <DraggableBox key={b.id} box={b} onUpdate={(ub) => setCustomBoxes(p => p.map(x => x.id === ub.id ? ub : x))} isEditMode={isEditMode} containerRef={floorPlanRef} onEdit={setEditingBox} />)}
-              {!isEditMode && students.map(s => { const grp = students.filter(x => x.group === s.group); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={isAnimating} index={grp.findIndex(x => x.id === s.id)} groupSize={grp.length} onClick={() => setSelectedStudentId(s.id)} />; })}
+              {rotationOrder.filter(c => stationConfigs[c]).map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c]} stationColors={stationColors} onRemove={removeStationFromTab} />)}
+              {customBoxes.map(b => <DraggableBox key={b.id} box={b} onUpdate={(ub) => setCustomBoxes(p => p.map(x => x.id === ub.id ? ub : x))} isEditMode={isEditMode} containerRef={floorPlanRef} onEdit={setEditingBox} students={students} />)}
+              {!isEditMode && students.filter(s => stationConfigs[s.group]).map(s => { const grp = students.filter(x => x.group === s.group && stationConfigs[x.group]); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} emoji={s.emoji} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={isAnimating} index={grp.findIndex(x => x.id === s.id)} groupSize={grp.length} onClick={() => setSelectedStudentId(s.id)} />; })}
               <div className="absolute bg-amber-700 rounded" style={{ bottom: 6, left: 40, width: 30, height: 5, zIndex: 4 }} />
               <div className="absolute text-xs text-gray-400" style={{ bottom: 0, left: 38, fontSize: '9px' }}>Door</div>
             </div>
@@ -1051,7 +1414,7 @@ export default function SpecialEdScreen() {
           </div>
           
           {/* Sound Selector */}
-          <SoundSelector selectedSound={rotationSound} onSelect={setRotationSound} />
+          <SoundSelector selectedSound={rotationSound} onSelect={setRotationSound} customSounds={customSounds} onCustomSoundsChange={setCustomSounds} />
           
           {/* Token Board Setup */}
           <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg p-2 shadow-md">
@@ -1069,7 +1432,7 @@ export default function SpecialEdScreen() {
           <FirstThen firstThen={firstThen} onEdit={() => setShowFirstThenEditor(true)} />
 
           {/* Station Groups */}
-          <StationGroups students={students} isAnimating={isAnimating} animationTargets={animationTargets} teacherNames={teacherNames} />
+          <StationGroups students={students} isAnimating={isAnimating} animationTargets={animationTargets} teacherNames={teacherNames} stationColors={stationColors} rotationOrder={rotationOrder} />
         </div>
       </div>
     </div>
