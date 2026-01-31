@@ -5,7 +5,7 @@ const TokenBoardCard = () => {
   const { setShowGoalEditor } = useAppState();
 
   return (
-    <div className="bg-gradient-to-r from-blue-100 to-purple-100 rounded-lg p-2 shadow-md">
+    <div className="rounded-lg p-2 shadow-md h-full">
       <div className="flex items-center justify-between">
         <div className="text-xs font-bold text-purple-600">🎯 TOKEN BOARD</div>
         <button onClick={() => setShowGoalEditor(true)} className="text-xs bg-white/50 hover:bg-white/80 px-2 py-1 rounded">✏️ Setup</button>

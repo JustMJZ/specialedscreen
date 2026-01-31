@@ -7,6 +7,12 @@ const FirstThenEditor = ({ firstThen, onUpdate, onClose }) => {
     { icon: '🎨', label: 'Art' }, { icon: '🎵', label: 'Music' }, { icon: '🎮', label: 'Free Time' },
     { icon: '🧩', label: 'Puzzles' }, { icon: '💻', label: 'Computer' }, { icon: '🏃', label: 'PE' },
     { icon: '🍎', label: 'Snack' }, { icon: '🥪', label: 'Lunch' }, { icon: '🧹', label: 'Clean Up' },
+    { icon: '🔬', label: 'Science' }, { icon: '🌍', label: 'Social Studies' }, { icon: '🗣️', label: 'Speech' },
+    { icon: '🧘', label: 'Calm Down' }, { icon: '🤝', label: 'Group Work' }, { icon: '🎭', label: 'Drama' },
+    { icon: '🏊', label: 'Swimming' }, { icon: '📐', label: 'Geometry' }, { icon: '🖍️', label: 'Coloring' },
+    { icon: '🧠', label: 'Brain Break' }, { icon: '📖', label: 'Story Time' }, { icon: '🎤', label: 'Show & Tell' },
+    { icon: '🚶', label: 'Walk' }, { icon: '😴', label: 'Rest' }, { icon: '🏠', label: 'Pack Up' },
+    { icon: '🚌', label: 'Bus' }, { icon: '🎉', label: 'Celebration' }, { icon: '🧪', label: 'Experiment' },
   ];
   const isCustomFirst = !activities.some(a => a.icon === editing.firstIcon && a.label === editing.firstLabel);
   const isCustomThen = !activities.some(a => a.icon === editing.thenIcon && a.label === editing.thenLabel);

@@ -41,6 +41,8 @@ const Modals = () => {
           customStationKeys={tabStationKeys.filter(k => !DEFAULT_ROTATION_ORDER.includes(k))}
           customStationColors={customStationColors}
           onUpdateCustomStationColors={(colors) => setFloorPlans(prev => prev.map(fp => fp.id === activeFloorPlanId ? { ...fp, customStationColors: colors } : fp))}
+          studentGoals={studentGoals}
+          onUpdateGoals={setStudentGoals}
         />
       )}
       {showFirstThenEditor && (

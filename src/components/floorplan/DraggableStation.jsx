@@ -55,10 +55,24 @@ const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, conta
       )}
 
       {isEditMode && <>
-        <div data-resize="true" className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" style={{ background: `linear-gradient(135deg, transparent 50%, ${station.bg} 50%)` }}
-          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setIsResizing(true); }} onTouchStart={(e) => { e.stopPropagation(); setIsResizing(true); }} />
+        <div data-resize="true" className="absolute bottom-0 right-0 cursor-se-resize flex items-end justify-end" style={{ width: 16, height: 16, zIndex: 10 }}
+          onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); setIsResizing(true); }} onTouchStart={(e) => { e.stopPropagation(); setIsResizing(true); }}>
+          <svg width="10" height="10" viewBox="0 0 10 10" style={{ margin: 1, opacity: 0.7 }}>
+            <line x1="9" y1="1" x2="1" y2="9" stroke={station.bg} strokeWidth="1.5" />
+            <line x1="9" y1="4.5" x2="4.5" y2="9" stroke={station.bg} strokeWidth="1.5" />
+            <line x1="9" y1="8" x2="8" y2="9" stroke={station.bg} strokeWidth="1.5" />
+          </svg>
+        </div>
         {onRemove && <button data-resize="true" onClick={(e) => { e.stopPropagation(); onRemove(color); }}
           className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 rounded-full text-white text-xs flex items-center justify-center shadow hover:bg-red-600" style={{ fontSize: 9, lineHeight: 1, zIndex: 10 }}>✕</button>}
+        <div data-resize="true" className="absolute bottom-0 left-0 flex items-center gap-0.5" style={{ padding: 2, zIndex: 10 }}
+          onMouseDown={(e) => e.stopPropagation()} onTouchStart={(e) => e.stopPropagation()}>
+          <button data-resize="true" onClick={() => { const s = Math.max(0.3, Math.round(((config.avatarScale || 1.0) - 0.1) * 10) / 10); onUpdate(color, { ...config, avatarScale: s }); }}
+            className="flex items-center justify-center rounded text-white font-bold" style={{ width: 14, height: 14, fontSize: 10, lineHeight: 1, backgroundColor: station.bg, opacity: 0.85 }}>−</button>
+          <span className="text-gray-600 font-mono" style={{ fontSize: 8, lineHeight: 1 }}>{(config.avatarScale || 1.0).toFixed(1)}x</span>
+          <button data-resize="true" onClick={() => { const s = Math.min(2.0, Math.round(((config.avatarScale || 1.0) + 0.1) * 10) / 10); onUpdate(color, { ...config, avatarScale: s }); }}
+            className="flex items-center justify-center rounded text-white font-bold" style={{ width: 14, height: 14, fontSize: 10, lineHeight: 1, backgroundColor: station.bg, opacity: 0.85 }}>+</button>
+        </div>
       </>}
     </div>
   );

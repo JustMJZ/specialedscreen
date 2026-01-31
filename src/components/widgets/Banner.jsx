@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { BANNER_COLORS } from '../../constants';
 
-const Banner = ({ text, color, onEdit, onColorChange }) => {
+const Banner = ({ text, color, fontSize = 28, onEdit, onColorChange, onFontSizeChange }) => {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(text);
   if (editing) return (
-    <div className="rounded-xl p-3 text-white" style={{ backgroundColor: color }}>
+    <div className="rounded-xl p-3 text-white h-full" style={{ backgroundColor: color }}>
       <input value={val} onChange={e => setVal(e.target.value)} className="w-full px-3 py-2 rounded text-gray-800 text-lg" autoFocus
         onKeyDown={e => { if (e.key === 'Enter') { onEdit(val); setEditing(false); }}} />
       <div className="flex items-center gap-1 mt-2">
@@ -14,15 +14,20 @@ const Banner = ({ text, color, onEdit, onColorChange }) => {
             className={`w-5 h-5 rounded-full ${color === c ? 'ring-2 ring-offset-1 ring-white' : ''}`} style={{ backgroundColor: c }} />
         ))}
         <div className="flex-1" />
+        <div className="flex items-center gap-1">
+          <button onClick={() => onFontSizeChange(Math.max(12, fontSize - 4))} className="w-6 h-6 rounded bg-white/20 text-sm flex items-center justify-center hover:bg-white/30">A−</button>
+          <span className="text-xs px-1">{fontSize}px</span>
+          <button onClick={() => onFontSizeChange(Math.min(72, fontSize + 4))} className="w-6 h-6 rounded bg-white/20 text-sm flex items-center justify-center hover:bg-white/30">A+</button>
+        </div>
         <button onClick={() => setEditing(false)} className="px-3 py-1 bg-white/20 rounded text-sm">Cancel</button>
         <button onClick={() => { onEdit(val); setEditing(false); }} className="px-3 py-1 bg-white/30 rounded font-medium text-sm">Save</button>
       </div>
     </div>
   );
   return (
-    <div onClick={() => setEditing(true)} className="rounded-xl p-4 text-white text-center cursor-pointer hover:opacity-90 shadow-lg"
+    <div onClick={() => setEditing(true)} className="rounded-xl p-4 text-white text-center cursor-pointer hover:opacity-90 shadow-lg h-full"
       style={{ backgroundColor: color }}>
-      <div className="text-2xl" style={{ fontFamily: "'Baloo 2', cursive", fontWeight: 800 }}>{text || '\u00A0'}</div>
+      <div style={{ fontSize, fontFamily: "'Baloo 2', cursive", fontWeight: 800 }}>{text || '\u00A0'}</div>
     </div>
   );
 };

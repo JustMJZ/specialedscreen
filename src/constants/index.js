@@ -43,9 +43,12 @@ export const DEFAULT_STATION_CONFIG = {
   pink: { top: 210, left: 155, width: 110, height: 65 }
 };
 
-export const DEFAULT_TV_CONFIG = { top: 95, left: 330, width: 38, height: 100, label: 'TV', icon: '📺', color: '#1a1a2e' };
 
-export const EMOJI_OPTIONS = ['📺', '🚪', '📚', '🎨', '🧸', '🪑', '🗄️', '🖥️', '📦', '🎵', '🧩', '✏️', '📐', '🗑️', '🚿', '🪴'];
+export const EMOJI_OPTIONS = [
+  '📺', '🚪', '📚', '🎨', '🧸', '🪑', '🗄️', '🖥️', '📦', '🎵', '🧩', '✏️', '📐', '🗑️', '🚿', '🪴',
+  '🛋️', '🎤', '🎧', '🔬', '🧪', '🌍', '🗂️', '📎', '🖍️', '🖊️', '📏', '🧲', '🎲', '🪣', '🧽', '🪞',
+  '💡', '🔔', '📌', '🏠', '🚰', '🧳', '📖', '🎭', '🎪', '🪁', '🛒', '🧊', '☂️', '🪜', '🖼️', '📮'
+];
 
 export const STATION_COLOR_OPTIONS = [
   { label: 'Purple', bg: '#B39DDB', light: '#E1D5F0' },
@@ -58,6 +61,7 @@ export const STATION_COLOR_OPTIONS = [
   { label: 'Teal', bg: '#80CBC4', light: '#B2DFDB' },
   { label: 'Indigo', bg: '#9FA8DA', light: '#C5CAE9' },
   { label: 'Brown', bg: '#BCAAA4', light: '#D7CCC8' },
+  { label: 'White', bg: '#E0E0E0', light: '#FFFFFF' },
 ];
 
 export const DEFAULT_STATION_COLORS = {
@@ -68,8 +72,16 @@ export const DEFAULT_STATION_COLORS = {
   pink: { bg: '#F8BBD9', light: '#FDE4F0' }
 };
 
-export const STUDENT_EMOJI_OPTIONS = ['🐉', '🦄', '🐱', '🐶', '🐸', '🦊', '🐼', '🐨', '🦁', '🐯', '🐻', '🐰', '🐙', '🦋', '🐢', '🌟', '🚀', '🎨', '🎮', '🏀', '⚽', '🎸', '👑', '💎', '🌈'];
+export const STUDENT_EMOJI_OPTIONS = [
+  '🐉', '🦄', '🐱', '🐶', '🐸', '🦊', '🐼', '🐨', '🦁', '🐯', '🐻', '🐰', '🐙', '🦋', '🐢',
+  '🦈', '🐬', '🦅', '🦉', '🐝', '🐞', '🦖', '🐳', '🦩', '🐧', '🐥', '🦜', '🐠', '🦔', '🐺',
+  '🌟', '🚀', '🎨', '🎮', '🏀', '⚽', '🎸', '👑', '💎', '🌈', '🦸', '🧙', '🎯', '🛹', '🏄',
+  '🎪', '🎠', '🧁', '🍦', '🌻', '🌸', '🔮', '🎈', '🪐', '⚡', '🌊', '❄️', '🍄', '🎵', '💫'
+];
 
-export const TOKEN_EMOJI_OPTIONS = ['⭐', '🌟', '💎', '🔥', '❤️', '🍀', '🎯', '🏅', '👑', '🦄', '🐾', '🌈', '🍎', '🎵', '🚀', '💜'];
+export const TOKEN_EMOJI_OPTIONS = [
+  '⭐', '🌟', '💎', '🔥', '❤️', '🍀', '🎯', '🏅', '👑', '🦄', '🐾', '🌈', '🍎', '🎵', '🚀', '💜',
+  '🏆', '🎖️', '💪', '🧡', '💚', '💙', '🩷', '✨', '🪙', '💰', '🎁', '🎀', '🌺', '🍩', '🧸', '⚡'
+];
 
 export const BANNER_COLORS = ['#0D9488', '#3B82F6', '#8B5CF6', '#EC4899', '#EF4444', '#F59E0B', '#10B981', '#6366F1', '#1a1a2e'];

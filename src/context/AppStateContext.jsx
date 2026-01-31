@@ -23,17 +23,31 @@ export function AppStateProvider({ children }) {
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [rightNowText, setRightNowText] = useState(() => loadSaved('rightNowText', 'Working Quietly'));
   const [bannerColor, setBannerColor] = useState(() => loadSaved('bannerColor', '#0D9488'));
+  const [bannerFontSize, setBannerFontSize] = useState(() => loadSaved('bannerFontSize', 28));
   const [firstThen, setFirstThen] = useState(() => loadSaved('firstThen', { firstIcon: '📚', firstLabel: 'Reading', thenIcon: '🎮', thenLabel: 'Free Time' }));
   const [rotationSound, setRotationSound] = useState(() => loadSaved('rotationSound', 'chime'));
   const [voiceLevel, setVoiceLevel] = useState(() => loadSaved('voiceLevel', 1));
   const [countdownEvent, setCountdownEvent] = useState(() => loadSaved('countdownEvent', 'Lunch'));
   const [countdownTime, setCountdownTime] = useState(() => loadSaved('countdownTime', '12:00'));
   const [quickMessage, setQuickMessage] = useState(() => loadSaved('quickMessage', 'Great job! ⭐'));
+  const [quickMessageFontSize, setQuickMessageFontSize] = useState(() => loadSaved('quickMessageFontSize', 16));
+  const [quickMessageColor, setQuickMessageColor] = useState(() => loadSaved('quickMessageColor', '#F59E0B'));
+  const [widgetColors, setWidgetColors] = useState(() => loadSaved('widgetColors', {}));
   const [starPoints, setStarPoints] = useState(() => loadSaved('starPoints', 0));
   const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
   const [customSounds, setCustomSounds] = useState(() => loadSaved('customSounds', []));
   const [stationColors, setStationColors] = useState(() => loadSaved('stationColors', DEFAULT_STATION_COLORS));
-  const [rotationOrder, setRotationOrder] = useState(() => loadSaved('rotationOrder', DEFAULT_ROTATION_ORDER));
+  const [rotationOrder, setRotationOrder] = useState(() => {
+    const saved = loadSaved('rotationOrder', DEFAULT_ROTATION_ORDER);
+    // Repair: if stations were accidentally removed by the cross-tab bug, restore defaults
+    if (saved.length < DEFAULT_ROTATION_ORDER.length) {
+      const missing = DEFAULT_ROTATION_ORDER.filter(c => !saved.includes(c));
+      if (missing.length > 0) return [...saved, ...missing];
+    }
+    return saved;
+  });
+  const [timerStyle, setTimerStyle] = useState(() => loadSaved('timerStyle', 'ring'));
+  const [soundVolume, setSoundVolume] = useState(() => loadSaved('soundVolume', 0.7));
 
   // Floor plan tabs
   const [floorPlans, setFloorPlans] = useState(() => {
@@ -105,14 +119,14 @@ export function AppStateProvider({ children }) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        students, totalTime, autoRepeat, rightNowText, bannerColor, firstThen,
+        students, totalTime, autoRepeat, rightNowText, bannerColor, bannerFontSize, firstThen,
         rotationSound, voiceLevel, countdownEvent, countdownTime,
-        quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, customSounds, stationColors, rotationOrder
+        quickMessage, quickMessageFontSize, quickMessageColor, widgetColors, starPoints, studentGoals, floorPlans, activeFloorPlanId, customSounds, stationColors, rotationOrder, timerStyle, soundVolume
       }));
     } catch (e) {}
-  }, [students, totalTime, autoRepeat, rightNowText, bannerColor, firstThen,
+  }, [students, totalTime, autoRepeat, rightNowText, bannerColor, bannerFontSize, firstThen,
       rotationSound, voiceLevel, countdownEvent, countdownTime,
-      quickMessage, starPoints, studentGoals, floorPlans, activeFloorPlanId, customSounds, stationColors, rotationOrder]);
+      quickMessage, quickMessageFontSize, quickMessageColor, widgetColors, starPoints, studentGoals, floorPlans, activeFloorPlanId, customSounds, stationColors, rotationOrder, timerStyle, soundVolume]);
 
   // Timer effect
   useEffect(() => {
@@ -130,7 +144,7 @@ export function AppStateProvider({ children }) {
 
   const triggerRotation = () => {
     if (isAnimating || isEditMode) return;
-    playSound(rotationSound, customSounds);
+    playSound(rotationSound, customSounds, soundVolume);
     setShowAnnouncement(true); setAnnouncementPhase('start');
     setTimeout(() => { setAnnouncementPhase('moving'); setIsAnimating(true); const t = {}; students.forEach(s => { t[s.id] = getNextGroup(s.group); }); setAnimationTargets(t); }, 1500);
     setTimeout(() => setShowAnnouncement(false), 3000);
@@ -173,7 +187,9 @@ export function AppStateProvider({ children }) {
       delete next[color];
       return next;
     });
-    if (rotationOrder.includes(color)) {
+    // Only remove from global rotation order if no other tab still has this station
+    const existsOnOtherTab = floorPlans.some(fp => fp.id !== activeFloorPlanId && fp.stationConfigs[color]);
+    if (!existsOnOtherTab && rotationOrder.includes(color)) {
       const newOrder = rotationOrder.filter(k => k !== color);
       setRotationOrder(newOrder);
       const firstRemaining = newOrder[0];
@@ -242,17 +258,23 @@ export function AppStateProvider({ children }) {
     selectedStudentId, setSelectedStudentId,
     rightNowText, setRightNowText,
     bannerColor, setBannerColor,
+    bannerFontSize, setBannerFontSize,
     firstThen, setFirstThen,
     rotationSound, setRotationSound,
     voiceLevel, setVoiceLevel,
     countdownEvent, setCountdownEvent,
     countdownTime, setCountdownTime,
     quickMessage, setQuickMessage,
+    quickMessageFontSize, setQuickMessageFontSize,
+    quickMessageColor, setQuickMessageColor,
+    widgetColors, setWidgetColors,
     starPoints, setStarPoints,
     studentGoals, setStudentGoals,
     customSounds, setCustomSounds,
     stationColors, setStationColors,
     rotationOrder, setRotationOrder,
+    timerStyle, setTimerStyle,
+    soundVolume, setSoundVolume,
     floorPlans, setFloorPlans,
     activeFloorPlanId, setActiveFloorPlanId,
     renamingTabId, setRenamingTabId,

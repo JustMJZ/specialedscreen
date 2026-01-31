@@ -5,7 +5,9 @@ const GoalEditorModal = ({ students, goals, onUpdate, onClose }) => {
   const [editingGoals, setEditingGoals] = useState({ ...goals });
 
   const rewardOptions = ['🎮 Free Time', '💻 Computer Time', '🎨 Art Time', '📚 Library Visit', '🎵 Music Time',
-    '🍪 Snack', '🏆 Prize Box', '⭐ Star Student', '🎉 Class Helper', '🎪 Special Activity'];
+    '🍪 Snack', '🏆 Prize Box', '⭐ Star Student', '🎉 Class Helper', '🎪 Special Activity',
+    '🧸 Stuffed Animal', '🛹 Extra Recess', '👑 Line Leader', '🎈 Party', '🍦 Ice Cream',
+    '📱 Tablet Time', '🎧 Music Break', '🪁 Outdoor Time', '🎲 Game Time', '💺 Special Seat'];
 
   const handleGoalChange = (studentId, field, value) => {
     setEditingGoals(prev => ({

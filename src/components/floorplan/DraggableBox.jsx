@@ -36,8 +36,8 @@ const DraggableBox = ({ box, onUpdate, isEditMode, containerRef, onEdit, student
       style={{ top: box.top, left: box.left, width: box.width, height: box.height, backgroundColor: box.color, zIndex: isDragging || isResizing ? 100 : 4 }}
       onMouseDown={(e) => { if (!isEditMode || e.target.dataset.resize || e.target.dataset.edit) return; e.preventDefault(); const r = ref.current.getBoundingClientRect(); setDragOffset({ x: e.clientX - r.left, y: e.clientY - r.top }); setIsDragging(true); }}
       onTouchStart={(e) => { if (!isEditMode || e.target.dataset.resize || e.target.dataset.edit) return; const t = e.touches[0]; const r = ref.current.getBoundingClientRect(); setDragOffset({ x: t.clientX - r.left, y: t.clientY - r.top }); setIsDragging(true); }}>
-      {box.icon && <div style={{ fontSize: Math.max(10, 16 * scale) }}>{box.icon}</div>}
-      <div className="text-white font-bold truncate px-1 text-center w-full" style={{ fontSize: Math.max(6, 9 * scale) }}>{box.label}</div>
+      {box.icon && <div style={{ fontSize: Math.max(18, 36 * scale) }}>{box.icon}</div>}
+      <div className="text-white font-bold truncate px-1 text-center w-full" style={{ fontSize: Math.max(10, 18 * scale) }}>{box.label}</div>
       {assignedStudents.length > 0 && !box.hideStudents && (
         <div className="flex flex-wrap justify-center px-0.5 mt-0.5" style={{ gap: avatarGap }}>
           {assignedStudents.map(s => (

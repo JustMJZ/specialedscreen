@@ -54,13 +54,13 @@ const WidgetGrid = () => {
   const state = useAppState();
   const {
     isLayoutEditMode,
-    rightNowText, setRightNowText, bannerColor, setBannerColor,
+    rightNowText, setRightNowText, bannerColor, setBannerColor, bannerFontSize, setBannerFontSize,
     isEditMode, isAnimating,
     voiceLevel, setVoiceLevel,
     firstThen, setShowFirstThenEditor,
     students, animationTargets, teacherNames, allStationColors, rotationOrder,
     countdownEvent, countdownTime, setCountdownEvent, setCountdownTime,
-    quickMessage, setQuickMessage,
+    quickMessage, setQuickMessage, quickMessageFontSize, setQuickMessageFontSize, quickMessageColor, setQuickMessageColor,
     starPoints, setStarPoints,
   } = state;
 
@@ -141,7 +141,7 @@ const WidgetGrid = () => {
   const renderWidget = (id) => {
     switch (id) {
       case 'banner':
-        return <Banner text={rightNowText} color={bannerColor} onEdit={setRightNowText} onColorChange={setBannerColor} />;
+        return <Banner text={rightNowText} color={bannerColor} fontSize={bannerFontSize} onEdit={setRightNowText} onColorChange={setBannerColor} onFontSizeChange={setBannerFontSize} />;
       case 'floorplan':
         return <FloorPlan />;
       case 'timerPanel':
@@ -157,7 +157,7 @@ const WidgetGrid = () => {
       case 'countdown':
         return <CountdownWidget event={countdownEvent} targetTime={countdownTime} onEdit={(evt, time) => { setCountdownEvent(evt); setCountdownTime(time); }} />;
       case 'quickMessage':
-        return <QuickMessage message={quickMessage} onEdit={setQuickMessage} />;
+        return <QuickMessage message={quickMessage} onEdit={setQuickMessage} fontSize={quickMessageFontSize} onFontSizeChange={setQuickMessageFontSize} color={quickMessageColor} onColorChange={setQuickMessageColor} />;
       case 'starPoints':
         return <StarPoints points={starPoints} onAdd={() => setStarPoints(p => p + 1)} onSubtract={() => setStarPoints(p => Math.max(0, p - 1))} onReset={() => setStarPoints(0)} />;
       case 'clock':

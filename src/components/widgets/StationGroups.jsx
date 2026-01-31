@@ -2,7 +2,7 @@ import React from 'react';
 import { COLORS } from '../../constants';
 
 const StationGroups = ({ students, isAnimating, animationTargets, teacherNames, stationColors, rotationOrder }) => (
-  <div className="bg-white rounded-lg p-2.5 shadow-md">
+  <div className="rounded-lg p-2.5 shadow-md h-full">
     <div className="text-sm font-bold text-gray-500 mb-1.5">GROUPS</div>
     <div className="grid grid-cols-1 gap-1">
       {rotationOrder.map(color => {

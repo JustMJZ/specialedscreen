@@ -26,8 +26,6 @@ const Header = () => {
   return (
     <div className="flex items-center justify-between mb-2 flex-shrink-0">
       <div className="flex items-center gap-2">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-base" style={{ background: `linear-gradient(135deg, ${COLORS.primary}, ${COLORS.secondary})` }}>🎓</div>
-        <h1 className="text-lg font-bold" style={{ color: COLORS.text }}>SpecialEdScreen</h1>
         <Clock />
       </div>
       <div className="flex gap-1">

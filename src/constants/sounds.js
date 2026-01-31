@@ -11,10 +11,16 @@ export const ROTATION_SOUNDS = [
   { id: 'train', name: '🚂 Train', type: 'synth' },
 ];
 
-export const playSynthSound = (soundId) => {
+export const playSynthSound = (soundId, volume = 0.7) => {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
     const now = ctx.currentTime;
+    const vol = Math.max(0, Math.min(1, volume));
+
+    // Master volume node
+    const master = ctx.createGain();
+    master.gain.value = vol;
+    master.connect(ctx.destination);
 
     if (soundId === 'chime') {
       [523.25, 659.25, 783.99, 1046.5].forEach((freq, i) => {
@@ -22,7 +28,7 @@ export const playSynthSound = (soundId) => {
         osc.type = 'sine'; osc.frequency.value = freq;
         gain.gain.setValueAtTime(0.3, now + i * 0.15);
         gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 1);
-        osc.connect(gain); gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(master);
         osc.start(now + i * 0.15); osc.stop(now + i * 0.15 + 1);
       });
     } else if (soundId === 'buzzer') {
@@ -30,7 +36,7 @@ export const playSynthSound = (soundId) => {
       osc.type = 'sawtooth'; osc.frequency.value = 220;
       gain.gain.setValueAtTime(0.3, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-      osc.connect(gain); gain.connect(ctx.destination);
+      osc.connect(gain); gain.connect(master);
       osc.start(now); osc.stop(now + 0.5);
     } else if (soundId === 'bell') {
       [830, 1245, 1660].forEach((freq) => {
@@ -38,7 +44,7 @@ export const playSynthSound = (soundId) => {
         osc.type = 'sine'; osc.frequency.value = freq;
         gain.gain.setValueAtTime(0.25, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
-        osc.connect(gain); gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(master);
         osc.start(now); osc.stop(now + 1.5);
       });
     } else if (soundId === 'whistle') {
@@ -49,7 +55,7 @@ export const playSynthSound = (soundId) => {
       osc.frequency.linearRampToValueAtTime(800, now + 0.6);
       gain.gain.setValueAtTime(0.3, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
-      osc.connect(gain); gain.connect(ctx.destination);
+      osc.connect(gain); gain.connect(master);
       osc.start(now); osc.stop(now + 0.8);
     } else if (soundId === 'marimba') {
       [262, 330, 392, 523, 392, 330].forEach((freq, i) => {
@@ -57,7 +63,7 @@ export const playSynthSound = (soundId) => {
         osc.type = 'triangle'; osc.frequency.value = freq;
         gain.gain.setValueAtTime(0.3, now + i * 0.12);
         gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.4);
-        osc.connect(gain); gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(master);
         osc.start(now + i * 0.12); osc.stop(now + i * 0.12 + 0.4);
       });
     } else if (soundId === 'gong') {
@@ -67,7 +73,7 @@ export const playSynthSound = (soundId) => {
         osc.frequency.exponentialRampToValueAtTime(freq * 0.98, now + 3);
         gain.gain.setValueAtTime(0.3, now);
         gain.gain.exponentialRampToValueAtTime(0.001, now + 3);
-        osc.connect(gain); gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(master);
         osc.start(now); osc.stop(now + 3);
       });
     } else if (soundId === 'birds') {
@@ -80,7 +86,7 @@ export const playSynthSound = (soundId) => {
         osc.frequency.linearRampToValueAtTime(baseFreq - 200, now + i * 0.2 + 0.1);
         gain.gain.setValueAtTime(0.15, now + i * 0.2);
         gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.2 + 0.15);
-        osc.connect(gain); gain.connect(ctx.destination);
+        osc.connect(gain); gain.connect(master);
         osc.start(now + i * 0.2); osc.stop(now + i * 0.2 + 0.15);
       }
     } else if (soundId === 'clap') {
@@ -93,7 +99,7 @@ export const playSynthSound = (soundId) => {
         source.buffer = buffer;
         gain.gain.setValueAtTime(0.5, now + i * 0.15);
         gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.1);
-        source.connect(gain); gain.connect(ctx.destination);
+        source.connect(gain); gain.connect(master);
         source.start(now + i * 0.15);
       }
     } else if (soundId === 'train') {
@@ -104,7 +110,7 @@ export const playSynthSound = (soundId) => {
       gain.gain.setValueAtTime(0.001, now + 0.35);
       gain.gain.setValueAtTime(0.25, now + 0.5);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
-      osc.connect(gain); gain.connect(ctx.destination);
+      osc.connect(gain); gain.connect(master);
       osc.start(now); osc.stop(now + 1.2);
     }
 
@@ -114,12 +120,12 @@ export const playSynthSound = (soundId) => {
   }
 };
 
-export const playSound = (soundId, customSounds) => {
+export const playSound = (soundId, customSounds, volume = 0.7) => {
   if (soundId === 'none') return;
 
   const builtIn = ROTATION_SOUNDS.find(s => s.id === soundId);
   if (builtIn && builtIn.type === 'synth') {
-    playSynthSound(soundId);
+    playSynthSound(soundId, volume);
     return;
   }
 
@@ -127,7 +133,7 @@ export const playSound = (soundId, customSounds) => {
   if (custom && custom.dataUrl) {
     try {
       const audio = new Audio(custom.dataUrl);
-      audio.volume = 0.7;
+      audio.volume = Math.max(0, Math.min(1, volume));
       audio.play().catch(e => console.log('Audio playback failed:', e.message));
     } catch (e) {
       console.log('Audio playback error');

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, targetGroup, isAnimating, index, groupSize, onClick }) => {
+const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, targetGroup, isAnimating, index, groupSize, onClick, isEditMode }) => {
   const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
   const colors = ['#FF8A7A', '#5BC0BE', '#7BC47F', '#FFD166', '#B39DDB'];
   const group = isAnimating ? targetGroup : currentGroup;
@@ -42,19 +42,22 @@ const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, tar
     }
   }
 
-  const adjustedNameSize = firstName.length > 6 ? nameSize * 0.8 : nameSize;
+  const avatarScaleMultiplier = config.avatarScale || 1.0;
+  avatarSize *= avatarScaleMultiplier;
+  nameSize *= avatarScaleMultiplier;
+
   const showName = nameSize >= 5;
 
   // Estimate rendered name width for spacing purposes
-  const estNameLabelWidth = showName ? firstName.length * adjustedNameSize * 0.65 : 0;
+  const estNameLabelWidth = showName ? firstName.length * nameSize * 0.65 : 0;
   // Item width is the wider of avatar circle or name label, plus a small gap
   const itemWidth = Math.max(avatarSize, estNameLabelWidth) + 4;
-  const itemHeight = avatarSize + (showName ? adjustedNameSize + 2 : 0);
+  const itemHeight = avatarSize + (showName ? nameSize + 2 : 0);
 
   let left, top;
   if (isVertical) {
     const availHeight = config.height - headerHeight;
-    const nameEstWidth = showName ? firstName.length * adjustedNameSize * 0.65 : 0;
+    const nameEstWidth = showName ? firstName.length * nameSize * 0.65 : 0;
     const rowWidth = avatarSize + (showName ? nameEstWidth + 4 : 0);
     const spacing = Math.min(itemHeight + 1, availHeight / groupSize);
     const totalHeight = groupSize * spacing;
@@ -69,7 +72,7 @@ const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, tar
     const startX = config.left + (availWidth - totalWidth) / 2;
     const bodyTop = config.top + headerHeight;
     const bodyHeight = config.height - headerHeight;
-    const itemTotalHeight = avatarSize + (showName ? adjustedNameSize + 4 : 0);
+    const itemTotalHeight = avatarSize + (showName ? nameSize + 4 : 0);
     left = startX + (index * spacing);
     top = bodyTop + (bodyHeight - itemTotalHeight) / 2;
   }
@@ -79,30 +82,35 @@ const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, tar
     ? `0 ${Math.max(1, avatarSize * 0.1)}px ${Math.max(2, avatarSize * 0.4)}px ${colors[name.charCodeAt(0) % 5]}80`
     : `0 ${Math.max(1, avatarSize * 0.05)}px ${Math.max(1, avatarSize * 0.15)}px rgba(0,0,0,0.15)`;
 
+  const bgColor = colors[name.charCodeAt(0) % 5];
+
   const avatarEl = photo ? (
     <img src={photo} alt={name} className="rounded-full object-cover flex-shrink-0"
-      style={{ width: avatarSize, height: avatarSize, borderWidth, borderColor: 'white', borderStyle: 'solid', boxShadow: shadow }} />
+      style={{ width: avatarSize, height: avatarSize }} />
   ) : emoji ? (
     <div className="rounded-full flex items-center justify-center flex-shrink-0"
-      style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.55, backgroundColor: colors[name.charCodeAt(0) % 5], borderWidth, borderColor: 'white', borderStyle: 'solid', boxShadow: shadow }}>
+      style={{ width: avatarSize, height: avatarSize, fontSize: avatarSize * 0.55,
+        backgroundColor: isEditMode ? bgColor : 'transparent',
+        borderWidth: isEditMode ? borderWidth : 0, borderColor: 'white', borderStyle: 'solid',
+        boxShadow: isEditMode ? shadow : 'none' }}>
       {emoji}
     </div>
   ) : (
     <div className="rounded-full flex items-center justify-center text-white font-bold flex-shrink-0"
-      style={{ width: avatarSize, height: avatarSize, fontSize: Math.max(4, avatarSize * 0.4), backgroundColor: colors[name.charCodeAt(0) % 5], boxShadow: shadow }}>
+      style={{ width: avatarSize, height: avatarSize, fontSize: Math.max(4, avatarSize * 0.4), backgroundColor: bgColor, boxShadow: shadow }}>
       {initials}
     </div>
   );
 
   const nameEl = showName ? (
-    <span className="font-medium text-gray-700 bg-white/90 px-0.5 rounded whitespace-nowrap" style={{ fontSize: adjustedNameSize, lineHeight: 1 }}>
+    <span className="font-medium text-gray-700 bg-white/90 px-0.5 rounded whitespace-nowrap" style={{ fontSize: nameSize, lineHeight: 1 }}>
       {firstName}
     </span>
   ) : null;
 
   return (
-    <div className={`absolute cursor-pointer ${isVertical ? 'flex items-center gap-0.5' : 'flex flex-col items-center gap-0'}`}
-      style={{ top, left, transition: 'all 2.5s cubic-bezier(0.25, 0.1, 0.25, 1)', zIndex: isAnimating ? 20 : 10 }}
+    <div className={`absolute ${isEditMode ? '' : 'cursor-pointer'} ${isVertical ? 'flex items-center gap-0.5' : 'flex flex-col items-center gap-0'}`}
+      style={{ top, left, transition: 'all 2.5s cubic-bezier(0.25, 0.1, 0.25, 1)', zIndex: isAnimating ? 20 : 10, opacity: isEditMode ? 0.5 : 1, pointerEvents: isEditMode ? 'none' : 'auto' }}
       onClick={onClick}>
       {avatarEl}
       {nameEl}
