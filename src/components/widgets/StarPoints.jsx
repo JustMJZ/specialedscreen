@@ -51,11 +51,11 @@ const StarPoints = ({ points, onAdd, onSubtract, onReset }) => {
         <div className="text-center" style={{
           animation: bounce ? 'number-bounce 0.4s ease-out' : 'none',
         }}>
-          <div className="font-black text-amber-500" style={{
+          <div className="font-black text-gray-700" style={{
             fontSize: 'clamp(36px, 7vw, 64px)',
             fontFamily: "'Fredoka One', cursive",
             lineHeight: 1,
-            textShadow: '2px 2px 0px rgba(0,0,0,0.1)',
+            textShadow: '2px 2px 0px rgba(0,0,0,0.08)',
           }}>{points}</div>
         </div>
 

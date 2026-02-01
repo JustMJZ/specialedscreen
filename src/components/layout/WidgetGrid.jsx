@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { ResponsiveGridLayout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -18,25 +18,8 @@ import QuickMessage from '../widgets/QuickMessage';
 import StarPoints from '../widgets/StarPoints';
 import Clock from '../widgets/Clock';
 import FloorPlan from '../floorplan/FloorPlan';
-
-const LAYOUT_STORAGE_KEY = 'specialedscreen-layout';
-
-function loadLayout() {
-  try {
-    const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch (e) {}
-  return null;
-}
-
-function saveLayout(layout) {
-  try {
-    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout));
-  } catch (e) {}
-}
+import GoogleSlides from '../widgets/GoogleSlides';
+import YouTubeVideo from '../widgets/YouTubeVideo';
 
 function applyMinSizes(layout) {
   return layout.map(item => {
@@ -54,14 +37,17 @@ const WidgetGrid = () => {
   const state = useAppState();
   const {
     isLayoutEditMode,
-    rightNowText, setRightNowText, bannerColor, setBannerColor, bannerFontSize, setBannerFontSize,
+    rightNowText, setRightNowText, bannerFontSize, setBannerFontSize,
     isEditMode, isAnimating,
     voiceLevel, setVoiceLevel,
     firstThen, setShowFirstThenEditor,
     students, animationTargets, teacherNames, allStationColors, rotationOrder,
     countdownEvent, countdownTime, setCountdownEvent, setCountdownTime,
-    quickMessage, setQuickMessage, quickMessageFontSize, setQuickMessageFontSize, quickMessageColor, setQuickMessageColor,
+    quickMessage, setQuickMessage, quickMessageFontSize, setQuickMessageFontSize,
     starPoints, setStarPoints,
+    googleSlidesUrl, setGoogleSlidesUrl,
+    youtubeVideoUrl, setYoutubeVideoUrl,
+    layoutTabs, setLayoutTabs, activeLayoutId,
   } = state;
 
   const containerRef = useRef(null);
@@ -79,69 +65,78 @@ const WidgetGrid = () => {
     return () => observer.disconnect();
   }, []);
 
-  const [savedLayout, setSavedLayout] = useState(() => {
-    const saved = loadLayout();
-    return applyMinSizes(saved || defaultLayout);
-  });
+  const activeLayoutTab = useMemo(() => {
+    if (!Array.isArray(layoutTabs) || layoutTabs.length === 0) return null;
+    return layoutTabs.find(t => t.id === activeLayoutId) || layoutTabs[0];
+  }, [layoutTabs, activeLayoutId]);
+
+  const activeLayout = useMemo(() => {
+    if (!activeLayoutTab) return defaultLayout;
+    return Array.isArray(activeLayoutTab.layout) ? activeLayoutTab.layout : defaultLayout;
+  }, [activeLayoutTab]);
+
+  const layoutWithMins = useMemo(() => applyMinSizes(activeLayout), [activeLayout]);
 
   // When not in layout edit mode, mark all items static so the grid
   // never intercepts pointer events meant for widgets (e.g. floor plan drag).
   const layout = isLayoutEditMode
-    ? savedLayout.map(item => ({ ...item, static: false }))
-    : savedLayout.map(item => ({ ...item, static: true }));
+    ? layoutWithMins.map(item => ({ ...item, static: false }))
+    : layoutWithMins.map(item => ({ ...item, static: true }));
 
   const handleLayoutChange = useCallback((newLayout) => {
-    // Strip the static flag before persisting
     const cleaned = newLayout.map(({ static: _s, ...rest }) => rest);
-    setSavedLayout(applyMinSizes(cleaned));
-    saveLayout(cleaned);
-  }, []);
+    setLayoutTabs(prev => prev.map(tab => {
+      if (tab.id !== activeLayoutTab?.id) return tab;
+      return { ...tab, layout: applyMinSizes(cleaned) };
+    }));
+  }, [setLayoutTabs, activeLayoutTab]);
 
   const resetLayout = useCallback(() => {
     const reset = applyMinSizes(defaultLayout);
-    setSavedLayout(reset);
-    saveLayout(reset);
-  }, []);
+    setLayoutTabs(prev => prev.map(tab => {
+      if (tab.id !== activeLayoutTab?.id) return tab;
+      return { ...tab, layout: reset };
+    }));
+  }, [setLayoutTabs, activeLayoutTab]);
 
   const removeWidget = useCallback((widgetId) => {
-    setSavedLayout(prev => {
-      const next = prev.filter(item => item.i !== widgetId);
-      saveLayout(next);
-      return next;
-    });
-  }, []);
+    setLayoutTabs(prev => prev.map(tab => {
+      if (tab.id !== activeLayoutTab?.id) return tab;
+      const next = (tab.layout || []).filter(item => item.i !== widgetId);
+      return { ...tab, layout: next };
+    }));
+  }, [setLayoutTabs, activeLayoutTab]);
 
   const addWidget = useCallback((widgetId) => {
-    setSavedLayout(prev => {
-      // Don't add duplicates
-      if (prev.some(item => item.i === widgetId)) return prev;
+    setLayoutTabs(prev => prev.map(tab => {
+      if (tab.id !== activeLayoutTab?.id) return tab;
+      const existing = tab.layout || [];
+      if (existing.some(item => item.i === widgetId)) return tab;
       const meta = widgetRegistry[widgetId];
       const newItem = {
         i: widgetId,
         x: 0,
-        y: Infinity, // place at bottom
+        y: Infinity,
         w: meta ? meta.defaultW : 5,
         h: meta ? meta.defaultH : 2,
         minW: meta ? meta.minW : 2,
         minH: meta ? meta.minH : 1,
       };
-      const next = [...prev, newItem];
-      saveLayout(next);
-      return next;
-    });
-  }, []);
+      return { ...tab, layout: [...existing, newItem] };
+    }));
+  }, [setLayoutTabs, activeLayoutTab]);
 
   useEffect(() => {
     state._resetLayout = resetLayout;
     state._removeWidget = removeWidget;
     state._addWidget = addWidget;
-    state._activeWidgetIds = savedLayout.map(item => item.i);
-  }, [resetLayout, removeWidget, addWidget, savedLayout, state]);
+    state._activeWidgetIds = layoutWithMins.map(item => item.i);
+  }, [resetLayout, removeWidget, addWidget, layoutWithMins, state]);
 
   const renderWidget = (id) => {
     switch (id) {
       case 'banner':
-        return <Banner text={rightNowText} color={bannerColor} fontSize={bannerFontSize} onEdit={setRightNowText} onColorChange={setBannerColor} onFontSizeChange={setBannerFontSize} />;
+        return <Banner text={rightNowText} fontSize={bannerFontSize} onEdit={setRightNowText} onFontSizeChange={setBannerFontSize} />;
       case 'floorplan':
         return <FloorPlan />;
       case 'timerPanel':
@@ -157,11 +152,15 @@ const WidgetGrid = () => {
       case 'countdown':
         return <CountdownWidget event={countdownEvent} targetTime={countdownTime} onEdit={(evt, time) => { setCountdownEvent(evt); setCountdownTime(time); }} />;
       case 'quickMessage':
-        return <QuickMessage message={quickMessage} onEdit={setQuickMessage} fontSize={quickMessageFontSize} onFontSizeChange={setQuickMessageFontSize} color={quickMessageColor} onColorChange={setQuickMessageColor} />;
+        return <QuickMessage message={quickMessage} onEdit={setQuickMessage} fontSize={quickMessageFontSize} onFontSizeChange={setQuickMessageFontSize} />;
       case 'starPoints':
         return <StarPoints points={starPoints} onAdd={() => setStarPoints(p => p + 1)} onSubtract={() => setStarPoints(p => Math.max(0, p - 1))} onReset={() => setStarPoints(0)} />;
       case 'clock':
         return <Clock />;
+      case 'googleSlides':
+        return <GoogleSlides url={googleSlidesUrl} onChange={setGoogleSlidesUrl} />;
+      case 'youtubeVideo':
+        return <YouTubeVideo url={youtubeVideoUrl} onChange={setYoutubeVideoUrl} />;
       default:
         return <div className="p-2 text-gray-400 text-xs">Unknown widget: {id}</div>;
     }
@@ -181,7 +180,7 @@ const WidgetGrid = () => {
         draggableHandle=".widget-drag-handle"
         onLayoutChange={handleLayoutChange}
         compactType="vertical"
-        margin={[6, 6]}
+        margin={[0, 0]}
       >
         {layout.map(item => (
           <WidgetWrapper key={item.i} id={item.i} isLayoutEditMode={isLayoutEditMode} onRemove={removeWidget}>

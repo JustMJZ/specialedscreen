@@ -9,7 +9,7 @@ const FloorPlan = () => {
   const {
     students, stationConfigs, setStationConfigs, customBoxes, setCustomBoxes,
     teacherNames, allStationColors, tabStationKeys,
-    isEditMode, floorPlanRef, isAnimating, animationTargets,
+    isEditMode, toggleEditMode, floorPlanRef, isAnimating, animationTargets,
     setEditingBox, setSelectedStudentId, removeStationFromTab
   } = useAppState();
 
@@ -93,11 +93,18 @@ const FloorPlan = () => {
 
   return (
     <div className="flex flex-col gap-0 h-full">
-      <FloorPlanTabs />
-      <div className="bg-white rounded-b-xl rounded-tr-xl shadow-lg p-2 flex-1 flex flex-col min-h-0">
-        <div ref={floorPlanRef} className="flex-1 relative bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden"
-          style={{ border: isEditMode ? '2px dashed #3B82F6' : '2px solid #e5e7eb' }}>
-          <div className="absolute inset-2 border-2 border-gray-300 rounded bg-gray-50/50" />
+      <div className="flex items-center justify-between px-1 pb-0">
+        <FloorPlanTabs />
+        <button
+          onClick={toggleEditMode}
+          className={`px-2 py-1 rounded text-xs ${isEditMode ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'}`}
+        >
+          {isEditMode ? '✓ Done' : '✏️ Edit'}
+        </button>
+      </div>
+      <div className="bg-transparent rounded-b-xl rounded-tr-xl shadow-lg p-2 flex-1 flex flex-col min-h-0">
+        <div ref={floorPlanRef} className="flex-1 relative bg-transparent rounded-lg overflow-hidden"
+          style={{ border: isEditMode ? '2px dashed #3B82F6' : 'none' }}>
           {tabStationKeys.map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c] || c} stationColors={allStationColors} onRemove={removeStationFromTab} />)}
           {customBoxes.map(b => <DraggableBox key={b.id} box={b} onUpdate={(ub) => setCustomBoxes(p => p.map(x => x.id === ub.id ? ub : x))} isEditMode={isEditMode} containerRef={floorPlanRef} onEdit={setEditingBox} students={students} />)}
           {students.filter(s => stationConfigs[s.group]).map(s => { const grp = students.filter(x => x.group === s.group && stationConfigs[x.group]); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} emoji={s.emoji} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={!isEditMode && isAnimating} index={grp.findIndex(x => x.id === s.id)} groupSize={grp.length} onClick={isEditMode ? undefined : () => setSelectedStudentId(s.id)} isEditMode={isEditMode} />; })}

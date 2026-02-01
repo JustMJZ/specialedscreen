@@ -2,6 +2,7 @@ import React from 'react';
 import { AppStateProvider, useAppState } from './context/AppStateContext';
 import { COLORS } from './constants';
 import Header from './components/layout/Header';
+import LayoutTabs from './components/layout/LayoutTabs';
 import WidgetGrid from './components/layout/WidgetGrid';
 import Modals from './components/modals';
 import RotationAnnouncement from './components/shared/RotationAnnouncement';
@@ -14,6 +15,7 @@ function ScreenLayout() {
       <RotationAnnouncement show={showAnnouncement} phase={announcementPhase} />
       <Modals />
       <Header />
+      <LayoutTabs />
       <div className="flex-1 min-h-0 overflow-y-auto">
         <WidgetGrid />
       </div>

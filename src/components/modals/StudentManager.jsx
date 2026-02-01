@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { STUDENT_EMOJI_OPTIONS, STATION_COLOR_OPTIONS, TOKEN_EMOJI_OPTIONS } from '../../constants';
 
 const REWARD_OPTIONS = ['🎮 Free Time', '💻 Computer Time', '🎨 Art Time', '📚 Library Visit', '🎵 Music Time',
@@ -8,15 +8,38 @@ const REWARD_OPTIONS = ['🎮 Free Time', '💻 Computer Time', '🎨 Art Time',
 
 const DEFAULT_GOAL = { tokens: 0, goal: 5, reward: '🎮 Free Time', active: true, tokenEmoji: '⭐' };
 
-const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTeachers, stationColors, onUpdateStationColors, rotationOrder, onUpdateRotationOrder, customStationKeys, customStationColors, onUpdateCustomStationColors, studentGoals, onUpdateGoals }) => {
-  const [editingStudents, setEditingStudents] = useState([...students]);
+const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, teacherNames, onUpdateTeachers, stationColors, onUpdateStationColors, rotationOrder, onUpdateRotationOrder, customStationKeys, customStationColors, onUpdateCustomStationColors, studentGoals, onUpdateGoals }) => {
+  const createStudentId = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    return `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+  };
+
+  const ensureUniqueIds = (list) => {
+    const seen = new Set();
+    return (list || []).map(s => {
+      let id = s.id;
+      if (!id || seen.has(id)) id = createStudentId();
+      seen.add(id);
+      return id === s.id ? s : { ...s, id };
+    });
+  };
+
+  const [editingStudents, setEditingStudents] = useState(() => ensureUniqueIds(students));
   const [editingTeachers, setEditingTeachers] = useState({ ...teacherNames });
   const [editingColors, setEditingColors] = useState({ ...stationColors });
-  const [editingOrder, setEditingOrder] = useState([...rotationOrder]);
+  const initialOrder = useMemo(() => {
+    const keys = stationConfigs ? Object.keys(stationConfigs) : [];
+    if (keys.length === 0) return [];
+    const filtered = (rotationOrder || []).filter(k => keys.includes(k));
+    return filtered.length > 0 ? filtered : keys;
+  }, [rotationOrder, stationConfigs]);
+  const [editingOrder, setEditingOrder] = useState([...initialOrder]);
   const [editingCustomColors, setEditingCustomColors] = useState({ ...customStationColors });
   const [editingGoals, setEditingGoals] = useState({ ...studentGoals });
   const [emojiPickerFor, setEmojiPickerFor] = useState(null);
   const [goalOpenFor, setGoalOpenFor] = useState(null);
+  const [showRosterMenu, setShowRosterMenu] = useState(false);
+  const [selectedRosterIds, setSelectedRosterIds] = useState([]);
 
   const handlePhotoUpload = (studentId, file) => {
     if (!file) return;
@@ -34,6 +57,27 @@ const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTea
     }));
   };
 
+  const addRosterStudentToLayout = (r) => {
+    if (!r) return;
+    setEditingStudents(prev => {
+      if (prev.some(s => s.rosterId === r.id)) return prev;
+      return [...prev, {
+        id: createStudentId(),
+        rosterId: r.id,
+        name: r.name,
+        photo: r.photo || null,
+        emoji: r.emoji || null,
+        group: editingOrder[0] || ''
+      }];
+    });
+  };
+  const addSelectedRosterStudents = () => {
+    const rosterMap = new Map((roster || []).map(r => [r.id, r]));
+    selectedRosterIds.forEach(id => addRosterStudentToLayout(rosterMap.get(id)));
+    setSelectedRosterIds([]);
+    setShowRosterMenu(false);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
@@ -44,7 +88,55 @@ const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTea
         <div className="flex flex-1 min-h-0">
           {/* Left column: Students */}
           <div className="flex-1 p-3 overflow-y-auto border-r">
-            <div className="text-sm font-bold text-gray-700 mb-2">Students</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-bold text-gray-700">Students</div>
+              <div className="flex items-center gap-1 relative">
+                <button
+                  onClick={() => setEditingStudents(prev => ([...prev, { id: createStudentId(), name: 'New Student', group: editingOrder[0] || '', photo: null }]))}
+                  className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100"
+                >
+                  + Add Student
+                </button>
+                <button
+                  onClick={() => setShowRosterMenu(!showRosterMenu)}
+                  className="text-xs px-2 py-1 rounded bg-teal-50 text-teal-700 hover:bg-teal-100"
+                  title="Add from roster"
+                >
+                  + From Roster
+                </button>
+                {showRosterMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border z-50 py-2 min-w-[220px] max-h-[55vh] overflow-y-auto">
+                    <div className="px-3 pb-1 text-xs font-bold text-gray-400 uppercase">Roster</div>
+                    {(roster || []).length === 0 && (
+                      <div className="px-3 py-2 text-xs text-gray-400">No roster students yet.</div>
+                    )}
+                    {(roster || []).map(r => (
+                      <label key={r.id} className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedRosterIds.includes(r.id)}
+                          onChange={(e) => {
+                            setSelectedRosterIds(prev => e.target.checked ? [...prev, r.id] : prev.filter(x => x !== r.id));
+                          }}
+                        />
+                        <span className="flex-1">{r.name}</span>
+                      </label>
+                    ))}
+                    {(roster || []).length > 0 && (
+                      <div className="px-3 pt-2">
+                        <button
+                          onClick={addSelectedRosterStudents}
+                          disabled={selectedRosterIds.length === 0}
+                          className="w-full px-2 py-1 text-xs rounded bg-teal-500 text-white disabled:opacity-40"
+                        >
+                          Add Selected
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="space-y-2">
               {editingStudents.map(student => {
                 const goal = editingGoals[student.id] || DEFAULT_GOAL;
@@ -194,8 +286,11 @@ const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTea
             {customStationKeys && customStationKeys.length > 0 && (
               <div className="mt-3 p-3 bg-teal-50 rounded-lg">
                 <div className="text-sm font-bold text-gray-700 mb-2">Custom Stations (this tab)</div>
+                {customStationKeys.filter(k => !editingOrder.includes(k)).length === 0 && (
+                  <div className="text-xs text-gray-500">All custom stations are in rotation.</div>
+                )}
                 <div className="space-y-2">
-                  {customStationKeys.map(key => (
+                  {customStationKeys.filter(k => !editingOrder.includes(k)).map(key => (
                     <div key={key} className="rounded-lg overflow-hidden border" style={{ borderColor: editingCustomColors[key]?.bg || '#9CA3AF' }}>
                       <div className="flex items-center gap-2 px-2 py-1.5" style={{ backgroundColor: editingCustomColors[key]?.light || '#E5E7EB' }}>
                         <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: editingCustomColors[key]?.bg || '#9CA3AF' }} />
@@ -236,7 +331,7 @@ const StudentManager = ({ students, onUpdate, onClose, teacherNames, onUpdateTea
         </div>
         <div className="p-3 border-t bg-gray-50 flex gap-2 justify-end flex-shrink-0">
           <button onClick={onClose} className="px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-200 text-sm">Cancel</button>
-          <button onClick={() => { onUpdate(editingStudents); onUpdateTeachers(editingTeachers); onUpdateStationColors(editingColors); onUpdateRotationOrder(editingOrder); if (onUpdateCustomStationColors) onUpdateCustomStationColors(editingCustomColors); if (onUpdateGoals) onUpdateGoals(editingGoals); onClose(); }} className="px-3 py-1.5 rounded-lg bg-teal-500 text-white text-sm">Save</button>
+          <button onClick={() => { onUpdate(ensureUniqueIds(editingStudents)); onUpdateTeachers(editingTeachers); onUpdateStationColors(editingColors); onUpdateRotationOrder(editingOrder); if (onUpdateCustomStationColors) onUpdateCustomStationColors(editingCustomColors); if (onUpdateGoals) onUpdateGoals(editingGoals); onClose(); }} className="px-3 py-1.5 rounded-lg bg-teal-500 text-white text-sm">Save</button>
         </div>
       </div>
     </div>

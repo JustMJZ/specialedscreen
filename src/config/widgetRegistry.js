@@ -88,6 +88,22 @@ const widgetRegistry = {
     defaultW: 5,
     defaultH: 1,
   },
+  googleSlides: {
+    label: 'Google Slides',
+    icon: '🖥️',
+    minW: 3,
+    minH: 3,
+    defaultW: 7,
+    defaultH: 6,
+  },
+  youtubeVideo: {
+    label: 'YouTube Video',
+    icon: '🎥',
+    minW: 3,
+    minH: 3,
+    defaultW: 7,
+    defaultH: 6,
+  },
 };
 
 export default widgetRegistry;

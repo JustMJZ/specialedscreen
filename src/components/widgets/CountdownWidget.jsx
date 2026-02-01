@@ -120,9 +120,9 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
         <div className="font-black" style={{
           fontSize: 'clamp(28px, 6vw, 56px)',
           fontFamily: "'Fredoka One', cursive",
-          color: barColor,
+          color: '#374151',
           lineHeight: 1,
-          textShadow: isClose ? `0 0 20px ${barColor}40` : 'none',
+          textShadow: isClose ? '0 0 16px rgba(0,0,0,0.12)' : 'none',
         }}>
           {timeDisplay}
         </div>

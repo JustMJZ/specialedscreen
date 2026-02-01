@@ -5,6 +5,7 @@ const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, tar
   const colors = ['#FF8A7A', '#5BC0BE', '#7BC47F', '#FFD166', '#B39DDB'];
   const group = isAnimating ? targetGroup : currentGroup;
   const config = stationConfigs[group];
+  if (!config) return null;
   const isVertical = config.height > config.width;
 
   const headerScale = Math.max(0.15, Math.min(1.2, Math.min(config.width, config.height) / 80));

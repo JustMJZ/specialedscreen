@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { DEFAULT_ROTATION_ORDER } from '../../constants';
 import StudentManager from './StudentManager';
+import RosterManager from './RosterManager';
 import FirstThenEditor from './FirstThenEditor';
 import GoalEditorModal from './GoalEditorModal';
 import CustomBoxEditor from './CustomBoxEditor';
@@ -10,19 +11,22 @@ import TokenPopup from './TokenPopup';
 const Modals = () => {
   const {
     showStudentManager, setShowStudentManager,
+    showRosterManager, setShowRosterManager,
     showFirstThenEditor, setShowFirstThenEditor,
     showGoalEditor, setShowGoalEditor,
     editingBox, setEditingBox,
     selectedStudentId, setSelectedStudentId,
     students, setStudents,
+    globalRoster, setGlobalRoster,
     teacherNames, setTeacherNames,
     stationColors, setStationColors,
     rotationOrder, setRotationOrder,
+    stationConfigs,
     firstThen, setFirstThen,
     studentGoals, setStudentGoals,
     customBoxes, setCustomBoxes,
     tabStationKeys, customStationColors,
-    activeFloorPlanId, setFloorPlans,
+    setCustomStationColorsForPlan,
   } = useAppState();
 
   return (
@@ -32,6 +36,8 @@ const Modals = () => {
           students={students}
           onUpdate={setStudents}
           onClose={() => setShowStudentManager(false)}
+          roster={globalRoster}
+          stationConfigs={stationConfigs}
           teacherNames={teacherNames}
           onUpdateTeachers={setTeacherNames}
           stationColors={stationColors}
@@ -40,13 +46,20 @@ const Modals = () => {
           onUpdateRotationOrder={setRotationOrder}
           customStationKeys={tabStationKeys.filter(k => !DEFAULT_ROTATION_ORDER.includes(k))}
           customStationColors={customStationColors}
-          onUpdateCustomStationColors={(colors) => setFloorPlans(prev => prev.map(fp => fp.id === activeFloorPlanId ? { ...fp, customStationColors: colors } : fp))}
+          onUpdateCustomStationColors={setCustomStationColorsForPlan}
           studentGoals={studentGoals}
           onUpdateGoals={setStudentGoals}
         />
       )}
       {showFirstThenEditor && (
         <FirstThenEditor firstThen={firstThen} onUpdate={setFirstThen} onClose={() => setShowFirstThenEditor(false)} />
+      )}
+      {showRosterManager && (
+        <RosterManager
+          roster={globalRoster}
+          onUpdateRoster={setGlobalRoster}
+          onClose={() => setShowRosterManager(false)}
+        />
       )}
       {showGoalEditor && (
         <GoalEditorModal students={students} goals={studentGoals} onUpdate={setStudentGoals} onClose={() => setShowGoalEditor(false)} />
