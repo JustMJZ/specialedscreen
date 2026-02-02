@@ -46,6 +46,31 @@ export function getNextGroup(currentGroup, rotationOrder) {
   return rotationOrder[(rotationOrder.indexOf(currentGroup) + 1) % rotationOrder.length];
 }
 
+const REQUIRED_BACKUP_KEYS = ['layoutTabs', 'activeLayoutId'];
+const EXPECTED_BACKUP_KEYS = [
+  'layoutTabs', 'activeLayoutId', 'totalTime', 'studentsByLayout',
+  'floorPlansByLayout', 'rotationOrderByLayout',
+];
+
+export function validateBackup(data) {
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return { valid: false, error: 'File does not contain a valid data object.' };
+  }
+  for (const key of REQUIRED_BACKUP_KEYS) {
+    if (!(key in data)) {
+      return { valid: false, error: `Missing required field: "${key}".` };
+    }
+  }
+  if (!Array.isArray(data.layoutTabs) || data.layoutTabs.length === 0) {
+    return { valid: false, error: 'Backup contains no layout tabs.' };
+  }
+  const presentCount = EXPECTED_BACKUP_KEYS.filter(k => k in data).length;
+  if (presentCount < 3) {
+    return { valid: false, error: 'File is missing too many expected fields to be a valid backup.' };
+  }
+  return { valid: true, error: null };
+}
+
 export function normalizeRotationOrder(order) {
   if (!Array.isArray(order)) return [];
   if (order.length === 0) return [];

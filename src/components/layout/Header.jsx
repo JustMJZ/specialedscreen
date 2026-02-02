@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { COLORS } from '../../constants';
 import { STORAGE_KEY } from '../../hooks/usePersistedState';
+import { validateBackup } from '../../context/stateUtils';
 import widgetRegistry from '../../config/widgetRegistry';
 import Clock from '../widgets/Clock';
 
@@ -41,8 +42,9 @@ const Header = () => {
     reader.onload = (ev) => {
       try {
         const parsed = JSON.parse(ev.target.result);
-        if (typeof parsed !== 'object' || !parsed.layoutTabs) {
-          alert('This file does not look like a valid SpecialEdScreen backup.');
+        const { valid, error } = validateBackup(parsed);
+        if (!valid) {
+          alert(`This file does not look like a valid SpecialEdScreen backup.\n\n${error}`);
           return;
         }
         if (!window.confirm('This will replace all your current data. Are you sure?')) return;
