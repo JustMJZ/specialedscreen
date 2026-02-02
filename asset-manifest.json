@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/specialedscreen/static/css/main.9118705a.css",
-    "main.js": "/specialedscreen/static/js/main.078406e0.js",
+    "main.js": "/specialedscreen/static/js/main.00913f77.js",
     "index.html": "/specialedscreen/index.html",
     "main.9118705a.css.map": "/specialedscreen/static/css/main.9118705a.css.map",
-    "main.078406e0.js.map": "/specialedscreen/static/js/main.078406e0.js.map"
+    "main.00913f77.js.map": "/specialedscreen/static/js/main.00913f77.js.map"
   },
   "entrypoints": [
     "static/css/main.9118705a.css",
-    "static/js/main.078406e0.js"
+    "static/js/main.00913f77.js"
   ]
 }
