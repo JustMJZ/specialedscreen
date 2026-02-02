@@ -114,6 +114,16 @@ const Header = () => {
                 onChange={importData}
                 className="hidden"
               />
+              <button
+                onClick={() => {
+                  if (!window.confirm('This will erase all your data and reset everything to defaults. Are you sure?')) return;
+                  localStorage.removeItem(STORAGE_KEY);
+                  window.location.reload();
+                }}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-red-50 text-red-600 flex items-center gap-2"
+              >
+                ↺ Reset to Defaults
+              </button>
 
               {isEditMode && (
                 <>
