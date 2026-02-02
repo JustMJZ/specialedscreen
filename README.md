@@ -6,23 +6,25 @@ A classroom management dashboard designed for special education teachers. Featur
 
 ## Features
 
-- **🗺️ Interactive Floor Plan** - Drag and resize station areas to match your classroom layout
-- **⏱️ Rotation Timer** - Customizable timer with seconds support and auto-rotation
-- **🔊 Rotation Sounds** - Choose from 10 distinct sounds (chime, bell, whistle, gong, etc.)
-- **👥 Student Management** - Add/edit students and assign them to groups
-- **🎲 Random Student Picker** - Randomly select students for participation
-- **🚦 Traffic Light** - Visual behavior indicator
-- **🔈 Voice Level** - Show expected voice levels (Silent, Whisper, Talk, Loud)
-- **📋 First/Then Board** - Visual schedule support
+- **🧩 Multi-Layout Tabs** - Create multiple classroom layouts with separate data per tab
+- **🗺️ Interactive Floor Plan** - Drag/resize stations and manage students/stations in one place
+- **👥 Global Student Roster** - Manage students once, then add to any layout
+- **🔄 Station Groups** - Live groups view synced with the floor plan rotation
+- **⏱️ Rotation Timer** - Multiple styles (Ring, Sand, Classic, Space, Ocean, Arcade) with auto-rotation
+- **🔊 Rotation Sounds** - Built-in sounds plus custom uploads
+- **🎯 Goal Ladder** - Track progress with editable steps and visual rungs
+- **📋 First/Then Board** - Visual schedule with emoji picker and comic-style layout
 - **⭐ Class Stars** - Reward point tracker
-- **⏰ Countdown Widget** - Count down to lunch, recess, or any event
-- **📋 Quick Messages** - Display quick reminders to the class
+- **⏰ Countdown Widget** - Count down to any event
+- **📢 Banner + Quick Messages** - Bold, high-visibility messages for the class
+- **🎨 Widget Theming** - Per-widget fill/border/text colors and style presets (Normal, Glass, Neon, Aurora)
+- **▶️ Media Widgets** - Embed Google Slides and YouTube videos
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/specialedscreen.git
+git clone https://github.com/JustMJZ/specialedscreen.git
 
 # Navigate to project folder
 cd specialedscreen
@@ -52,9 +54,13 @@ Click the **✏️ Edit** button to:
 - **🔁** - Toggle auto-repeat (automatically rotates when timer ends)
 
 ### Customization
-- Click on most widgets to edit them
-- Use the dropdown to change rotation sounds
-- Click ✏️ on First/Then to change activities
+- Click most widgets to edit their content
+- Use the 🎨 menu on a widget to set fill, border, text, and style
+- Use the timer options to switch styles and sounds
+
+## Live Demo
+
+GitHub Pages: https://justmjz.github.io/specialedscreen/
 
 ## Tech Stack
 
