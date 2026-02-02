@@ -24,14 +24,6 @@ const widgetRegistry = {
     defaultW: 5,
     defaultH: 8,
   },
-  tokenBoard: {
-    label: 'Token Board',
-    icon: '🎯',
-    minW: 2,
-    minH: 1,
-    defaultW: 5,
-    defaultH: 2,
-  },
   voiceLevel: {
     label: 'Voice Level',
     icon: '🔈',
@@ -79,6 +71,14 @@ const widgetRegistry = {
     minH: 2,
     defaultW: 5,
     defaultH: 3,
+  },
+  goalLadder: {
+    label: 'Goal Ladder',
+    icon: '🪜',
+    minW: 2,
+    minH: 2,
+    defaultW: 5,
+    defaultH: 4,
   },
   clock: {
     label: 'Clock',

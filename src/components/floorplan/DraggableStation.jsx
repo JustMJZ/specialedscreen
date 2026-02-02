@@ -46,13 +46,7 @@ const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, conta
         <span className="font-bold text-gray-700 truncate" style={{ fontSize: teacherFontSize, lineHeight: 1.1 }}>{teacherName}</span>
       </div>
 
-      {!isEditMode && stationStudents.length > 0 && (
-        <div className="overflow-hidden" style={{ paddingLeft: padding, paddingRight: padding }}>
-          <div className="text-gray-500 truncate" style={{ fontSize: studentFontSize, lineHeight: 1.2 }}>
-            {stationStudents.map(s => s.name.split(' ')[0]).join(', ')}
-          </div>
-        </div>
-      )}
+
 
       {isEditMode && <>
         <div data-resize="true" className="absolute bottom-0 right-0 cursor-se-resize flex items-end justify-end" style={{ width: 16, height: 16, zIndex: 10 }}

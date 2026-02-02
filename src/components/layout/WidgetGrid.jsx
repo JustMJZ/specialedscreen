@@ -16,6 +16,7 @@ import Banner from '../widgets/Banner';
 import CountdownWidget from '../widgets/CountdownWidget';
 import QuickMessage from '../widgets/QuickMessage';
 import StarPoints from '../widgets/StarPoints';
+import GoalLadder from '../widgets/GoalLadder';
 import Clock from '../widgets/Clock';
 import FloorPlan from '../floorplan/FloorPlan';
 import GoogleSlides from '../widgets/GoogleSlides';
@@ -45,6 +46,7 @@ const WidgetGrid = () => {
     countdownEvent, countdownTime, setCountdownEvent, setCountdownTime,
     quickMessage, setQuickMessage, quickMessageFontSize, setQuickMessageFontSize,
     starPoints, setStarPoints,
+    goalLadder, setGoalLadder,
     googleSlidesUrl, setGoogleSlidesUrl,
     youtubeVideoUrl, setYoutubeVideoUrl,
     layoutTabs, setLayoutTabs, activeLayoutId,
@@ -155,6 +157,26 @@ const WidgetGrid = () => {
         return <QuickMessage message={quickMessage} onEdit={setQuickMessage} fontSize={quickMessageFontSize} onFontSizeChange={setQuickMessageFontSize} />;
       case 'starPoints':
         return <StarPoints points={starPoints} onAdd={() => setStarPoints(p => p + 1)} onSubtract={() => setStarPoints(p => Math.max(0, p - 1))} onReset={() => setStarPoints(0)} />;
+      case 'goalLadder':
+        return (
+          <GoalLadder
+            title={goalLadder?.title}
+            steps={goalLadder?.steps}
+            completedCount={goalLadder?.completedCount || 0}
+            onTitleChange={(title) => setGoalLadder(prev => ({ ...prev, title }))}
+            onStepsChange={(updater) => setGoalLadder(prev => {
+              const currentSteps = Array.isArray(prev?.steps) ? prev.steps : [];
+              const nextSteps = typeof updater === 'function' ? updater(currentSteps) : updater;
+              return { ...prev, steps: nextSteps };
+            })}
+            onCompletedChange={(count) => setGoalLadder(prev => {
+              const stepCount = Array.isArray(prev?.steps) ? prev.steps.length : 0;
+              const nextCount = Math.max(0, Math.min(count, stepCount));
+              return { ...prev, completedCount: nextCount };
+            })}
+            onReset={() => setGoalLadder(prev => ({ ...prev, completedCount: 0 }))}
+          />
+        );
       case 'clock':
         return <Clock />;
       case 'googleSlides':

@@ -18,7 +18,7 @@ const VoiceLevel = ({ level, onChange }) => {
   }, [level]);
 
   return (
-    <div className="rounded-lg p-2 shadow-md h-full flex flex-col overflow-hidden">
+    <div className="rounded-lg p-2 shadow-md h-full flex flex-col overflow-hidden bg-transparent">
       <style>{`
         @keyframes voice-bounce {
           0%, 100% { transform: scale(1); }
@@ -68,7 +68,7 @@ const VoiceLevel = ({ level, onChange }) => {
           <button key={l.id} onClick={() => onChange(l.id)}
             className="flex-1 py-0.5 rounded-lg text-center transition-all"
             style={{
-              backgroundColor: level === l.id ? l.color : '#ffffff',
+              backgroundColor: level === l.id ? l.color : 'rgba(0,0,0,0.05)',
               boxShadow: level === l.id ? `0 2px 8px ${l.color}60` : '0 1px 2px rgba(0,0,0,0.1)',
               transform: level === l.id ? 'scale(1.05)' : 'scale(1)',
             }}>

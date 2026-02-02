@@ -35,7 +35,15 @@ const QuickMessage = ({ message, onEdit, fontSize = 16, onFontSizeChange }) => {
   return (
     <div onClick={() => setEditing(true)} className="rounded-lg p-2 shadow-md cursor-pointer hover:shadow-lg transition-shadow h-full">
       <div className="text-xs font-bold text-gray-500">📋 QUICK MESSAGE</div>
-      <div className="font-bold text-gray-700 text-center py-1" style={{ fontSize }}>{message}</div>
+      <div
+        className="relative z-10 text-center py-1 font-extrabold"
+        style={{
+          fontSize,
+          textShadow: '0 3px 10px rgba(0,0,0,0.25)',
+        }}
+      >
+        {message}
+      </div>
     </div>
   );
 };

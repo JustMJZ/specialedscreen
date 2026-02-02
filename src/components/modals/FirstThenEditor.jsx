@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const FirstThenEditor = ({ firstThen, onUpdate, onClose }) => {
   const [editing, setEditing] = useState({ ...firstThen });
+  const emojiOptions = ['📚', '✏️', '🔢', '🎨', '🎵', '🎮', '🧩', '💻', '🏃', '🍎', '🥪', '🧹', '🔬', '🌍', '🗣️', '🧘', '🤝', '🎭', '🏊', '🖍️', '🧠', '📖', '🎤', '🚶', '😴', '🏠', '🚌', '🎉', '🧪', '⭐', '🌟', '🚀', '🦄', '🐶', '🐱'];
   const activities = [
     { icon: '📚', label: 'Reading' }, { icon: '✏️', label: 'Writing' }, { icon: '🔢', label: 'Math' },
     { icon: '🎨', label: 'Art' }, { icon: '🎵', label: 'Music' }, { icon: '🎮', label: 'Free Time' },
@@ -47,6 +48,19 @@ const FirstThenEditor = ({ firstThen, onUpdate, onClose }) => {
                   className="flex-1 px-2 py-1 border rounded text-sm" placeholder="Activity name" />
               </div>
             )}
+            {isCustomFirst && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {emojiOptions.map(emoji => (
+                  <button
+                    key={`first-${emoji}`}
+                    onClick={() => setEditing(p => ({ ...p, firstIcon: emoji }))}
+                    className={`w-7 h-7 rounded border text-base ${editing.firstIcon === emoji ? 'bg-blue-100 ring-2 ring-blue-400' : 'bg-gray-50'}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-bold text-green-600 mb-1">THEN</label>
@@ -68,6 +82,19 @@ const FirstThenEditor = ({ firstThen, onUpdate, onClose }) => {
                   className="w-10 px-1 py-1 border rounded text-center text-sm" placeholder="📝" maxLength={2} />
                 <input type="text" value={editing.thenLabel} onChange={(e) => setEditing(p => ({ ...p, thenLabel: e.target.value }))}
                   className="flex-1 px-2 py-1 border rounded text-sm" placeholder="Activity name" />
+              </div>
+            )}
+            {isCustomThen && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {emojiOptions.map(emoji => (
+                  <button
+                    key={`then-${emoji}`}
+                    onClick={() => setEditing(p => ({ ...p, thenIcon: emoji }))}
+                    className={`w-7 h-7 rounded border text-base ${editing.thenIcon === emoji ? 'bg-green-100 ring-2 ring-green-400' : 'bg-gray-50'}`}
+                  >
+                    {emoji}
+                  </button>
+                ))}
               </div>
             )}
           </div>

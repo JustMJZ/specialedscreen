@@ -81,6 +81,14 @@ function createFloorPlanSet() {
   return { floorPlans: [tab], activeFloorPlanId: tab.id };
 }
 
+function createDefaultGoalLadder() {
+  return {
+    title: 'Goal Ladder',
+    steps: Array.from({ length: 6 }, () => ''),
+    completedCount: 0,
+  };
+}
+
 const AppStateContext = createContext(null);
 
 export function useAppState() {
@@ -131,6 +139,11 @@ export function AppStateProvider({ children }) {
     if (saved && typeof saved === 'object') return saved;
     const legacy = loadSaved('widgetColors', {});
     return { [getSavedMainLayoutId()]: legacy };
+  });
+  const [goalLaddersByLayout, setGoalLaddersByLayout] = useState(() => {
+    const saved = loadSaved('goalLaddersByLayout', null);
+    if (saved && typeof saved === 'object') return saved;
+    return { [getSavedMainLayoutId()]: createDefaultGoalLadder() };
   });
   const [starPoints, setStarPoints] = useState(() => loadSaved('starPoints', 0));
   const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
@@ -313,6 +326,10 @@ export function AppStateProvider({ children }) {
       if (prev[activeLayoutId]) return prev;
       return { ...prev, [activeLayoutId]: {} };
     });
+    setGoalLaddersByLayout(prev => {
+      if (prev[activeLayoutId]) return prev;
+      return { ...prev, [activeLayoutId]: createDefaultGoalLadder() };
+    });
     setRotationOrderByLayout(prev => {
       const existing = prev[activeLayoutId];
       if (Array.isArray(existing)) return prev;
@@ -336,7 +353,16 @@ export function AppStateProvider({ children }) {
   const students = studentsByLayout[activeLayoutId] || [];
   const stationColors = stationColorsByLayout[activeLayoutId] || DEFAULT_STATION_COLORS;
   const widgetColors = widgetColorsByLayout[activeLayoutId] || {};
+  const goalLadder = goalLaddersByLayout[activeLayoutId] || createDefaultGoalLadder();
   const rotationOrder = normalizeRotationOrder(rotationOrderByLayout[activeLayoutId]);
+
+  const setGoalLadder = (updater) => {
+    setGoalLaddersByLayout(prev => {
+      const current = prev[activeLayoutId] || createDefaultGoalLadder();
+      const next = typeof updater === 'function' ? updater(current) : updater;
+      return { ...prev, [activeLayoutId]: next };
+    });
+  };
 
   // Derived floor plan data (per active layout)
   const fallbackFloorPlanSet = useMemo(() => createFloorPlanSet(), [activeLayoutId]);
@@ -414,14 +440,14 @@ export function AppStateProvider({ children }) {
         rotationSound, voiceLevel, countdownEvent, countdownTime,
         quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl,
         layoutTabs, activeLayoutId,
-        widgetColorsByLayout, starPoints, studentGoals, floorPlansByLayout,
+        widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
         customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume
       }));
     } catch (e) {}
   }, [globalRoster, studentsByLayout, totalTime, autoRepeat, rightNowText, bannerFontSize, firstThen,
       rotationSound, voiceLevel, countdownEvent, countdownTime,
       quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl, layoutTabs, activeLayoutId,
-      widgetColorsByLayout, starPoints, studentGoals, floorPlansByLayout,
+      widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
       customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume]);
 
   // Timer effect
@@ -581,6 +607,7 @@ export function AppStateProvider({ children }) {
     setStudentsByLayout(prev => ({ ...prev, [id]: [] }));
     setStationColorsByLayout(prev => ({ ...prev, [id]: DEFAULT_STATION_COLORS }));
     setWidgetColorsByLayout(prev => ({ ...prev, [id]: {} }));
+    setGoalLaddersByLayout(prev => ({ ...prev, [id]: createDefaultGoalLadder() }));
     setRotationOrderByLayout(prev => ({ ...prev, [id]: [] }));
     setActiveLayoutId(id);
   };
@@ -614,6 +641,12 @@ export function AppStateProvider({ children }) {
       return next;
     });
     setWidgetColorsByLayout(prev => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    setGoalLaddersByLayout(prev => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
@@ -672,6 +705,7 @@ export function AppStateProvider({ children }) {
     layoutRenamingId, setLayoutRenamingId,
     layoutRenameValue, setLayoutRenameValue,
     widgetColors, setWidgetColors,
+    goalLadder, setGoalLadder,
     starPoints, setStarPoints,
     studentGoals, setStudentGoals,
     customSounds, setCustomSounds,

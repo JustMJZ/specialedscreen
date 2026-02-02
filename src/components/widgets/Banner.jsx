@@ -20,7 +20,17 @@ const Banner = ({ text, fontSize = 28, onEdit, onFontSizeChange }) => {
   );
   return (
     <div onClick={() => setEditing(true)} className="rounded-xl p-4 text-center cursor-pointer hover:opacity-90 shadow-lg h-full flex items-center justify-center">
-      <div style={{ fontSize, fontFamily: "'Baloo 2', cursive", fontWeight: 800 }}>{text || '\u00A0'}</div>
+      <div
+        className="relative z-10"
+        style={{
+          fontSize,
+          fontFamily: "'Baloo 2', cursive",
+          fontWeight: 800,
+          textShadow: '0 3px 10px rgba(0,0,0,0.25)',
+        }}
+      >
+        {text || '\u00A0'}
+      </div>
     </div>
   );
 };
