@@ -5,7 +5,7 @@ import {
 } from '../constants';
 import { playSound } from '../constants/sounds';
 import { STORAGE_KEY, loadSaved } from '../hooks/usePersistedState';
-import { ensureUniqueStudents, normalizeStudentsByLayout, createDefaultRoster, getNextGroup } from './stateUtils';
+import { ensureUniqueStudents, normalizeStudentsByLayout, createDefaultRoster, getNextGroup, normalizeRotationOrder } from './stateUtils';
 
 const LEGACY_LAYOUT_KEY = 'specialedscreen-layout';
 
@@ -260,17 +260,6 @@ export function AppStateProvider({ children }) {
       setActiveLayoutId(layoutTabs[0].id);
     }
   }, [layoutTabs, activeLayoutId]);
-
-  const normalizeRotationOrder = (order) => {
-    if (!Array.isArray(order)) return [];
-    if (order.length === 0) return [];
-    const current = order;
-    if (current.length < DEFAULT_ROTATION_ORDER.length) {
-      const missing = DEFAULT_ROTATION_ORDER.filter(c => !current.includes(c));
-      if (missing.length > 0) return [...current, ...missing];
-    }
-    return current;
-  };
 
   useEffect(() => {
     if (!activeLayoutId) return;

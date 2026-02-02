@@ -1,4 +1,4 @@
-import { ensureUniqueStudents, normalizeStudentsByLayout } from '../stateUtils';
+import { ensureUniqueStudents, normalizeStudentsByLayout, createDefaultRoster } from '../stateUtils';
 
 describe('ensureUniqueStudents', () => {
   it('keeps students that already have unique IDs', () => {
@@ -41,6 +41,35 @@ describe('ensureUniqueStudents', () => {
     expect(next).toEqual([]);
     expect(changed).toBe(false);
   });
+
+  it('handles empty array', () => {
+    const { next, changed } = ensureUniqueStudents([]);
+    expect(next).toEqual([]);
+    expect(changed).toBe(false);
+  });
+
+  it('preserves other student properties when regenerating ID', () => {
+    const students = [
+      { id: 'dup', name: 'Alice', group: 'purple', photo: 'photo.jpg' },
+      { id: 'dup', name: 'Bob', group: 'yellow', photo: null },
+    ];
+    const { next } = ensureUniqueStudents(students);
+    expect(next[1].name).toBe('Bob');
+    expect(next[1].group).toBe('yellow');
+    expect(next[1].photo).toBeNull();
+  });
+
+  it('generates unique IDs for multiple students without IDs', () => {
+    const students = [
+      { name: 'Alice' },
+      { name: 'Bob' },
+      { name: 'Charlie' },
+    ];
+    const { next } = ensureUniqueStudents(students);
+    const ids = next.map(s => s.id);
+    const uniqueIds = new Set(ids);
+    expect(uniqueIds.size).toBe(3);
+  });
 });
 
 describe('normalizeStudentsByLayout', () => {
@@ -70,5 +99,47 @@ describe('normalizeStudentsByLayout', () => {
     // null input falls through to DEFAULT_STUDENTS
     expect(result).toHaveProperty('layout-1');
     expect(Array.isArray(result['layout-1'])).toBe(true);
+  });
+
+  it('fixes duplicate IDs within a layout in object format', () => {
+    const input = {
+      'layout-1': [
+        { id: 'dup', name: 'Alice' },
+        { id: 'dup', name: 'Bob' },
+      ],
+    };
+    const result = normalizeStudentsByLayout(input, 'layout-1');
+    const ids = result['layout-1'].map(s => s.id);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it('handles empty object input', () => {
+    const result = normalizeStudentsByLayout({}, 'layout-1');
+    expect(result).toEqual({});
+  });
+});
+
+describe('createDefaultRoster', () => {
+  it('returns an array of roster entries', () => {
+    const roster = createDefaultRoster();
+    expect(Array.isArray(roster)).toBe(true);
+    expect(roster.length).toBeGreaterThan(0);
+  });
+
+  it('each entry has id, name, photo, and emoji fields', () => {
+    const roster = createDefaultRoster();
+    roster.forEach(entry => {
+      expect(entry).toHaveProperty('id');
+      expect(entry).toHaveProperty('name');
+      expect(entry).toHaveProperty('photo');
+      expect(entry).toHaveProperty('emoji');
+    });
+  });
+
+  it('roster IDs are prefixed with r-', () => {
+    const roster = createDefaultRoster();
+    roster.forEach(entry => {
+      expect(entry.id).toMatch(/^r-/);
+    });
   });
 });

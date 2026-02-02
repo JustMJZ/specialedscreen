@@ -1,4 +1,4 @@
-import { DEFAULT_STUDENTS } from '../constants';
+import { DEFAULT_STUDENTS, DEFAULT_ROTATION_ORDER } from '../constants';
 
 function createStudentId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -44,4 +44,14 @@ export function createDefaultRoster() {
 export function getNextGroup(currentGroup, rotationOrder) {
   if (!rotationOrder || rotationOrder.length === 0) return currentGroup;
   return rotationOrder[(rotationOrder.indexOf(currentGroup) + 1) % rotationOrder.length];
+}
+
+export function normalizeRotationOrder(order) {
+  if (!Array.isArray(order)) return [];
+  if (order.length === 0) return [];
+  if (order.length < DEFAULT_ROTATION_ORDER.length) {
+    const missing = DEFAULT_ROTATION_ORDER.filter(c => !order.includes(c));
+    if (missing.length > 0) return [...order, ...missing];
+  }
+  return order;
 }
