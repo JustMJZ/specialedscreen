@@ -5,6 +5,7 @@ import {
 } from '../constants';
 import { playSound } from '../constants/sounds';
 import { STORAGE_KEY, loadSaved } from '../hooks/usePersistedState';
+import { ensureUniqueStudents, normalizeStudentsByLayout, createDefaultRoster, getNextGroup } from './stateUtils';
 
 const LEGACY_LAYOUT_KEY = 'specialedscreen-layout';
 
@@ -23,47 +24,6 @@ function getSavedMainLayoutId() {
   const saved = loadSaved('layoutTabs', null);
   if (Array.isArray(saved) && saved.length > 0) return saved[0].id;
   return 'layout-1';
-}
-
-function createDefaultRoster() {
-  return DEFAULT_STUDENTS.map(s => ({
-    id: `r-${s.id}`,
-    name: s.name,
-    photo: s.photo || null,
-    emoji: s.emoji || null,
-  }));
-}
-
-function createStudentId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-  return `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-}
-
-function ensureUniqueStudents(list) {
-  const seen = new Set();
-  let changed = false;
-  const next = (list || []).map(s => {
-    let id = s.id;
-    if (!id || seen.has(id)) {
-      id = createStudentId();
-      changed = true;
-    }
-    seen.add(id);
-    return id === s.id ? s : { ...s, id };
-  });
-  return { next, changed };
-}
-
-function normalizeStudentsByLayout(saved, fallbackLayoutId) {
-  if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
-    const next = {};
-    Object.keys(saved).forEach(id => {
-      next[id] = ensureUniqueStudents(saved[id]).next;
-    });
-    return next;
-  }
-  const legacy = Array.isArray(saved) ? saved : DEFAULT_STUDENTS;
-  return { [fallbackLayoutId]: ensureUniqueStudents(legacy).next };
 }
 
 function createEmptyFloorPlanTab(name = 'Main Layout') {
@@ -461,8 +421,6 @@ export function AppStateProvider({ children }) {
     }, 1000);
     return () => clearInterval(timer);
   }, [isRunning, autoRepeat, totalTime]);
-
-  const getNextGroup = (g, order) => order[(order.indexOf(g) + 1) % order.length];
 
   const triggerRotation = () => {
     if (isAnimating || isEditMode) return;

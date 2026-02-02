@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { COLORS } from '../../constants';
+import { STORAGE_KEY } from '../../hooks/usePersistedState';
 import widgetRegistry from '../../config/widgetRegistry';
 import Clock from '../widgets/Clock';
 
@@ -18,6 +19,42 @@ const Header = () => {
 
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [showWidgetsList, setShowWidgetsList] = useState(false);
+  const fileInputRef = React.useRef(null);
+
+  const exportData = () => {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (!data) return;
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `specialedscreen-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    closeToolsMenu();
+  };
+
+  const importData = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (typeof parsed !== 'object' || !parsed.layoutTabs) {
+          alert('This file does not look like a valid SpecialEdScreen backup.');
+          return;
+        }
+        if (!window.confirm('This will replace all your current data. Are you sure?')) return;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        window.location.reload();
+      } catch {
+        alert('Could not read this file. Make sure it is a valid backup file.');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
 
   const missingStations = rotationOrder.filter(c => !stationConfigs[c]);
   const activeWidgetIds = state._activeWidgetIds || [];
@@ -54,6 +91,27 @@ const Header = () => {
               >
                 📋 Student Roster
               </button>
+              <div className="border-t my-1" />
+              <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase">Data</div>
+              <button
+                onClick={exportData}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2"
+              >
+                📥 Export Data
+              </button>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2"
+              >
+                📤 Import Data
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                onChange={importData}
+                className="hidden"
+              />
 
               {isEditMode && (
                 <>
