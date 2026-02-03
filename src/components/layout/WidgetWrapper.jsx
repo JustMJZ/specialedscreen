@@ -12,7 +12,7 @@ const WIDGET_COLORS = [
 const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, children, style, className, ...rest }, ref) => {
   const meta = widgetRegistry[id];
   const label = meta ? meta.label : id;
-  const { widgetColors, setWidgetColors } = useAppState();
+  const { widgetColors, setWidgetColors, performanceMode } = useAppState();
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorTab, setColorTab] = useState('bg');
 
@@ -134,15 +134,25 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
           '--widget-border-color': widgetBorder || 'transparent',
           '--widget-text-color': widgetText || 'inherit',
           color: widgetText || 'inherit',
-          backdropFilter: widgetStyle === 'glass' ? 'blur(12px) saturate(1.4)' : 'none',
-          WebkitBackdropFilter: widgetStyle === 'glass' ? 'blur(12px) saturate(1.4)' : 'none',
-          boxShadow: widgetStyle === 'glass'
-            ? '0 10px 28px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(255,255,255,0.25)'
-            : widgetStyle === 'neon'
-              ? '0 0 0 1px rgba(255,255,255,0.12), 0 0 28px rgba(34,211,238,0.95), 0 0 64px rgba(168,85,247,0.85), inset 0 0 22px rgba(56,189,248,0.3)'
-              : widgetStyle === 'aurora'
-                ? '0 10px 26px rgba(15,23,42,0.12), inset 0 0 18px rgba(56,189,248,0.18)'
-                : 'none',
+          // Performance mode: disable expensive backdrop-filter
+          backdropFilter: widgetStyle === 'glass' && !performanceMode ? 'blur(12px) saturate(1.4)' : 'none',
+          WebkitBackdropFilter: widgetStyle === 'glass' && !performanceMode ? 'blur(12px) saturate(1.4)' : 'none',
+          // Performance mode: use simpler box-shadows
+          boxShadow: performanceMode
+            ? (widgetStyle === 'glass'
+                ? '0 4px 12px rgba(15, 23, 42, 0.1)'
+                : widgetStyle === 'neon'
+                  ? '0 0 0 2px rgba(34,211,238,0.7), 0 0 12px rgba(34,211,238,0.5)'
+                  : widgetStyle === 'aurora'
+                    ? '0 4px 12px rgba(15,23,42,0.1)'
+                    : 'none')
+            : (widgetStyle === 'glass'
+                ? '0 10px 28px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(255,255,255,0.25)'
+                : widgetStyle === 'neon'
+                  ? '0 0 0 1px rgba(255,255,255,0.12), 0 0 28px rgba(34,211,238,0.95), 0 0 64px rgba(168,85,247,0.85), inset 0 0 22px rgba(56,189,248,0.3)'
+                  : widgetStyle === 'aurora'
+                    ? '0 10px 26px rgba(15,23,42,0.12), inset 0 0 18px rgba(56,189,248,0.18)'
+                    : 'none'),
         }}>
         {widgetText && (
           <style>{`
@@ -161,7 +171,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
             }
           `}</style>
         )}
-        {widgetStyle === 'glass' && (
+        {widgetStyle === 'glass' && !performanceMode && (
           <>
             <style>{`
               @keyframes glass-sheen {
@@ -224,7 +234,16 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
             />
           </>
         )}
-        {widgetStyle === 'neon' && (
+        {widgetStyle === 'glass' && performanceMode && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%)',
+              borderRadius: 'inherit',
+            }}
+          />
+        )}
+        {widgetStyle === 'neon' && !performanceMode && (
           <>
             <style>{`
               @keyframes neon-pulse {
@@ -257,7 +276,16 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
             />
           </>
         )}
-        {widgetStyle === 'aurora' && (
+        {widgetStyle === 'neon' && performanceMode && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(180deg, rgba(34,211,238,0.2) 0%, rgba(168,85,247,0.2) 100%)',
+              borderRadius: 'inherit',
+            }}
+          />
+        )}
+        {widgetStyle === 'aurora' && !performanceMode && (
           <>
             <style>{`
               @keyframes aurora-drift {
@@ -301,6 +329,15 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
             />
           </>
         )}
+        {widgetStyle === 'aurora' && performanceMode && (
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(135deg, rgba(56,189,248,0.15) 0%, rgba(167,139,250,0.15) 50%, rgba(34,197,94,0.1) 100%)',
+              borderRadius: 'inherit',
+            }}
+          />
+        )}
         {widgetStyle === 'gold' && (
           <div
             className="absolute inset-0 pointer-events-none"
@@ -321,7 +358,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
             }}
           />
         )}
-        {widgetStyle === 'neon' && (
+        {widgetStyle === 'neon' && !performanceMode && (
           <>
             <div
               className="absolute inset-0 pointer-events-none"

@@ -4,7 +4,6 @@ import { COLORS } from '../../constants';
 import { STORAGE_KEY } from '../../hooks/usePersistedState';
 import { validateBackup } from '../../context/stateUtils';
 import widgetRegistry from '../../config/widgetRegistry';
-import Clock from '../widgets/Clock';
 
 const ALL_WIDGET_IDS = Object.keys(widgetRegistry);
 
@@ -15,7 +14,8 @@ const Header = () => {
     addBox, equalizeStationSizes,
     rotationOrder, stationConfigs, stationColors, teacherNames,
     addStationToTab,
-    isLayoutEditMode, toggleLayoutEditMode
+    isLayoutEditMode, toggleLayoutEditMode,
+    performanceMode, setPerformanceMode
   } = state;
 
   const [showToolsMenu, setShowToolsMenu] = useState(false);
@@ -67,11 +67,7 @@ const Header = () => {
   };
 
   return (
-    <div className="flex items-center justify-between mb-2 flex-shrink-0">
-      <div className="flex items-center gap-2">
-        <Clock />
-      </div>
-      <div className="flex gap-1 items-center">
+    <div className="flex items-center justify-end gap-1 mb-1 flex-shrink-0">
         <div className="relative">
           <button
             onClick={() => setShowToolsMenu(!showToolsMenu)}
@@ -123,6 +119,17 @@ const Header = () => {
                 className="w-full text-left px-3 py-1.5 text-xs hover:bg-red-50 text-red-600 flex items-center gap-2"
               >
                 ↺ Reset to Defaults
+              </button>
+              <div className="border-t my-1" />
+              <div className="px-3 py-1 text-[10px] font-bold text-gray-400 uppercase">Display</div>
+              <button
+                onClick={() => setPerformanceMode(!performanceMode)}
+                className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center justify-between"
+              >
+                <span>⚡ Performance Mode</span>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${performanceMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {performanceMode ? 'ON' : 'OFF'}
+                </span>
               </button>
 
               {isEditMode && (
@@ -228,7 +235,6 @@ const Header = () => {
         >
           {isLayoutEditMode ? '✓ Done Layout' : '📐 Edit Layout'}
         </button>
-      </div>
     </div>
   );
 };

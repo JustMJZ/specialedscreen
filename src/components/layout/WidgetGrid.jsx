@@ -54,18 +54,24 @@ const WidgetGrid = () => {
 
   const containerRef = useRef(null);
   const [containerWidth, setContainerWidth] = useState(1200);
+  const [containerHeight, setContainerHeight] = useState(600);
 
-  // Measure container width
+  // Measure container dimensions
   useEffect(() => {
     if (!containerRef.current) return;
     const observer = new ResizeObserver(entries => {
       for (const entry of entries) {
         setContainerWidth(entry.contentRect.width);
+        setContainerHeight(entry.contentRect.height);
       }
     });
     observer.observe(containerRef.current);
     return () => observer.disconnect();
   }, []);
+
+  // Calculate max rows based on container height (rowHeight = 30)
+  const rowHeight = 30;
+  const maxRows = Math.floor(containerHeight / rowHeight);
 
   const activeLayoutTab = useMemo(() => {
     if (!Array.isArray(layoutTabs) || layoutTabs.length === 0) return null;
@@ -115,10 +121,11 @@ const WidgetGrid = () => {
       const existing = tab.layout || [];
       if (existing.some(item => item.i === widgetId)) return tab;
       const meta = widgetRegistry[widgetId];
+      // Place at top-left (0,0) - react-grid-layout will compact and adjust
       const newItem = {
         i: widgetId,
         x: 0,
-        y: Infinity,
+        y: 0,
         w: meta ? meta.defaultW : 5,
         h: meta ? meta.defaultH : 2,
         minW: meta ? meta.minW : 2,
@@ -189,13 +196,14 @@ const WidgetGrid = () => {
   };
 
   return (
-    <div ref={containerRef}>
+    <div ref={containerRef} className="h-full">
       <ResponsiveGridLayout
         className="layout"
         layouts={{ lg: layout }}
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
         cols={{ lg: 12, md: 12, sm: 12, xs: 12, xxs: 12 }}
-        rowHeight={30}
+        rowHeight={rowHeight}
+        maxRows={maxRows}
         width={containerWidth}
         isDraggable={isLayoutEditMode}
         isResizable={isLayoutEditMode}
@@ -203,6 +211,8 @@ const WidgetGrid = () => {
         onLayoutChange={handleLayoutChange}
         compactType="vertical"
         margin={[0, 0]}
+        preventCollision={false}
+        isBounded={true}
       >
         {layout.map(item => (
           <WidgetWrapper key={item.i} id={item.i} isLayoutEditMode={isLayoutEditMode} onRemove={removeWidget}>

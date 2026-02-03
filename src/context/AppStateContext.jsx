@@ -124,6 +124,9 @@ export function AppStateProvider({ children }) {
   });
   const [timerStyle, setTimerStyle] = useState(() => loadSaved('timerStyle', 'ring'));
   const [soundVolume, setSoundVolume] = useState(() => loadSaved('soundVolume', 0.7));
+  const [performanceMode, setPerformanceMode] = useState(() => loadSaved('performanceMode', false));
+  const [clockStyle, setClockStyle] = useState(() => loadSaved('clockStyle', 'digital'));
+  const [showClockDate, setShowClockDate] = useState(() => loadSaved('showClockDate', true));
 
   // Floor plan tabs per layout
   const [floorPlansByLayout, setFloorPlansByLayout] = useState(() => {
@@ -407,14 +410,16 @@ export function AppStateProvider({ children }) {
         quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl,
         layoutTabs, activeLayoutId,
         widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
-        customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume
+        customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume, performanceMode,
+        clockStyle, showClockDate
       }));
     } catch (e) {}
   }, [globalRoster, studentsByLayout, totalTime, autoRepeat, rightNowText, bannerFontSize, firstThen,
       rotationSound, voiceLevel, countdownEvent, countdownTime,
       quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl, layoutTabs, activeLayoutId,
       widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
-      customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume]);
+      customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume, performanceMode,
+      clockStyle, showClockDate]);
 
   // Timer effect
   useEffect(() => {
@@ -677,6 +682,8 @@ export function AppStateProvider({ children }) {
     rotationOrder: activeRotationOrder, setRotationOrder,
     timerStyle, setTimerStyle,
     soundVolume, setSoundVolume,
+    clockStyle, setClockStyle,
+    showClockDate, setShowClockDate,
     floorPlans,
     activeFloorPlanId, setActiveFloorPlanId,
     renamingTabId, setRenamingTabId,
@@ -693,6 +700,7 @@ export function AppStateProvider({ children }) {
     tabStationKeys,
 
     // UI state
+    performanceMode, setPerformanceMode,
     isEditMode, setIsEditMode,
     isLayoutEditMode, setIsLayoutEditMode,
     showStudentManager, setShowStudentManager,
