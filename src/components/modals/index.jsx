@@ -27,12 +27,15 @@ const Modals = () => {
     customBoxes, setCustomBoxes,
     tabStationKeys, customStationColors,
     setCustomStationColorsForPlan,
+    activeLayoutId,
+    activeFloorPlanId,
   } = useAppState();
 
   return (
     <>
       {showStudentManager && (
         <StudentManager
+          key={`${activeLayoutId}-${activeFloorPlanId}`}
           students={students}
           onUpdate={setStudents}
           onClose={() => setShowStudentManager(false)}

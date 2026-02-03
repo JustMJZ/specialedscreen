@@ -33,6 +33,8 @@ function createEmptyFloorPlanTab(name = 'Main Layout') {
     stationConfigs: {},
     customBoxes: [],
     teacherNames: { ...DEFAULT_TEACHER_NAMES },
+    students: [],
+    rotationOrder: [],
   };
 }
 
@@ -182,19 +184,33 @@ export function AppStateProvider({ children }) {
     });
   };
   const setStudents = (updater) => {
-    setStudentsByLayout(prev => {
-      const current = prev[activeLayoutId] || DEFAULT_STUDENTS;
-      const nextRaw = typeof updater === 'function' ? updater(current) : updater;
+    setFloorPlansByLayout(prev => {
+      const set = prev[activeLayoutId];
+      if (!set) return prev;
+      const currentPlan = set.floorPlans.find(fp => fp.id === activeFloorPlanId) || set.floorPlans[0];
+      const currentStudents = currentPlan?.students || [];
+      const nextRaw = typeof updater === 'function' ? updater(currentStudents) : updater;
       const { next } = ensureUniqueStudents(nextRaw);
-      return { ...prev, [activeLayoutId]: next };
+      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
+        ? { ...fp, students: next }
+        : fp
+      );
+      return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
   const setRotationOrder = (updater) => {
-    setRotationOrderByLayout(prev => {
-      const current = prev[activeLayoutId] || DEFAULT_ROTATION_ORDER;
-      const nextRaw = typeof updater === 'function' ? updater(current) : updater;
+    setFloorPlansByLayout(prev => {
+      const set = prev[activeLayoutId];
+      if (!set) return prev;
+      const currentPlan = set.floorPlans.find(fp => fp.id === activeFloorPlanId) || set.floorPlans[0];
+      const currentOrder = currentPlan?.rotationOrder || [];
+      const nextRaw = typeof updater === 'function' ? updater(currentOrder) : updater;
       const next = normalizeRotationOrder(nextRaw);
-      return { ...prev, [activeLayoutId]: next };
+      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
+        ? { ...fp, rotationOrder: next }
+        : fp
+      );
+      return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
   const setStationColors = (updater) => {
@@ -299,11 +315,9 @@ export function AppStateProvider({ children }) {
     });
   }, []);
 
-  const students = studentsByLayout[activeLayoutId] || [];
   const stationColors = stationColorsByLayout[activeLayoutId] || DEFAULT_STATION_COLORS;
   const widgetColors = widgetColorsByLayout[activeLayoutId] || {};
   const goalLadder = goalLaddersByLayout[activeLayoutId] || createDefaultGoalLadder();
-  const rotationOrder = normalizeRotationOrder(rotationOrderByLayout[activeLayoutId]);
 
   const setGoalLadder = (updater) => {
     setGoalLaddersByLayout(prev => {
@@ -322,47 +336,25 @@ export function AppStateProvider({ children }) {
     stationConfigs: {},
     customBoxes: [],
     teacherNames: DEFAULT_TEACHER_NAMES,
-    customStationColors: {}
+    customStationColors: {},
+    students: [],
+    rotationOrder: [],
   };
   const stationConfigs = activeFloorPlan.stationConfigs || {};
   const customBoxes = activeFloorPlan.customBoxes || [];
   const teacherNames = activeFloorPlan.teacherNames || DEFAULT_TEACHER_NAMES;
   const customStationColors = activeFloorPlan.customStationColors || {};
+  // Students and rotation order are now per floor plan tab
+  const students = activeFloorPlan.students || [];
+  const rotationOrder = normalizeRotationOrder(activeFloorPlan.rotationOrder);
   const allStationColors = { ...stationColors, ...customStationColors };
   const tabStationKeys = Object.keys(stationConfigs);
   const activeRotationOrder = rotationOrder.filter(k => tabStationKeys.includes(k));
 
-  useEffect(() => {
-    const layoutIds = Object.keys(floorPlansByLayout || {});
-    if (layoutIds.length === 0) return;
-    const hasStationsFor = (layoutId) => {
-      const set = floorPlansByLayout[layoutId];
-      const plan = set?.floorPlans?.find(fp => fp.id === set?.activeFloorPlanId) || set?.floorPlans?.[0];
-      return !!(plan && plan.stationConfigs && Object.keys(plan.stationConfigs).length > 0);
-    };
-    setRotationOrderByLayout(prev => {
-      let changed = false;
-      const next = { ...prev };
-      layoutIds.forEach(id => {
-        if (!hasStationsFor(id) && Array.isArray(next[id]) && next[id].length > 0) {
-          next[id] = [];
-          changed = true;
-        }
-      });
-      return changed ? next : prev;
-    });
-    setStudentsByLayout(prev => {
-      let changed = false;
-      const next = { ...prev };
-      layoutIds.forEach(id => {
-        if (!hasStationsFor(id) && Array.isArray(next[id]) && next[id].length > 0) {
-          next[id] = [];
-          changed = true;
-        }
-      });
-      return changed ? next : prev;
-    });
-  }, [floorPlansByLayout]);
+  // Note: Previously this effect would clear students/rotationOrder for layouts
+  // without stations. This was removed because it caused a bug where students
+  // in one tab would reset when making changes to a different tab. Students
+  // should be allowed to exist even before stations are configured.
 
   useEffect(() => {
     if (!activeLayoutId) return;
@@ -380,6 +372,31 @@ export function AppStateProvider({ children }) {
       return prev;
     });
   }, [activeLayoutId]);
+
+  // Migration: Move students and rotationOrder from per-layout to per-floor-plan
+  useEffect(() => {
+    setFloorPlansByLayout(prev => {
+      let changed = false;
+      const next = { ...prev };
+      Object.keys(next).forEach(layoutId => {
+        const set = next[layoutId];
+        if (!set || !set.floorPlans || set.floorPlans.length === 0) return;
+        // Check if first floor plan needs students migrated
+        const firstPlan = set.floorPlans[0];
+        const legacyStudents = studentsByLayout[layoutId];
+        const legacyRotation = rotationOrderByLayout[layoutId];
+        // Only migrate if floor plan has no students but legacy data exists
+        if ((!firstPlan.students || firstPlan.students.length === 0) && legacyStudents && legacyStudents.length > 0) {
+          changed = true;
+          const migratedPlans = set.floorPlans.map((fp, idx) =>
+            idx === 0 ? { ...fp, students: legacyStudents, rotationOrder: legacyRotation || [] } : fp
+          );
+          next[layoutId] = { ...set, floorPlans: migratedPlans };
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, []); // Run once on mount
 
   // Persist state
   useEffect(() => {

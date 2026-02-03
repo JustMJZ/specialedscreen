@@ -10,7 +10,8 @@ const FloorPlan = () => {
     students, stationConfigs, setStationConfigs, customBoxes, setCustomBoxes,
     teacherNames, allStationColors, tabStationKeys,
     isEditMode, toggleEditMode, floorPlanRef, isAnimating, animationTargets,
-    setEditingBox, setSelectedStudentId, removeStationFromTab, setShowStudentManager
+    setEditingBox, setSelectedStudentId, removeStationFromTab, setShowStudentManager,
+    addCustomStation
   } = useAppState();
 
   // Track previous container size to detect actual resizes (not initial mount)
@@ -97,12 +98,21 @@ const FloorPlan = () => {
         <FloorPlanTabs />
         <div className="flex items-center gap-1">
           {isEditMode && (
-            <button
-              onClick={() => setShowStudentManager(true)}
-              className="px-2 py-1 rounded text-xs bg-indigo-500 text-white"
-            >
-              👥 Students/Stations
-            </button>
+            <>
+              <button
+                onClick={addCustomStation}
+                className="px-2 py-1 rounded text-xs bg-teal-500 text-white"
+                title="Add new station"
+              >
+                + Station
+              </button>
+              <button
+                onClick={() => setShowStudentManager(true)}
+                className="px-2 py-1 rounded text-xs bg-indigo-500 text-white"
+              >
+                👥 Students/Stations
+              </button>
+            </>
           )}
           <button
             onClick={toggleEditMode}

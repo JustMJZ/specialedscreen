@@ -14,7 +14,7 @@ const Header = () => {
     setShowStudentManager, setShowRosterManager, isEditMode,
     addBox, equalizeStationSizes,
     rotationOrder, stationConfigs, stationColors, teacherNames,
-    addStationToTab, addCustomStation,
+    addStationToTab,
     isLayoutEditMode, toggleLayoutEditMode
   } = state;
 
@@ -156,13 +156,6 @@ const Header = () => {
                       </button>
                     );
                   })}
-                  <button
-                    onClick={() => { addCustomStation(); closeToolsMenu(); }}
-                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2 font-medium text-teal-600"
-                  >
-                    <div className="w-3 h-3 rounded-full bg-gray-400 flex items-center justify-center text-white" style={{ fontSize: 8, lineHeight: 1 }}>+</div>
-                    New Station
-                  </button>
                 </>
               )}
 
