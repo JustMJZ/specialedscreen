@@ -15,7 +15,8 @@ const Header = () => {
     rotationOrder, stationConfigs, stationColors, teacherNames,
     addStationToTab,
     isLayoutEditMode, toggleLayoutEditMode,
-    performanceMode, setPerformanceMode
+    performanceMode, setPerformanceMode,
+    setIsPresentationMode
   } = state;
 
   const [showToolsMenu, setShowToolsMenu] = useState(false);
@@ -71,21 +72,29 @@ const Header = () => {
         <div className="relative">
           <button
             onClick={() => setShowToolsMenu(!showToolsMenu)}
-            className="px-2 py-1 bg-white rounded shadow-sm text-xs"
+            className="px-2 py-1 bg-white rounded shadow-sm text-xs hover:bg-gray-50 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+            aria-label="Open tools menu"
+            aria-expanded={showToolsMenu}
           >
             ⚙ Tools
           </button>
           {showToolsMenu && (
-            <div className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border z-50 py-1 min-w-[210px] max-h-[70vh] overflow-y-auto">
+            <div
+              className="absolute right-0 top-full mt-1 bg-white rounded-lg shadow-xl border z-50 py-1 min-w-[210px] max-h-[70vh] overflow-y-auto"
+              role="menu"
+              aria-label="Tools menu"
+            >
               <button
                 onClick={() => { setShowStudentManager(true); closeToolsMenu(); }}
                 className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2"
+                role="menuitem"
               >
                 👥 Students/Stations
               </button>
               <button
                 onClick={() => { setShowRosterManager(true); closeToolsMenu(); }}
                 className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2"
+                role="menuitem"
               >
                 📋 Student Roster
               </button>
@@ -94,12 +103,14 @@ const Header = () => {
               <button
                 onClick={exportData}
                 className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2"
+                role="menuitem"
               >
                 📥 Export Data
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center gap-2"
+                role="menuitem"
               >
                 📤 Import Data
               </button>
@@ -117,6 +128,7 @@ const Header = () => {
                   window.location.reload();
                 }}
                 className="w-full text-left px-3 py-1.5 text-xs hover:bg-red-50 text-red-600 flex items-center gap-2"
+                role="menuitem"
               >
                 ↺ Reset to Defaults
               </button>
@@ -125,9 +137,11 @@ const Header = () => {
               <button
                 onClick={() => setPerformanceMode(!performanceMode)}
                 className="w-full text-left px-3 py-1.5 text-xs hover:bg-gray-100 flex items-center justify-between"
+                role="menuitem"
+                aria-pressed={performanceMode}
               >
                 <span>⚡ Performance Mode</span>
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${performanceMode ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${performanceMode ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                   {performanceMode ? 'ON' : 'OFF'}
                 </span>
               </button>
@@ -231,9 +245,20 @@ const Header = () => {
 
         <button
           onClick={() => { toggleLayoutEditMode(); closeToolsMenu(); }}
-          className={`px-2 py-1 rounded text-xs ${isLayoutEditMode ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-700'}`}
+          className={`px-2 py-1 rounded text-xs focus:ring-2 focus:ring-orange-400 focus:outline-none ${isLayoutEditMode ? 'bg-orange-500 text-white' : 'bg-orange-100 text-orange-700 hover:bg-orange-200'}`}
+          aria-label={isLayoutEditMode ? 'Exit layout edit mode' : 'Enter layout edit mode'}
+          aria-pressed={isLayoutEditMode}
         >
           {isLayoutEditMode ? '✓ Done Layout' : '📐 Edit Layout'}
+        </button>
+
+        <button
+          onClick={() => setIsPresentationMode(true)}
+          className="px-2 py-1 rounded text-xs bg-indigo-100 text-indigo-700 hover:bg-indigo-200 focus:ring-2 focus:ring-indigo-400 focus:outline-none"
+          aria-label="Enter presentation mode (hides all controls)"
+          title="Present (P)"
+        >
+          📺 Present
         </button>
     </div>
   );

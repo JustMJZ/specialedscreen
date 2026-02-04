@@ -1,8 +1,7 @@
 import React from 'react';
 import { AppStateProvider, useAppState } from './context/AppStateContext';
 import { COLORS } from './constants';
-import Header from './components/layout/Header';
-import LayoutTabs from './components/layout/LayoutTabs';
+import FloatingControls from './components/layout/FloatingControls';
 import WidgetGrid from './components/layout/WidgetGrid';
 import Modals from './components/modals';
 import RotationAnnouncement from './components/shared/RotationAnnouncement';
@@ -11,11 +10,11 @@ function ScreenLayout() {
   const { showAnnouncement, announcementPhase } = useAppState();
 
   return (
-    <div className="h-screen overflow-hidden p-1 flex flex-col" style={{ backgroundColor: COLORS.background }}>
+    <div className="h-screen overflow-hidden flex flex-col" style={{ backgroundColor: COLORS.background }}>
       <RotationAnnouncement show={showAnnouncement} phase={announcementPhase} />
       <Modals />
-      <Header />
-      <LayoutTabs />
+      <FloatingControls />
+
       <div className="flex-1 min-h-0 overflow-hidden">
         <WidgetGrid />
       </div>

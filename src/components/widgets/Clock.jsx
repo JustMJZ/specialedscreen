@@ -15,16 +15,28 @@ const Clock = () => {
     return () => clearInterval(t);
   }, []);
 
-  // Track container size for responsive scaling
+  // Track container size for responsive scaling (debounced to avoid excessive re-renders)
   useEffect(() => {
     if (!containerRef.current) return;
+    let rafId = null;
     const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        setSize({ width: entry.contentRect.width, height: entry.contentRect.height });
-      }
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const { width, height } = entries[0].contentRect;
+        setSize(prev => {
+          // Only update if changed significantly (>1px) to avoid micro-updates
+          if (Math.abs(prev.width - width) > 1 || Math.abs(prev.height - height) > 1) {
+            return { width, height };
+          }
+          return prev;
+        });
+      });
     });
     observer.observe(containerRef.current);
-    return () => observer.disconnect();
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
   }, []);
 
   const hours = time.getHours();
@@ -243,7 +255,8 @@ const Clock = () => {
       {setShowClockDate && (
         <button
           onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
-          className="absolute top-1 right-1 w-6 h-6 rounded-full bg-slate-200/80 hover:bg-slate-300 flex items-center justify-center text-slate-500 text-xs opacity-0 hover:opacity-100 transition-opacity"
+          className="absolute top-1 right-1 w-6 h-6 rounded-full bg-slate-200/60 hover:bg-slate-300 flex items-center justify-center text-slate-400 hover:text-slate-600 text-xs transition-colors"
+          aria-label="Clock settings"
           title="Clock settings"
         >
           ⚙

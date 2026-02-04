@@ -64,7 +64,7 @@ const GoalLadder = ({
           <input
             value={title}
             onChange={(e) => onTitleChange?.(e.target.value)}
-            className="text-xs font-bold tracking-widest uppercase text-gray-700 bg-black/5 border border-emerald-200/70 rounded px-2 py-1 flex-1"
+            className="text-xs font-bold tracking-widest uppercase text-gray-700 bg-black/5 border border-emerald-200/70 rounded px-2 py-1 flex-1 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
             placeholder="Goal Ladder"
             aria-label="Goal title"
           />
@@ -143,7 +143,7 @@ const GoalLadder = ({
                         return next;
                       });
                     }}
-                    className="w-28 text-[10px] text-gray-600 bg-black/5 border border-emerald-200/70 rounded px-2 py-1"
+                    className="w-28 text-[10px] text-gray-600 bg-black/5 border border-emerald-200/70 rounded px-2 py-1 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
                     placeholder={`Step ${stepNumber}`}
                     aria-label={`Label for step ${stepNumber}`}
                   />

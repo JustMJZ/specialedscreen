@@ -13,12 +13,12 @@ const TIMER_STYLES = [
 ];
 
 /* ── Confetti burst on timer completion ── */
-const Confetti = ({ active }) => {
+const Confetti = ({ active, performanceMode }) => {
   const [particles, setParticles] = useState([]);
   useEffect(() => {
-    if (!active) { setParticles([]); return; }
+    if (!active || performanceMode) { setParticles([]); return; }
     const colors = ['#FF8A7A', '#5BC0BE', '#FFD166', '#B39DDB', '#7BC47F', '#FF6B9D', '#45B7D1'];
-    const p = Array.from({ length: 28 }, (_, i) => ({
+    const p = Array.from({ length: 16 }, (_, i) => ({
       id: i,
       x: 50 + (Math.random() - 0.5) * 10,
       y: 50,
@@ -329,6 +329,7 @@ const TimerPanel = () => {
     customSounds, setCustomSounds,
     timerStyle, setTimerStyle,
     soundVolume, setSoundVolume,
+    performanceMode,
   } = useAppState();
 
   const mins = Math.floor(timeRemaining / 60);
@@ -966,7 +967,7 @@ const TimerPanel = () => {
           letter-spacing: 0.6px;
         }
       `}</style>
-      <Confetti active={showConfetti} />
+      <Confetti active={showConfetti} performanceMode={performanceMode} />
 
       {/* Timer display — swapped by style */}
       {!isImmersive && (

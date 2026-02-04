@@ -5,7 +5,7 @@ const Banner = ({ text, fontSize = 28, onEdit, onFontSizeChange }) => {
   const [val, setVal] = useState(text);
   if (editing) return (
     <div className="rounded-xl p-3 h-full">
-      <input value={val} onChange={e => setVal(e.target.value)} className="w-full px-3 py-2 rounded text-gray-800 text-lg border" autoFocus
+      <input value={val} onChange={e => setVal(e.target.value)} className="w-full px-3 py-2 rounded text-gray-800 text-lg border focus:ring-2 focus:ring-blue-400 focus:outline-none" autoFocus
         onKeyDown={e => { if (e.key === 'Enter') { onEdit(val); setEditing(false); }}} />
       <div className="flex items-center gap-1 mt-2 justify-end">
         <div className="flex items-center gap-1">

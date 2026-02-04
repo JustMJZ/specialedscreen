@@ -137,7 +137,7 @@ export const playSynthSound = (soundId, volume = 0.7) => {
 
     setTimeout(() => ctx.close(), 4000);
   } catch (e) {
-    console.log('Web Audio not supported');
+    // Web Audio not supported - fail silently
   }
 };
 
@@ -155,9 +155,9 @@ export const playSound = (soundId, customSounds, volume = 0.7) => {
     try {
       const audio = new Audio(custom.dataUrl);
       audio.volume = Math.max(0, Math.min(1, volume));
-      audio.play().catch(e => console.log('Audio playback failed:', e.message));
+      audio.play().catch(() => {});
     } catch (e) {
-      console.log('Audio playback error');
+      // Audio playback error - fail silently
     }
   }
 };

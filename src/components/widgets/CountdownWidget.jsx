@@ -72,10 +72,10 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
     return (
       <div className="rounded-lg p-3 shadow-md h-full flex flex-col justify-center">
         <input value={newEvent} onChange={e => setNewEvent(e.target.value)} placeholder="Event name (e.g. Lunch, Recess)"
-          className="w-full px-3 py-1.5 rounded text-sm mb-2 border" autoFocus />
+          className="w-full px-3 py-1.5 rounded text-sm mb-2 border focus:ring-2 focus:ring-purple-400 focus:outline-none" autoFocus />
         <div className="flex gap-1">
           <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
-            className="flex-1 px-3 py-1.5 rounded text-sm border" />
+            className="flex-1 px-3 py-1.5 rounded text-sm border focus:ring-2 focus:ring-purple-400 focus:outline-none" />
           <button onClick={() => { onEdit(newEvent, newTime); setEditing(false); }}
             className="px-3 py-1.5 bg-purple-500 text-white rounded text-sm font-bold">✓</button>
           <button onClick={() => setEditing(false)} className="px-3 py-1.5 bg-gray-200 rounded text-sm">✕</button>

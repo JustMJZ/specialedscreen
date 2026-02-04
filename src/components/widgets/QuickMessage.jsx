@@ -13,7 +13,7 @@ const QuickMessage = ({ message, onEdit, fontSize = 16, onFontSizeChange }) => {
   if (editing) {
     return (
       <div className="rounded-lg p-2 shadow-md h-full">
-        <input value={val} onChange={e => setVal(e.target.value)} className="w-full px-2 py-1 rounded text-sm border text-gray-800 mb-1" autoFocus />
+        <input value={val} onChange={e => setVal(e.target.value)} className="w-full px-2 py-1 rounded text-sm border text-gray-800 mb-1 focus:ring-2 focus:ring-blue-400 focus:outline-none" autoFocus />
         <div className="flex flex-wrap gap-1 mb-1">
           {presets.map(p => (
             <button key={p} onClick={() => setVal(p)} className="px-1.5 py-0.5 bg-gray-100 rounded text-xs hover:bg-gray-200">{p}</button>

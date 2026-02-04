@@ -7,6 +7,9 @@ import { playSound } from '../constants/sounds';
 import { STORAGE_KEY, loadSaved } from '../hooks/usePersistedState';
 import { ensureUniqueStudents, normalizeStudentsByLayout, createDefaultRoster, getNextGroup, normalizeRotationOrder } from './stateUtils';
 
+// Legacy migration: Old versions stored layout under a different key.
+// This function migrates users from the old format to the new unified storage.
+// Keep this for backward compatibility with existing installations.
 const LEGACY_LAYOUT_KEY = 'specialedscreen-layout';
 
 function loadLegacyLayout() {
@@ -50,6 +53,7 @@ function createDefaultGoalLadder() {
     completedCount: 0,
   };
 }
+
 
 const AppStateContext = createContext(null);
 
@@ -252,12 +256,14 @@ export function AppStateProvider({ children }) {
 
   const [isEditMode, setIsEditMode] = useState(false);
   const [isLayoutEditMode, setIsLayoutEditMode] = useState(false);
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
   const [showStudentManager, setShowStudentManager] = useState(false);
   const [showRosterManager, setShowRosterManager] = useState(false);
   const [showFirstThenEditor, setShowFirstThenEditor] = useState(false);
   const [showGoalEditor, setShowGoalEditor] = useState(false);
   const [editingBox, setEditingBox] = useState(null);
   const floorPlanRef = useRef(null);
+  const rotationTimeoutsRef = useRef([]);
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -404,7 +410,7 @@ export function AppStateProvider({ children }) {
   // Persist state
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      const data = JSON.stringify({
         globalRoster, studentsByLayout, totalTime, autoRepeat, rightNowText, bannerFontSize, firstThen,
         rotationSound, voiceLevel, countdownEvent, countdownTime,
         quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl,
@@ -412,8 +418,16 @@ export function AppStateProvider({ children }) {
         widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
         customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume, performanceMode,
         clockStyle, showClockDate
-      }));
-    } catch (e) {}
+      });
+      localStorage.setItem(STORAGE_KEY, data);
+    } catch (e) {
+      // Storage quota exceeded or other error - warn user once per session
+      if (!window._storageWarningShown) {
+        window._storageWarningShown = true;
+        console.warn('Could not save data to localStorage:', e.message);
+        // Could add a toast notification here in the future
+      }
+    }
   }, [globalRoster, studentsByLayout, totalTime, autoRepeat, rightNowText, bannerFontSize, firstThen,
       rotationSound, voiceLevel, countdownEvent, countdownTime,
       quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl, layoutTabs, activeLayoutId,
@@ -436,9 +450,14 @@ export function AppStateProvider({ children }) {
   const triggerRotation = () => {
     if (isAnimating || isEditMode) return;
     if (!activeRotationOrder || activeRotationOrder.length === 0) return;
+    // Clear any pending rotation timeouts to prevent race conditions
+    rotationTimeoutsRef.current.forEach(id => clearTimeout(id));
+    rotationTimeoutsRef.current = [];
+
     playSound(rotationSound, customSounds, soundVolume);
     setShowAnnouncement(true); setAnnouncementPhase('start');
-    setTimeout(() => {
+
+    rotationTimeoutsRef.current.push(setTimeout(() => {
       setAnnouncementPhase('moving');
       setIsAnimating(true);
       const t = {};
@@ -447,16 +466,19 @@ export function AppStateProvider({ children }) {
         t[s.id] = getNextGroup(current, activeRotationOrder);
       });
       setAnimationTargets(t);
-    }, 1500);
-    setTimeout(() => setShowAnnouncement(false), 3000);
-    setTimeout(() => {
+    }, 1500));
+
+    rotationTimeoutsRef.current.push(setTimeout(() => setShowAnnouncement(false), 3000));
+
+    rotationTimeoutsRef.current.push(setTimeout(() => {
       setStudents(p => p.map(s => {
         const current = activeRotationOrder.includes(s.group) ? s.group : activeRotationOrder[0];
         return { ...s, group: getNextGroup(current, activeRotationOrder) };
       }));
       setAnimationTargets({});
       setIsAnimating(false);
-    }, 4500);
+      rotationTimeoutsRef.current = [];
+    }, 4500));
   };
 
   const addBox = () => setCustomBoxes(p => [...p, { id: `box-${Date.now()}`, top: 120, left: 180, width: 45, height: 45, label: '', icon: '', color: '#6B7280', assignedStudents: [] }]);
@@ -621,6 +643,12 @@ export function AppStateProvider({ children }) {
       delete next[id];
       return next;
     });
+    setMissionControlByLayout(prev => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
     setRotationOrderByLayout(prev => {
       if (!prev[id]) return prev;
       const next = { ...prev };
@@ -701,6 +729,7 @@ export function AppStateProvider({ children }) {
 
     // UI state
     performanceMode, setPerformanceMode,
+    isPresentationMode, setIsPresentationMode,
     isEditMode, setIsEditMode,
     isLayoutEditMode, setIsLayoutEditMode,
     showStudentManager, setShowStudentManager,
