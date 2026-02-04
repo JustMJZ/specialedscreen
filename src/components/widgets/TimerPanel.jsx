@@ -86,13 +86,14 @@ const HourglassDisplay = ({ progress, mins, secs, barColor, isRunning }) => {
   const sandBottom = 1 - progress;
   const pulseClass = progress < 0.07 && isRunning ? 'animate-pulse' : '';
   const sparkles = [
-    { top: '28%', left: '46%', delay: '0s' },
-    { top: '38%', left: '54%', delay: '0.6s' },
-    { top: '58%', left: '48%', delay: '1.1s' },
+    { top: '20%', left: '30%', delay: '0s' },
+    { top: '35%', left: '38%', delay: '0.6s' },
+    { top: '50%', left: '32%', delay: '1.1s' },
   ];
+  const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   return (
-    <div className={`flex flex-col items-center justify-center flex-1 min-h-0 ${pulseClass}`} style={{ color: COLORS.text }}>
-      <div className="relative hourglass-wrap">
+    <div className={`flex items-center justify-center flex-1 min-h-0 w-full h-full ${pulseClass}`} style={{ color: COLORS.text }}>
+      <div className="relative hourglass-wrap" style={{ height: '100%', width: '100%' }}>
         <div className="hourglass-glow" />
         <div className="hourglass-shine" />
         {sparkles.map((s, i) => (
@@ -102,34 +103,35 @@ const HourglassDisplay = ({ progress, mins, secs, barColor, isRunning }) => {
             style={{ top: s.top, left: s.left, animationDelay: s.delay }}
           />
         ))}
-        <svg viewBox="0 0 100 170" style={{ width: '100%', height: '100%', maxWidth: 280, maxHeight: 320 }}>
+        <svg viewBox="0 0 180 140" preserveAspectRatio="xMidYMid meet" style={{ height: '100%', width: '100%' }}>
         {/* Frame */}
         <rect x="14" y="4" width="72" height="8" rx="4" fill="#8B7355" />
-        <rect x="14" y="130" width="72" height="8" rx="4" fill="#8B7355" />
+        <rect x="14" y="128" width="72" height="8" rx="4" fill="#8B7355" />
         {/* Glass outline */}
-        <path d="M24 14 L24 50 Q24 72 50 72 Q76 72 76 50 L76 14" fill="none" stroke="#C4A882" strokeWidth="3.5" />
-        <path d="M24 130 L24 94 Q24 72 50 72 Q76 72 76 94 L76 130" fill="none" stroke="#C4A882" strokeWidth="3.5" />
+        <path d="M24 14 L24 50 Q24 70 50 70 Q76 70 76 50 L76 14" fill="none" stroke="#C4A882" strokeWidth="3.5" />
+        <path d="M24 128 L24 92 Q24 70 50 70 Q76 70 76 92 L76 128" fill="none" stroke="#C4A882" strokeWidth="3.5" />
         {/* Top sand */}
         <clipPath id="topClip">
-          <path d="M25 15 L25 49 Q25 71 50 71 Q75 71 75 49 L75 15 Z" />
+          <path d="M25 15 L25 49 Q25 69 50 69 Q75 69 75 49 L75 15 Z" />
         </clipPath>
-        <rect clipPath="url(#topClip)" x="25" y={15 + (1 - sandTop) * 60} width="50" height={sandTop * 60}
+        <rect clipPath="url(#topClip)" x="25" y={15 + (1 - sandTop) * 56} width="50" height={sandTop * 56}
           fill={`url(#sandGradient)`} style={{ transition: 'all 1s linear' }} />
         {/* Bottom sand */}
         <clipPath id="botClip">
-          <path d="M25 129 L25 95 Q25 73 50 73 Q75 73 75 95 L75 129 Z" />
+          <path d="M25 127 L25 93 Q25 71 50 71 Q75 71 75 93 L75 127 Z" />
         </clipPath>
-        <rect clipPath="url(#botClip)" x="25" y={129 - sandBottom * 60} width="50" height={sandBottom * 60}
+        <rect clipPath="url(#botClip)" x="25" y={127 - sandBottom * 56} width="50" height={sandBottom * 56}
           fill={`url(#sandGradient)`} style={{ transition: 'all 1s linear' }} />
         {/* Falling stream */}
         {isRunning && progress > 0.01 && (
-          <line x1="50" y1="72" x2="50" y2={129 - sandBottom * 60} stroke={barColor} strokeWidth="3" opacity="0.7">
+          <line x1="50" y1="70" x2="50" y2={127 - sandBottom * 56} stroke={barColor} strokeWidth="3" opacity="0.7">
             <animate attributeName="opacity" values="0.7;0.35;0.7" dur="0.7s" repeatCount="indefinite" />
           </line>
         )}
-        {/* Time text inside SVG */}
-        <text x="50" y="164" textAnchor="middle" style={{ fontSize: 20, fontFamily: "'Fredoka One', cursive", fill: 'currentColor' }}>
-          {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+        {/* Time text */}
+        <text x="130" y="78" textAnchor="middle" dominantBaseline="middle"
+          style={{ fontSize: 32, fontFamily: "'Fredoka One', cursive", fill: 'currentColor' }}>
+          {timeStr}
         </text>
         <defs>
           <linearGradient id="sandGradient" x1="0" y1="0" x2="0" y2="1">
@@ -627,6 +629,15 @@ const TimerPanel = () => {
           background: radial-gradient(circle, #FFF7D6 0%, #FBBF24 60%, transparent 70%);
           animation: hourglass-sparkle 1.8s ease-in-out infinite;
           pointer-events: none;
+        }
+        .hourglass-time {
+          font-size: clamp(24px, 5vw, 42px);
+          font-weight: 900;
+          color: currentColor;
+          text-shadow: 0 2px 8px rgba(251,191,36,0.3);
+          letter-spacing: 0.5px;
+          white-space: nowrap;
+          overflow: visible;
         }
         .timer-immersive {
           padding: 0;

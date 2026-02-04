@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { ResponsiveGridLayout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+
 import { useAppState } from '../../context/AppStateContext';
 import widgetRegistry from '../../config/widgetRegistry';
 import defaultLayout from '../../config/defaultLayout';
@@ -115,6 +116,24 @@ const WidgetGrid = () => {
     }));
   }, [setLayoutTabs, activeLayoutTab]);
 
+  const resizeWidget = useCallback((widgetId, delta) => {
+    setLayoutTabs(prev => prev.map(tab => {
+      if (tab.id !== activeLayoutTab?.id) return tab;
+      const updated = (tab.layout || []).map(item => {
+        if (item.i !== widgetId) return item;
+        const meta = widgetRegistry[widgetId];
+        const minW = meta?.minW || 1;
+        const minH = meta?.minH || 1;
+        return {
+          ...item,
+          w: Math.max(minW, item.w + delta),
+          h: Math.max(minH, item.h + delta),
+        };
+      });
+      return { ...tab, layout: updated };
+    }));
+  }, [setLayoutTabs, activeLayoutTab]);
+
   const addWidget = useCallback((widgetId) => {
     setLayoutTabs(prev => prev.map(tab => {
       if (tab.id !== activeLayoutTab?.id) return tab;
@@ -207,7 +226,6 @@ const WidgetGrid = () => {
         width={containerWidth}
         isDraggable={isLayoutEditMode}
         isResizable={isLayoutEditMode}
-        draggableHandle=".widget-drag-handle"
         onLayoutChange={handleLayoutChange}
         compactType="vertical"
         margin={[0, 0]}
@@ -215,7 +233,7 @@ const WidgetGrid = () => {
         isBounded={true}
       >
         {layout.map(item => (
-          <WidgetWrapper key={item.i} id={item.i} isLayoutEditMode={isLayoutEditMode} onRemove={removeWidget}>
+          <WidgetWrapper key={item.i} id={item.i} isLayoutEditMode={isLayoutEditMode} onRemove={removeWidget} onResize={resizeWidget}>
             {renderWidget(item.i)}
           </WidgetWrapper>
         ))}

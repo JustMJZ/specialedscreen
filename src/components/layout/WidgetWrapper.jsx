@@ -9,7 +9,7 @@ const WIDGET_COLORS = [
   '#FBBF24', '#A3E635', '#34D399', '#22D3EE', '#818CF8',
 ];
 
-const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, children, style, className, ...rest }, ref) => {
+const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResize, children, style, className, ...rest }, ref) => {
   const meta = widgetRegistry[id];
   const label = meta ? meta.label : id;
   const { widgetColors, setWidgetColors, performanceMode } = useAppState();
@@ -47,23 +47,33 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
   return (
     <div ref={ref} style={wrapperStyle} className={className} {...rest}>
       {isLayoutEditMode && (
-        <div className="widget-drag-handle absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-2 py-0.5 bg-gray-500/50 text-white text-xs cursor-move rounded-t select-none backdrop-blur-sm"
-          style={{ height: 20 }}>
-          <span>☰ {label}</span>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowColorPicker(!showColorPicker); }}
-              className="w-4 h-4 flex items-center justify-center rounded-full hover:bg-white/30 leading-none"
-              style={{ fontSize: 10 }}
-              title="Change color">🎨</button>
-            {onRemove && (
+        <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
+          {onResize && (
+            <>
               <button
-                onClick={(e) => { e.stopPropagation(); onRemove(id); }}
-                className="w-4 h-4 flex items-center justify-center rounded-full bg-red-500 hover:bg-red-600 text-white leading-none"
-                style={{ fontSize: 10 }}
-                title={`Remove ${label}`}>✕</button>
-            )}
-          </div>
+                onClick={(e) => { e.stopPropagation(); onResize(id, -1); }}
+                className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white backdrop-blur-sm font-bold"
+                style={{ fontSize: 14 }}
+                title="Shrink">−</button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onResize(id, 1); }}
+                className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white backdrop-blur-sm font-bold"
+                style={{ fontSize: 14 }}
+                title="Expand">+</button>
+            </>
+          )}
+          <button
+            onClick={(e) => { e.stopPropagation(); setShowColorPicker(!showColorPicker); }}
+            className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white backdrop-blur-sm"
+            style={{ fontSize: 12 }}
+            title="Change color">🎨</button>
+          {onRemove && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onRemove(id); }}
+              className="w-5 h-5 flex items-center justify-center rounded bg-red-500/80 hover:bg-red-600 text-white backdrop-blur-sm"
+              style={{ fontSize: 10 }}
+              title={`Remove ${label}`}>✕</button>
+          )}
         </div>
       )}
       {showColorPicker && isLayoutEditMode && (
@@ -118,7 +128,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, childr
         </div>
       )}
       <div
-        className={`h-full w-full overflow-hidden relative ${isLayoutEditMode ? 'pt-[22px]' : ''}`}
+        className="h-full w-full overflow-hidden relative"
         data-widget-style={widgetStyle || 'normal'}
         data-widget-text={widgetText ? 'on' : undefined}
         style={{
