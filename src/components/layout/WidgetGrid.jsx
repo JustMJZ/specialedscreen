@@ -22,6 +22,7 @@ import Clock from '../widgets/Clock';
 import FloorPlan from '../floorplan/FloorPlan';
 import GoogleSlides from '../widgets/GoogleSlides';
 import YouTubeVideo from '../widgets/YouTubeVideo';
+import FeelingsCheckin from '../widgets/FeelingsCheckin';
 
 function applyMinSizes(layout) {
   return layout.map(item => {
@@ -52,6 +53,7 @@ const WidgetGrid = () => {
     googleSlidesUrl, setGoogleSlidesUrl,
     youtubeVideoUrl, setYoutubeVideoUrl,
     layoutTabs, setLayoutTabs, activeLayoutId,
+    globalRoster,
   } = state;
 
   const containerRef = useRef(null);
@@ -210,6 +212,8 @@ const WidgetGrid = () => {
         return <GoogleSlides url={googleSlidesUrl} onChange={setGoogleSlidesUrl} />;
       case 'youtubeVideo':
         return <YouTubeVideo url={youtubeVideoUrl} onChange={setYoutubeVideoUrl} />;
+      case 'feelingsCheckin':
+        return <FeelingsCheckin students={globalRoster} />;
       default:
         return <div className="p-2 text-gray-400 text-xs">Unknown widget: {id}</div>;
     }

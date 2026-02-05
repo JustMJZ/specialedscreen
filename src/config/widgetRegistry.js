@@ -104,6 +104,14 @@ const widgetRegistry = {
     defaultW: 7,
     defaultH: 6,
   },
+  feelingsCheckin: {
+    label: 'Feelings',
+    icon: '🫶',
+    minW: 3,
+    minH: 3,
+    defaultW: 5,
+    defaultH: 5,
+  },
 };
 
 export default widgetRegistry;
