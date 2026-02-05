@@ -33,6 +33,15 @@ const LayoutTabs = () => {
           ) : (
             <span className="truncate max-w-[140px]">{tab.name}</span>
           )}
+          {tab.id === activeLayoutId && layoutRenamingId !== tab.id && (
+            <button
+              onClick={(e) => { e.stopPropagation(); startLayoutRenaming(tab.id, tab.name); }}
+              className="hover:opacity-80 leading-none ml-0.5"
+              style={{ fontSize: 11 }}
+              title="Rename tab">
+              ✏️
+            </button>
+          )}
           {layoutTabs.length > 1 && tab.id === activeLayoutId && (
             <button
               onClick={(e) => { e.stopPropagation(); deleteLayoutTab(tab.id); }}

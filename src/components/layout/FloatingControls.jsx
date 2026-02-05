@@ -136,6 +136,13 @@ const FloatingControls = () => {
                     <>
                       <span className="flex-1 truncate">{tab.name}</span>
                       {tab.id === activeLayoutId && <span className="text-blue-500">✓</span>}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); startLayoutRenaming(tab.id, tab.name); }}
+                        className="text-gray-400 hover:text-blue-500 text-xs"
+                        title="Rename"
+                      >
+                        ✏️
+                      </button>
                     </>
                   )}
                   {layoutTabs.length > 1 && tab.id === activeLayoutId && layoutRenamingId !== tab.id && (
