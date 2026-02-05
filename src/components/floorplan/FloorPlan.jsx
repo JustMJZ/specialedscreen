@@ -9,7 +9,7 @@ const FloorPlan = () => {
   const {
     students, stationConfigs, setStationConfigs, customBoxes, setCustomBoxes,
     teacherNames, allStationColors, tabStationKeys,
-    isEditMode, toggleEditMode, floorPlanRef, isAnimating, animationTargets,
+    isEditMode, toggleEditMode, isLayoutEditMode, floorPlanRef, isAnimating, animationTargets,
     setEditingBox, setSelectedStudentId, removeStationFromTab, setShowStudentManager,
     addCustomStation
   } = useAppState();
@@ -94,7 +94,7 @@ const FloorPlan = () => {
 
   return (
     <div className="flex flex-col gap-0 h-full">
-      <div className="flex items-center justify-between px-1 pb-0">
+      <div className="flex items-center justify-between px-1 pb-0" style={isLayoutEditMode ? { paddingRight: 90 } : undefined}>
         <FloorPlanTabs />
         <div className="flex items-center gap-1">
           {isEditMode && (

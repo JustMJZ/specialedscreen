@@ -43,7 +43,8 @@ const WidgetGrid = () => {
     isEditMode, isAnimating,
     voiceLevel, setVoiceLevel,
     firstThen, setShowFirstThenEditor,
-    students, animationTargets, teacherNames, allStationColors, rotationOrder,
+    students, animationTargets, teacherNames, allStationColors, rotationOrder, setRotationOrder,
+    tabStationKeys,
     countdownEvent, countdownTime, setCountdownEvent, setCountdownTime,
     quickMessage, setQuickMessage, quickMessageFontSize, setQuickMessageFontSize,
     starPoints, setStarPoints,
@@ -72,7 +73,7 @@ const WidgetGrid = () => {
 
   // Calculate max rows based on container height (rowHeight = 30)
   const rowHeight = 30;
-  const maxRows = Math.floor(containerHeight / rowHeight);
+  const maxRows = Math.ceil(containerHeight / rowHeight);
 
   const activeLayoutTab = useMemo(() => {
     if (!Array.isArray(layoutTabs) || layoutTabs.length === 0) return null;
@@ -176,7 +177,7 @@ const WidgetGrid = () => {
       case 'firstThen':
         return <FirstThen firstThen={firstThen} onEdit={() => setShowFirstThenEditor(true)} />;
       case 'stationGroups':
-        return <StationGroups students={students} isAnimating={isAnimating} animationTargets={animationTargets} teacherNames={teacherNames} stationColors={allStationColors} rotationOrder={rotationOrder} />;
+        return <StationGroups students={students} isAnimating={isAnimating} animationTargets={animationTargets} teacherNames={teacherNames} stationColors={allStationColors} rotationOrder={rotationOrder} tabStationKeys={tabStationKeys} setRotationOrder={isEditMode ? setRotationOrder : null} />;
       case 'countdown':
         return <CountdownWidget event={countdownEvent} targetTime={countdownTime} onEdit={(evt, time) => { setCountdownEvent(evt); setCountdownTime(time); }} />;
       case 'quickMessage':

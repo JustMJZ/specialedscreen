@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { STUDENT_EMOJI_OPTIONS, STATION_COLOR_OPTIONS, TOKEN_EMOJI_OPTIONS } from '../../constants';
+import EmojiPicker from './EmojiPicker';
 
 const REWARD_OPTIONS = ['🎮 Free Time', '💻 Computer Time', '🎨 Art Time', '📚 Library Visit', '🎵 Music Time',
   '🍪 Snack', '🏆 Prize Box', '⭐ Star Student', '🎉 Class Helper', '🎪 Special Activity',
@@ -235,12 +236,11 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
                       </div>
                     )}
                     {emojiPickerFor === student.id && (
-                      <div className="flex flex-wrap gap-1 mt-1 ml-12 p-1 bg-white rounded border">
-                        {STUDENT_EMOJI_OPTIONS.map(em => (
-                          <button key={em} onClick={() => { setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, emoji: em, photo: null } : s)); setEmojiPickerFor(null); }}
-                            className={`w-7 h-7 rounded text-base hover:bg-gray-100 ${student.emoji === em ? 'bg-purple-100 ring-1 ring-purple-400' : ''}`}>{em}</button>
-                        ))}
-                      </div>
+                      <EmojiPicker
+                        emojis={STUDENT_EMOJI_OPTIONS}
+                        selected={student.emoji}
+                        onSelect={(em) => { setEditingStudents(prev => prev.map(s => s.id === student.id ? { ...s, emoji: em, photo: null } : s)); setEmojiPickerFor(null); }}
+                      />
                     )}
                   </div>
                 );

@@ -13,6 +13,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
   const meta = widgetRegistry[id];
   const label = meta ? meta.label : id;
   const { widgetColors, setWidgetColors, performanceMode } = useAppState();
+  const skipAnimations = performanceMode || id === 'floorplan';
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [colorTab, setColorTab] = useState('bg');
 
@@ -145,10 +146,10 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
           '--widget-text-color': widgetText || 'inherit',
           color: widgetText || 'inherit',
           // Performance mode: disable expensive backdrop-filter
-          backdropFilter: widgetStyle === 'glass' && !performanceMode ? 'blur(12px) saturate(1.4)' : 'none',
-          WebkitBackdropFilter: widgetStyle === 'glass' && !performanceMode ? 'blur(12px) saturate(1.4)' : 'none',
+          backdropFilter: widgetStyle === 'glass' && !skipAnimations ? 'blur(12px) saturate(1.4)' : 'none',
+          WebkitBackdropFilter: widgetStyle === 'glass' && !skipAnimations ? 'blur(12px) saturate(1.4)' : 'none',
           // Performance mode: use simpler box-shadows
-          boxShadow: performanceMode
+          boxShadow: skipAnimations
             ? (widgetStyle === 'glass'
                 ? '0 4px 12px rgba(15, 23, 42, 0.1)'
                 : widgetStyle === 'neon'
@@ -181,7 +182,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
             }
           `}</style>
         )}
-        {widgetStyle === 'glass' && !performanceMode && (
+        {widgetStyle === 'glass' && !skipAnimations && (
           <>
             <style>{`
               @keyframes glass-sheen {
@@ -244,7 +245,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
             />
           </>
         )}
-        {widgetStyle === 'glass' && performanceMode && (
+        {widgetStyle === 'glass' && skipAnimations && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -253,7 +254,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
             }}
           />
         )}
-        {widgetStyle === 'neon' && !performanceMode && (
+        {widgetStyle === 'neon' && !skipAnimations && (
           <>
             <style>{`
               @keyframes neon-pulse {
@@ -286,7 +287,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
             />
           </>
         )}
-        {widgetStyle === 'neon' && performanceMode && (
+        {widgetStyle === 'neon' && skipAnimations && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -295,7 +296,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
             }}
           />
         )}
-        {widgetStyle === 'aurora' && !performanceMode && (
+        {widgetStyle === 'aurora' && !skipAnimations && (
           <>
             <style>{`
               @keyframes aurora-drift {
@@ -339,7 +340,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
             />
           </>
         )}
-        {widgetStyle === 'aurora' && performanceMode && (
+        {widgetStyle === 'aurora' && skipAnimations && (
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -368,7 +369,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
             }}
           />
         )}
-        {widgetStyle === 'neon' && !performanceMode && (
+        {widgetStyle === 'neon' && !skipAnimations && (
           <>
             <div
               className="absolute inset-0 pointer-events-none"

@@ -118,7 +118,7 @@ const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, tar
   );
 
   const nameEl = showName ? (
-    <span className="font-medium text-gray-700 bg-white/90 px-0.5 rounded whitespace-nowrap" style={{ fontSize: nameSize, lineHeight: 1 }}>
+    <span className="font-medium text-gray-700 whitespace-nowrap" style={{ fontSize: nameSize, lineHeight: 1 }}>
       {firstName}
     </span>
   ) : null;
