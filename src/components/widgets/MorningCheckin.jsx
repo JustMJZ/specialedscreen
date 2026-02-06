@@ -61,7 +61,7 @@ const MorningCheckin = ({ students, checkin, onUpdate }) => {
       const cellW = size.w / c;
       const cellH = size.h / rows;
       const cellAspect = cellW / cellH;
-      const score = Math.abs(Math.log(cellAspect)) + (rows * c - count) * 0.05;
+      const score = Math.abs(Math.log(cellAspect)) + (rows * c - count) * 0.2;
       if (score < bestScore) {
         bestScore = score;
         best = c;
@@ -82,6 +82,9 @@ const MorningCheckin = ({ students, checkin, onUpdate }) => {
   const nameSize = Math.max(12, Math.min(avatarSize * 0.35, 24));
   const emojiSize = Math.max(20, Math.min(avatarSize * 0.75, 90));
   const initialsSize = Math.max(12, Math.min(avatarSize * 0.35, 28));
+  const boxPad = Math.max(18, Math.min(38, avatarSize * 0.48));
+  const boxMinWidth = avatarSize + boxPad * 2;
+  const boxMinHeight = avatarSize + boxPad * 2 + nameSize + 16;
 
   const renderAvatar = (student, status, isActive) => {
     const ring = isActive
@@ -343,20 +346,37 @@ const MorningCheckin = ({ students, checkin, onUpdate }) => {
                       holdTriggeredRef.current = false;
                       setPendingAbsentId(null);
                     }}
-                    className="flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-gray-100/60 active:bg-gray-200/60 transition-colors cursor-pointer p-2 relative"
+                    className="flex flex-col items-center justify-center gap-1 rounded-2xl hover:bg-gray-100/60 active:bg-gray-200/60 transition-colors cursor-pointer relative"
+                    style={{
+                      minWidth: boxMinWidth,
+                      minHeight: boxMinHeight,
+                      padding: boxPad,
+                    }}
                   >
-                    {renderAvatar(student, status, isActive)}
+                    <div className="relative" style={{ width: avatarSize, height: avatarSize }}>
+                      {renderAvatar(student, status, isActive)}
+                      {isAbsent ? (
+                        <span
+                          className="absolute text-sm"
+                          style={{ top: 0, right: 0, transform: 'translate(25%, -25%)' }}
+                        >
+                          🤒
+                        </span>
+                      ) : isChecked ? (
+                        <span
+                          className="absolute text-sm"
+                          style={{ top: 0, right: 0, transform: 'translate(25%, -25%)' }}
+                        >
+                          ✅
+                        </span>
+                      ) : null}
+                    </div>
                     <span
                       className="font-semibold text-gray-700 truncate max-w-full leading-tight"
                       style={{ fontSize: nameSize }}
                     >
                       {student.name.split(' ')[0]}
                     </span>
-                    {isAbsent ? (
-                      <span className="absolute top-1.5 right-1.5 text-sm">🤒</span>
-                    ) : isChecked ? (
-                      <span className="absolute top-1.5 right-1.5 text-sm">✅</span>
-                    ) : null}
                   </button>
                 );
               })}
