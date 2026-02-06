@@ -18,6 +18,8 @@ const FeelingsCheckin = ({ students }) => {
   const popupRef = useRef(null);
   const containerRef = useRef(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
+  const [cooldownActive, setCooldownActive] = useState(false);
+  const cooldownTimerRef = useRef(null);
 
   // Measure container
   useEffect(() => {
@@ -42,6 +44,13 @@ const FeelingsCheckin = ({ students }) => {
     document.addEventListener('pointerdown', handler);
     return () => document.removeEventListener('pointerdown', handler);
   }, [activeStudent]);
+
+  // Cleanup cooldown timer on unmount
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+    };
+  }, []);
 
   const hasSelections = Object.keys(selections).length > 0;
 
@@ -84,6 +93,13 @@ const FeelingsCheckin = ({ students }) => {
     if (!activeStudent) return;
     setSelections(prev => ({ ...prev, [activeStudent.id]: feeling }));
     setActiveStudent(null);
+
+    // Activate cooldown to prevent accidental double-taps
+    setCooldownActive(true);
+    if (cooldownTimerRef.current) clearTimeout(cooldownTimerRef.current);
+    cooldownTimerRef.current = setTimeout(() => {
+      setCooldownActive(false);
+    }, 400); // 400ms cooldown
   };
 
   const renderAvatar = (student) => {
@@ -154,21 +170,33 @@ const FeelingsCheckin = ({ students }) => {
             return (
               <button
                 key={student.id}
-                onClick={() => setActiveStudent(student)}
-                className="flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-gray-100/60 active:bg-gray-200/60 transition-colors cursor-pointer p-2 relative"
+                onClick={() => {
+                  if (!cooldownActive) setActiveStudent(student);
+                }}
+                disabled={cooldownActive}
+                className="flex flex-col items-center justify-center gap-1 rounded-xl hover:bg-gray-100/60 active:bg-gray-200/60 transition-colors cursor-pointer p-2 relative disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {/* Thought bubble */}
                 {sel && (
                   <div
-                    className="thought-bubble absolute flex flex-col items-center"
+                    className="thought-bubble absolute flex flex-col items-center cursor-pointer"
                     style={{
                       bottom: '100%',
                       left: '50%',
                       marginBottom: -4,
                     }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      setSelections(prev => {
+                        const updated = { ...prev };
+                        delete updated[student.id];
+                        return updated;
+                      });
+                    }}
                   >
                     <div
-                      className="bg-white rounded-full shadow-lg border-2 border-gray-200 flex items-center justify-center"
+                      className="bg-white rounded-full shadow-lg border-2 border-gray-200 flex items-center justify-center hover:border-red-300 hover:bg-red-50 transition-colors"
                       style={{ width: bubbleSize, height: bubbleSize, fontSize: bubbleEmoji }}
                     >
                       {sel.emoji}
@@ -211,20 +239,27 @@ const FeelingsCheckin = ({ students }) => {
       {/* Feelings popup */}
       {activeStudent && (
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/25">
-          <div ref={popupRef} className="bg-white rounded-3xl shadow-2xl p-6" style={{ width: Math.min(size.w * 0.92, 820) }}>
+          <div ref={popupRef} className="bg-white rounded-3xl shadow-2xl p-6" style={{ maxWidth: Math.min(size.w * 0.95, 1200) }}>
             <div className="text-center font-bold text-gray-700 mb-4" style={{ fontSize: Math.max(18, Math.min(size.w * 0.03, 28)) }}>
               How does {activeStudent.name.split(' ')[0]} feel?
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="flex flex-wrap justify-center gap-3">
               {FEELINGS.map(f => (
                 <button
                   key={f.label}
-                  onClick={() => pickFeeling(f)}
-                  className="flex flex-col items-center justify-center gap-1.5 rounded-2xl hover:bg-gray-100 active:bg-gray-200 active:scale-95 transition-all cursor-pointer aspect-square"
-                  style={{ padding: Math.max(8, size.w * 0.012) }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    pickFeeling(f);
+                  }}
+                  className="flex flex-col items-center justify-center gap-1.5 rounded-2xl hover:bg-gray-100 active:bg-gray-200 active:scale-95 transition-all cursor-pointer"
+                  style={{
+                    padding: Math.max(12, size.w * 0.015),
+                    minWidth: Math.max(80, size.w * 0.08)
+                  }}
                 >
-                  <span style={{ fontSize: Math.max(32, Math.min(size.w * 0.05, 56)) }}>{f.emoji}</span>
-                  <span className="font-semibold text-gray-600" style={{ fontSize: Math.max(11, Math.min(size.w * 0.014, 16)) }}>{f.label}</span>
+                  <span style={{ fontSize: Math.max(40, Math.min(size.w * 0.06, 64)) }}>{f.emoji}</span>
+                  <span className="font-semibold text-gray-600" style={{ fontSize: Math.max(12, Math.min(size.w * 0.016, 18)) }}>{f.label}</span>
                 </button>
               ))}
             </div>

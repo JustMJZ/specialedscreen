@@ -18,6 +18,7 @@ import CountdownWidget from '../widgets/CountdownWidget';
 import QuickMessage from '../widgets/QuickMessage';
 import StarPoints from '../widgets/StarPoints';
 import GoalLadder from '../widgets/GoalLadder';
+import MorningCheckin from '../widgets/MorningCheckin';
 import Clock from '../widgets/Clock';
 import FloorPlan from '../floorplan/FloorPlan';
 import GoogleSlides from '../widgets/GoogleSlides';
@@ -50,6 +51,7 @@ const WidgetGrid = () => {
     quickMessage, setQuickMessage, quickMessageFontSize, setQuickMessageFontSize,
     starPoints, setStarPoints,
     goalLadder, setGoalLadder,
+    morningCheckin, setMorningCheckin,
     googleSlidesUrl, setGoogleSlidesUrl,
     youtubeVideoUrl, setYoutubeVideoUrl,
     layoutTabs, setLayoutTabs, activeLayoutId,
@@ -208,6 +210,8 @@ const WidgetGrid = () => {
         );
       case 'clock':
         return <Clock />;
+      case 'morningCheckin':
+        return <MorningCheckin students={globalRoster} checkin={morningCheckin} onUpdate={setMorningCheckin} />;
       case 'googleSlides':
         return <GoogleSlides url={googleSlidesUrl} onChange={setGoogleSlidesUrl} />;
       case 'youtubeVideo':
