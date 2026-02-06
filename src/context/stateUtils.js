@@ -1,4 +1,4 @@
-import { DEFAULT_STUDENTS } from '../constants';
+import { DEFAULT_STUDENTS, DEFAULT_ROTATION_ORDER } from '../constants';
 
 function createStudentId() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
@@ -73,5 +73,11 @@ export function validateBackup(data) {
 
 export function normalizeRotationOrder(order) {
   if (!Array.isArray(order)) return [];
-  return order;
+  if (order.length === 0) return [];
+
+  // Find missing defaults
+  const missing = DEFAULT_ROTATION_ORDER.filter(station => !order.includes(station));
+
+  // Append missing defaults to the end
+  return [...order, ...missing];
 }

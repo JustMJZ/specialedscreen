@@ -88,11 +88,11 @@ const MorningCheckin = ({ students, checkin, onUpdate }) => {
 
   const renderAvatar = (student, status, isActive) => {
     const ring = isActive
-      ? 'ring-4 ring-blue-400'
+      ? 'ring-8 ring-blue-500 shadow-lg shadow-blue-500/50'
       : status === 'absent'
-        ? 'ring-4 ring-red-400'
+        ? 'ring-8 ring-red-500 shadow-lg shadow-red-500/50'
         : status === 'here'
-          ? 'ring-4 ring-emerald-400'
+          ? 'ring-8 ring-emerald-500 shadow-lg shadow-emerald-500/50'
           : '';
     if (student.photo) {
       return (
