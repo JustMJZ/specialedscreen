@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/specialedscreen/static/css/main.9118705a.css",
-    "main.js": "/specialedscreen/static/js/main.d3b4a0ed.js",
+    "main.js": "/specialedscreen/static/js/main.40d38fe7.js",
     "index.html": "/specialedscreen/index.html",
     "main.9118705a.css.map": "/specialedscreen/static/css/main.9118705a.css.map",
-    "main.d3b4a0ed.js.map": "/specialedscreen/static/js/main.d3b4a0ed.js.map"
+    "main.40d38fe7.js.map": "/specialedscreen/static/js/main.40d38fe7.js.map"
   },
   "entrypoints": [
     "static/css/main.9118705a.css",
-    "static/js/main.d3b4a0ed.js"
+    "static/js/main.40d38fe7.js"
   ]
 }
