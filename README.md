@@ -8,10 +8,12 @@ A classroom management dashboard designed for special education teachers. Featur
 
 - **🧩 Multi-Layout Tabs** - Create multiple classroom layouts with separate data per tab
 - **🗺️ Interactive Floor Plan** - Drag/resize stations and manage students/stations in one place
+- **✋ Drag & Drop Students** - Quickly reassign students by dragging them between stations with smooth animations
 - **👥 Global Student Roster** - Manage students once, then add to any layout
 - **🔄 Station Groups** - Live groups view synced with the floor plan rotation
 - **⏱️ Rotation Timer** - Multiple styles (Ring, Sand, Classic, Space, Ocean, Arcade) with auto-rotation
-- **🔊 Rotation Sounds** - Built-in sounds plus custom uploads
+- **⚙️ Modern Timer Settings** - Full-screen modal with organized sections for style, duration, rotation, and sound options
+- **🔊 Rotation Sounds** - Built-in sounds plus custom uploads with volume control
 - **🎯 Goal Ladder** - Track progress with editable steps and visual rungs
 - **📋 First/Then Board** - Visual schedule with emoji picker and comic-style layout
 - **⭐ Class Stars** - Reward point tracker
@@ -40,23 +42,36 @@ The app will open at [http://localhost:3000](http://localhost:3000)
 
 ## Usage
 
-### Edit Mode
-Click the **✏️ Edit** button to:
+### Floor Plan Management
+
+**Normal Mode:**
+- **Drag students** - Click and drag student avatars to reassign them to different stations
+- **Click students** - View student details
+- Stations highlight when dragging students over them
+
+**Edit Mode (✏️ Edit button):**
 - Drag stations to reposition them
 - Resize stations by dragging the corner handle
 - Add custom boxes (TV, door, furniture, etc.)
 - Edit box properties (icon, label, color)
+- Add/remove stations from layout
+- Note: Student drag & drop is disabled in edit mode
 
 ### Timer Controls
 - **▶ Start / ⏸ Pause** - Control the timer
 - **↺** - Reset timer to selected duration
 - **⏭ Next** - Manually trigger rotation
-- **🔁** - Toggle auto-repeat (automatically rotates when timer ends)
+- **⚙️ Options** - Open modern settings modal with:
+  - **Timer Style** - Choose from 6 visual styles with previews
+  - **Duration** - Quick presets (5/10/15/20 min) or custom time
+  - **Rotation** - Toggle auto-rotate on/off
+  - **Sound** - Select rotation sound, upload custom sounds, adjust volume
 
 ### Customization
 - Click most widgets to edit their content
 - Use the 🎨 menu on a widget to set fill, border, text, and style
-- Use the timer options to switch styles and sounds
+- Drag & drop students for quick classroom reorganization
+- All settings persist automatically
 
 ## Live Demo
 
