@@ -1,8 +1,8 @@
 export const COLORS = {
   background: '#FDF8F3',
-  primary: '#FF8A7A',
-  secondary: '#5BC0BE',
-  text: '#3D3D3D',
+  primary: '#FB7F6E', // Slightly softer coral
+  secondary: '#14B8A6', // Modern teal (harmonized with banner colors)
+  text: '#334155', // Softer, more contemporary gray
   stations: {
     purple: { bg: '#B39DDB', light: '#E1D5F0' },
     yellow: { bg: '#FFE082', light: '#FFF3C4' },
@@ -95,4 +95,14 @@ export const TOKEN_EMOJI_OPTIONS = [
   '🏆', '🎖️', '💪', '🧡', '💚', '💙', '🩷', '✨', '🪙', '💰', '🎁', '🎀', '🌺', '🍩', '🧸', '⚡'
 ];
 
-export const BANNER_COLORS = ['#0D9488', '#3B82F6', '#8B5CF6', '#EC4899', '#EF4444', '#F59E0B', '#10B981', '#6366F1', '#1a1a2e'];
+export const BANNER_COLORS = [
+  '#14B8A6', // Softer teal
+  '#3B82F6', // Modern blue
+  '#A78BFA', // Softer purple
+  '#F472B6', // Softer pink
+  '#F87171', // Softer red
+  '#FBBF24', // Warm amber
+  '#34D399', // Softer emerald
+  '#818CF8', // Softer indigo
+  '#64748B'  // Contemporary slate (replaces dark navy)
+];

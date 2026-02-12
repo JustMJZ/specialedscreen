@@ -29,6 +29,47 @@ function getSavedMainLayoutId() {
   return 'layout-1';
 }
 
+// Migration: Remove deprecated morningCheckin data
+function cleanupDeprecatedData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (!saved) return;
+
+    const data = JSON.parse(saved);
+    let modified = false;
+
+    // Remove morningCheckinsByLayout state
+    if (data.morningCheckinsByLayout) {
+      delete data.morningCheckinsByLayout;
+      modified = true;
+    }
+
+    // Remove morningCheckin widgets from all layouts
+    if (Array.isArray(data.layoutTabs)) {
+      data.layoutTabs.forEach(tab => {
+        if (Array.isArray(tab.layout)) {
+          const beforeLength = tab.layout.length;
+          tab.layout = tab.layout.filter(widget => widget.i !== 'morningCheckin');
+          if (tab.layout.length !== beforeLength) {
+            modified = true;
+          }
+        }
+      });
+    }
+
+    // Only save if we made changes
+    if (modified) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      console.log('Migration: Removed deprecated Morning Check-In data and widgets');
+    }
+  } catch (e) {
+    console.warn('Could not clean up deprecated data:', e);
+  }
+}
+
+// Run cleanup immediately at module load (before component renders)
+cleanupDeprecatedData();
+
 function createEmptyFloorPlanTab(name = 'Main Layout') {
   return {
     id: `plan-${Date.now()}`,
@@ -51,21 +92,6 @@ function createDefaultGoalLadder() {
     title: 'Goal Ladder',
     steps: Array.from({ length: 6 }, () => ''),
     completedCount: 0,
-  };
-}
-
-function createDefaultMorningCheckin() {
-  return {
-    question: {
-      text: "What's your favorite animal?",
-      type: 'multi',
-      options: ['Cats', 'Dogs', 'Both', 'Not sure'],
-      size: 18,
-    },
-    checkedIn: {},
-    answers: {},
-    locked: false,
-    showResults: true,
   };
 }
 
@@ -125,11 +151,6 @@ export function AppStateProvider({ children }) {
     const saved = loadSaved('goalLaddersByLayout', null);
     if (saved && typeof saved === 'object') return saved;
     return { [getSavedMainLayoutId()]: createDefaultGoalLadder() };
-  });
-  const [morningCheckinsByLayout, setMorningCheckinsByLayout] = useState(() => {
-    const saved = loadSaved('morningCheckinsByLayout', null);
-    if (saved && typeof saved === 'object') return saved;
-    return { [getSavedMainLayoutId()]: createDefaultMorningCheckin() };
   });
   const [starPoints, setStarPoints] = useState(() => loadSaved('starPoints', 0));
   const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
@@ -324,10 +345,6 @@ export function AppStateProvider({ children }) {
       if (prev[activeLayoutId]) return prev;
       return { ...prev, [activeLayoutId]: createDefaultGoalLadder() };
     });
-    setMorningCheckinsByLayout(prev => {
-      if (prev[activeLayoutId]) return prev;
-      return { ...prev, [activeLayoutId]: createDefaultMorningCheckin() };
-    });
     setRotationOrderByLayout(prev => {
       const existing = prev[activeLayoutId];
       if (Array.isArray(existing)) return prev;
@@ -351,18 +368,10 @@ export function AppStateProvider({ children }) {
   const stationColors = stationColorsByLayout[activeLayoutId] || DEFAULT_STATION_COLORS;
   const widgetColors = widgetColorsByLayout[activeLayoutId] || {};
   const goalLadder = goalLaddersByLayout[activeLayoutId] || createDefaultGoalLadder();
-  const morningCheckin = morningCheckinsByLayout[activeLayoutId] || createDefaultMorningCheckin();
 
   const setGoalLadder = (updater) => {
     setGoalLaddersByLayout(prev => {
       const current = prev[activeLayoutId] || createDefaultGoalLadder();
-      const next = typeof updater === 'function' ? updater(current) : updater;
-      return { ...prev, [activeLayoutId]: next };
-    });
-  };
-  const setMorningCheckin = (updater) => {
-    setMorningCheckinsByLayout(prev => {
-      const current = prev[activeLayoutId] || createDefaultMorningCheckin();
       const next = typeof updater === 'function' ? updater(current) : updater;
       return { ...prev, [activeLayoutId]: next };
     });
@@ -447,7 +456,7 @@ export function AppStateProvider({ children }) {
         rotationSound, voiceLevel, countdownEvent, countdownTime,
         quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl,
         layoutTabs, activeLayoutId,
-        widgetColorsByLayout, goalLaddersByLayout, morningCheckinsByLayout, starPoints, studentGoals, floorPlansByLayout,
+        widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
         customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume, performanceMode,
         clockStyle, showClockDate
       });
@@ -463,7 +472,7 @@ export function AppStateProvider({ children }) {
   }, [globalRoster, studentsByLayout, totalTime, autoRepeat, rightNowText, bannerFontSize, firstThen,
       rotationSound, voiceLevel, countdownEvent, countdownTime,
       quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl, layoutTabs, activeLayoutId,
-      widgetColorsByLayout, goalLaddersByLayout, morningCheckinsByLayout, starPoints, studentGoals, floorPlansByLayout,
+      widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
       customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume, performanceMode,
       clockStyle, showClockDate]);
 
@@ -631,7 +640,6 @@ export function AppStateProvider({ children }) {
     setStationColorsByLayout(prev => ({ ...prev, [id]: DEFAULT_STATION_COLORS }));
     setWidgetColorsByLayout(prev => ({ ...prev, [id]: {} }));
     setGoalLaddersByLayout(prev => ({ ...prev, [id]: createDefaultGoalLadder() }));
-    setMorningCheckinsByLayout(prev => ({ ...prev, [id]: createDefaultMorningCheckin() }));
     setRotationOrderByLayout(prev => ({ ...prev, [id]: [] }));
     setActiveLayoutId(id);
   };
@@ -665,12 +673,6 @@ export function AppStateProvider({ children }) {
       return next;
     });
     setWidgetColorsByLayout(prev => {
-      if (!prev[id]) return prev;
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-    setMorningCheckinsByLayout(prev => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
@@ -742,7 +744,6 @@ export function AppStateProvider({ children }) {
     layoutRenameValue, setLayoutRenameValue,
     widgetColors, setWidgetColors,
     goalLadder, setGoalLadder,
-    morningCheckin, setMorningCheckin,
     starPoints, setStarPoints,
     studentGoals, setStudentGoals,
     customSounds, setCustomSounds,

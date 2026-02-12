@@ -6,7 +6,8 @@ import { BANNER_COLORS } from '../../constants';
 const WIDGET_COLORS = [
   null,
   ...BANNER_COLORS,
-  '#FBBF24', '#A3E635', '#34D399', '#22D3EE', '#818CF8',
+  '#A3E635', // Lime (unique, not in BANNER_COLORS)
+  '#22D3EE', // Cyan (unique, not in BANNER_COLORS)
 ];
 
 const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResize, children, style, className, ...rest }, ref) => {
@@ -48,7 +49,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
   return (
     <div ref={ref} style={wrapperStyle} className={className} {...rest}>
       {isLayoutEditMode && (
-        <div className="absolute top-1 right-1 z-10 flex items-center gap-1">
+        <div className="absolute top-1 right-1 z-[100] flex items-center gap-1">
           {onResize && (
             <>
               <button
@@ -79,7 +80,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
       )}
       {showColorPicker && isLayoutEditMode && (
         <div
-          className="absolute top-5 right-0 z-50 bg-white rounded-lg shadow-xl border p-2 max-h-[60vh] overflow-y-auto"
+          className="absolute top-5 right-0 z-[200] bg-white rounded-card shadow-widget-lg border p-2 max-h-[60vh] overflow-y-auto"
           style={{ width: 200 }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -129,7 +130,7 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
         </div>
       )}
       <div
-        className="h-full w-full overflow-hidden relative"
+        className={`h-full w-full overflow-hidden relative rounded-widget ${!widgetStyle ? 'shadow-widget' : ''}`}
         data-widget-style={widgetStyle || 'normal'}
         data-widget-text={widgetText ? 'on' : undefined}
         style={{
@@ -141,7 +142,6 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
                 ? (widgetBg || '#F8FAFF')
                 : (widgetBg || '#ffffff'),
           border: borderStyle,
-          borderRadius: 'inherit',
           '--widget-border-color': widgetBorder || 'transparent',
           '--widget-text-color': widgetText || 'inherit',
           color: widgetText || 'inherit',
@@ -156,14 +156,14 @@ const WidgetWrapper = React.forwardRef(({ id, isLayoutEditMode, onRemove, onResi
                   ? '0 0 0 2px rgba(34,211,238,0.7), 0 0 12px rgba(34,211,238,0.5)'
                   : widgetStyle === 'aurora'
                     ? '0 4px 12px rgba(15,23,42,0.1)'
-                    : 'none')
+                    : undefined)
             : (widgetStyle === 'glass'
                 ? '0 10px 28px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(255,255,255,0.25)'
                 : widgetStyle === 'neon'
                   ? '0 0 0 1px rgba(255,255,255,0.12), 0 0 28px rgba(34,211,238,0.95), 0 0 64px rgba(168,85,247,0.85), inset 0 0 22px rgba(56,189,248,0.3)'
                   : widgetStyle === 'aurora'
                     ? '0 10px 26px rgba(15,23,42,0.12), inset 0 0 18px rgba(56,189,248,0.18)'
-                    : 'none'),
+                    : undefined),
         }}>
         {widgetText && (
           <style>{`

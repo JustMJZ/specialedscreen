@@ -80,14 +80,6 @@ const widgetRegistry = {
     defaultW: 5,
     defaultH: 4,
   },
-  morningCheckin: {
-    label: 'Morning Check-In',
-    icon: '🌞',
-    minW: 4,
-    minH: 4,
-    defaultW: 7,
-    defaultH: 6,
-  },
   clock: {
     label: 'Clock',
     icon: '🕐',

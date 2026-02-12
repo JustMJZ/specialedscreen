@@ -41,6 +41,8 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
   const [goalOpenFor, setGoalOpenFor] = useState(null);
   const [showRosterMenu, setShowRosterMenu] = useState(false);
   const [selectedRosterIds, setSelectedRosterIds] = useState([]);
+  const [selectedForRemoval, setSelectedForRemoval] = useState([]);
+  const [showRemoveAllConfirm, setShowRemoveAllConfirm] = useState(false);
 
   const handlePhotoUpload = (studentId, file) => {
     if (!file) return;
@@ -79,6 +81,29 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
     setShowRosterMenu(false);
   };
 
+  const removeSelectedStudents = () => {
+    if (selectedForRemoval.length === 0) return;
+    const count = selectedForRemoval.length;
+    if (!window.confirm(`Remove ${count} selected student${count > 1 ? 's' : ''}?`)) return;
+    setEditingStudents(prev => prev.filter(s => !selectedForRemoval.includes(s.id)));
+    setSelectedForRemoval([]);
+  };
+
+  const removeAllStudents = () => {
+    if (editingStudents.length === 0) return;
+    setShowRemoveAllConfirm(true);
+  };
+
+  const handleRemoveAllConfirm = () => {
+    setEditingStudents([]);
+    setSelectedForRemoval([]);
+    setShowRemoveAllConfirm(false);
+  };
+
+  const handleRemoveAllCancel = () => {
+    setShowRemoveAllConfirm(false);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
@@ -90,8 +115,31 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
           {/* Left column: Students */}
           <div className="flex-1 p-3 overflow-y-auto border-r">
             <div className="flex items-center justify-between mb-2">
-              <div className="text-sm font-bold text-gray-700">Students</div>
+              <div className="text-sm font-bold text-gray-700">
+                Students
+                {selectedForRemoval.length > 0 && (
+                  <span className="ml-2 text-xs text-red-600 font-normal">
+                    ({selectedForRemoval.length} selected)
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1 relative">
+                {selectedForRemoval.length > 0 && (
+                  <button
+                    onClick={removeSelectedStudents}
+                    className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 font-medium"
+                  >
+                    Remove Selected
+                  </button>
+                )}
+                {editingStudents.length > 0 && (
+                  <button
+                    onClick={removeAllStudents}
+                    className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 font-medium"
+                  >
+                    Remove All
+                  </button>
+                )}
                 <button
                   onClick={() => setEditingStudents(prev => ([...prev, { id: createStudentId(), name: 'New Student', group: editingOrder[0] || '', photo: null }]))}
                   className="text-xs px-2 py-1 rounded bg-blue-50 text-blue-600 hover:bg-blue-100"
@@ -145,6 +193,19 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
                 return (
                   <div key={student.id} className="p-2 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedForRemoval.includes(student.id)}
+                        onChange={(e) => {
+                          setSelectedForRemoval(prev =>
+                            e.target.checked
+                              ? [...prev, student.id]
+                              : prev.filter(id => id !== student.id)
+                          );
+                        }}
+                        className="flex-shrink-0 w-4 h-4 cursor-pointer"
+                        title="Select for removal"
+                      />
                       <div className="flex-shrink-0 relative">
                         {student.photo ? (
                           <img src={student.photo} alt={student.name} className="w-10 h-10 rounded-full object-cover border-2 border-gray-300" />
@@ -165,7 +226,7 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
                         {editingOrder.map(color => (<option key={color} value={color}>{editingTeachers[color]}</option>))}
                       </select>
                     </div>
-                    <div className="flex items-center gap-1 mt-1 ml-12">
+                    <div className="flex items-center gap-1 mt-1 ml-16">
                       <button onClick={() => setGoalOpenFor(isGoalOpen ? null : student.id)}
                         className={`text-xs px-1.5 py-0.5 rounded ${isGoalOpen ? 'bg-amber-200 text-amber-700' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}`}>
                         🎯 Tokens {goal.active ? `(${goal.tokens}/${goal.goal})` : ''}
@@ -185,7 +246,7 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
                     </div>
                     {/* Inline token goal editor */}
                     {isGoalOpen && (
-                      <div className="mt-2 ml-12 p-2 bg-amber-50 rounded-lg border border-amber-200">
+                      <div className="mt-2 ml-16 p-2 bg-amber-50 rounded-lg border border-amber-200">
                         <div className="flex items-center gap-2 mb-2">
                           <label className="flex items-center gap-1 text-xs font-bold text-gray-600">
                             <input type="checkbox" checked={goal.active}
@@ -334,6 +395,38 @@ const StudentManager = ({ students, onUpdate, onClose, roster, stationConfigs, t
           <button onClick={() => { onUpdate(ensureUniqueIds(editingStudents)); onUpdateTeachers(editingTeachers); onUpdateStationColors(editingColors); onUpdateRotationOrder(editingOrder); if (onUpdateCustomStationColors) onUpdateCustomStationColors(editingCustomColors); if (onUpdateGoals) onUpdateGoals(editingGoals); onClose(); }} className="px-3 py-1.5 rounded-lg bg-teal-500 text-white text-sm">Save</button>
         </div>
       </div>
+
+      {/* Remove All Confirmation Modal */}
+      {showRemoveAllConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100]" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-4">⚠️</div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Remove ALL Students?</h3>
+              <p className="text-gray-600">
+                You are about to remove all {editingStudents.length} students from this layout.
+              </p>
+              <p className="text-red-600 font-medium mt-2">
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleRemoveAllCancel}
+                className="flex-1 px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRemoveAllConfirm}
+                className="flex-1 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 font-medium"
+              >
+                Remove All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
