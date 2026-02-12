@@ -17,7 +17,7 @@ const MIN_AVATAR_SIZE = 6;           // Minimum avatar size (px)
 const MIN_NAME_SIZE = 4;             // Minimum name font size (px)
 const MIN_VISIBLE_NAME_SIZE = 5;     // Hide name below this size (px)
 
-const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, targetGroup, isAnimating, index, groupSize, onClick, isEditMode }) => {
+const AnimatedStudent = ({ studentId, name, photo, emoji, stationConfigs, currentGroup, targetGroup, isAnimating, index, groupSize, onClick, isEditMode, isLayoutEditMode, onDragStart, onDragEnd, isDragging }) => {
   const initials = useMemo(() => name.split(' ').map(n => n[0]).join('').toUpperCase(), [name]);
   const firstName = useMemo(() => name.split(' ')[0], [name]);
   const bgColor = AVATAR_COLORS[name.charCodeAt(0) % 5];
@@ -123,9 +123,44 @@ const AnimatedStudent = ({ name, photo, emoji, stationConfigs, currentGroup, tar
     </span>
   ) : null;
 
+  // Determine if this student can be dragged
+  const canDrag = !isEditMode && !isAnimating && !isLayoutEditMode;
+
+  // Handle drag start
+  const handleDragStart = (e) => {
+    if (!canDrag) {
+      e.preventDefault();
+      return;
+    }
+    e.stopPropagation(); // Prevent widget drag handlers from interfering
+    // Set a transparent drag image (we'll show feedback via opacity)
+    const img = new Image();
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setDragImage(img, 0, 0);
+    onDragStart?.(studentId);
+  };
+
+  const handleDragEnd = (e) => {
+    e.stopPropagation(); // Prevent widget drag handlers from interfering
+    onDragEnd?.();
+  };
+
   return (
-    <div className={`absolute ${isEditMode ? '' : 'cursor-pointer'} ${isVertical ? 'flex items-center gap-0.5' : 'flex flex-col items-center gap-0'}`}
-      style={{ top, left, transition: ANIMATION_TRANSITION, zIndex: isAnimating ? 20 : 10, opacity: isEditMode ? 0.5 : 1, pointerEvents: isEditMode ? 'none' : 'auto' }}
+    <div
+      className={`absolute ${!isEditMode && !isAnimating ? 'cursor-grab active:cursor-grabbing' : isEditMode ? '' : 'cursor-pointer'} ${isVertical ? 'flex items-center gap-0.5' : 'flex flex-col items-center gap-0'}`}
+      style={{
+        top,
+        left,
+        transition: isDragging ? 'none' : ANIMATION_TRANSITION,
+        zIndex: isAnimating ? 20 : 10,
+        opacity: isEditMode ? 0.5 : isDragging ? 0.4 : 1,
+        pointerEvents: isEditMode ? 'none' : 'auto',
+        transform: isDragging ? 'scale(1.1)' : 'scale(1)'
+      }}
+      draggable={canDrag}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       onClick={onClick}>
       {avatarEl}
       {nameEl}

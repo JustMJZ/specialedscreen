@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { COLORS } from '../../constants';
 
-const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, containerRef, students, teacherName, stationColors, onRemove }) => {
+const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, containerRef, students, teacherName, stationColors, onRemove, isDropTarget, onDragOver, onDragLeave, onDrop }) => {
   const station = stationColors[color] || COLORS.stations[color] || { bg: '#9CA3AF', light: '#E5E7EB' };
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -42,12 +42,46 @@ const DraggableStation = ({ color, config, onUpdate, isEditMode, isTarget, conta
     return () => { document.removeEventListener('mousemove', onMM); document.removeEventListener('mouseup', onEnd); document.removeEventListener('touchmove', onTM); document.removeEventListener('touchend', onEnd); };
   }, [isDragging, isResizing, dragOffset, color, containerRef]);
 
+  // Handle student drop events
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Required to allow drop
+    e.stopPropagation(); // Prevent widget drag handlers from interfering
+    e.dataTransfer.dropEffect = 'move';
+    onDragOver?.();
+  };
+
+  const handleDragLeave = (e) => {
+    e.stopPropagation(); // Prevent widget drag handlers from interfering
+    // Only trigger if leaving the station itself, not child elements
+    if (e.currentTarget === e.target || !e.currentTarget.contains(e.relatedTarget)) {
+      onDragLeave?.();
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // Prevent widget drag handlers from interfering
+    onDrop?.();
+  };
+
   return (
     <div ref={ref} className={`absolute rounded-lg shadow-md select-none overflow-hidden ${isEditMode ? 'cursor-move' : ''}`}
-      style={{ top: config.top, left: config.left, width: config.width, height: config.height, backgroundColor: station.light, border: `2px solid ${station.bg}`,
-        boxShadow: isTarget ? `0 0 12px ${station.bg}50` : '0 2px 6px rgba(0,0,0,0.1)', zIndex: isDragging || isResizing ? 100 : 5 }}
+      style={{
+        top: config.top,
+        left: config.left,
+        width: config.width,
+        height: config.height,
+        backgroundColor: station.light,
+        border: `2px solid ${station.bg}`,
+        boxShadow: isTarget ? `0 0 12px ${station.bg}50` : isDropTarget ? `0 0 20px ${station.bg}80, inset 0 0 20px ${station.bg}30` : '0 2px 6px rgba(0,0,0,0.1)',
+        zIndex: isDragging || isResizing ? 100 : 5,
+        transition: 'box-shadow 0.2s ease'
+      }}
       onMouseDown={(e) => { if (!isEditMode || e.target.dataset.resize) return; e.preventDefault(); const r = ref.current.getBoundingClientRect(); setDragOffset({ x: e.clientX - r.left, y: e.clientY - r.top }); setIsDragging(true); }}
-      onTouchStart={(e) => { if (!isEditMode || e.target.dataset.resize) return; const t = e.touches[0]; const r = ref.current.getBoundingClientRect(); setDragOffset({ x: t.clientX - r.left, y: t.clientY - r.top }); setIsDragging(true); }}>
+      onTouchStart={(e) => { if (!isEditMode || e.target.dataset.resize) return; const t = e.touches[0]; const r = ref.current.getBoundingClientRect(); setDragOffset({ x: t.clientX - r.left, y: t.clientY - r.top }); setIsDragging(true); }}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}>
 
       <div className="flex items-center overflow-hidden" style={{ padding, gap: padding }}>
         <div className="rounded-full flex-shrink-0" style={{ backgroundColor: station.bg, width: dotSize, height: dotSize }} />

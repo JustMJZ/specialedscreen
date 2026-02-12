@@ -2,15 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import { COLORS } from '../../constants';
 import { ROTATION_SOUNDS, playSound } from '../../constants/sounds';
+import TimerSettingsModal from '../modals/TimerSettingsModal';
 
-const TIMER_STYLES = [
-  { id: 'ring', icon: '⏱️', label: 'Ring' },
-  { id: 'hourglass', icon: '⏳', label: 'Sand' },
-  { id: 'space', icon: '🪐', label: 'Space' },
-  { id: 'ocean', icon: '🌊', label: 'Ocean' },
-  { id: 'arcade', icon: '🕹️', label: 'Arcade' },
-  { id: 'classic', icon: '🔢', label: 'Classic' },
-];
+const VALID_TIMER_STYLES = ['ring', 'hourglass', 'space', 'ocean', 'arcade', 'classic'];
 
 /* ── Confetti burst on timer completion ── */
 const Confetti = ({ active, performanceMode }) => {
@@ -335,16 +329,10 @@ const TimerPanel = () => {
   const mins = Math.floor(timeRemaining / 60);
   const secs = timeRemaining % 60;
   const progress = totalTime > 0 ? timeRemaining / totalTime : 0;
-  const [showCustom, setShowCustom] = useState(false);
-  const [customMins, setCustomMins] = useState(Math.floor(totalTime / 60));
-  const [customSecs, setCustomSecs] = useState(totalTime % 60);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [showSoundMenu, setShowSoundMenu] = useState(false);
-  const [showOptions, setShowOptions] = useState(false);
-  const prevTimeRef = useRef(timeRemaining);
-  const fileInputRef = useRef(null);
-  const soundMenuRef = useRef(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [timePop, setTimePop] = useState(false);
+  const prevTimeRef = useRef(timeRemaining);
 
   const disabled = isEditMode || isAnimating;
   let barColor = progress < 0.07 ? '#FF8A7A' : progress < 0.15 ? '#FFD166' : '#94A3B8';
@@ -364,47 +352,8 @@ const TimerPanel = () => {
     setTimeout(() => setTimePop(false), 280);
   };
 
-
-  // Close sound menu on outside click
-  useEffect(() => {
-    if (!showSoundMenu) return;
-    const handler = (e) => {
-      if (soundMenuRef.current && !soundMenuRef.current.contains(e.target)) setShowSoundMenu(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showSoundMenu]);
-
-  // Sound helpers
-  const allSounds = [...ROTATION_SOUNDS, ...customSounds.map(s => ({ id: s.id, name: `🎵 ${s.name}`, type: 'custom' }))];
-
-
-  const handleUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const name = window.prompt('Name for this sound:', file.name.replace(/\.[^.]+$/, ''));
-    if (!name) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const newSound = { id: `custom-${Date.now()}`, name, dataUrl: ev.target.result };
-      setCustomSounds([...customSounds, newSound]);
-      setRotationSound(newSound.id);
-    };
-    reader.readAsDataURL(file);
-    e.target.value = '';
-  };
-
-  const handleDeleteSound = (id) => {
-    if (!window.confirm('Delete this custom sound?')) return;
-    setCustomSounds(customSounds.filter(s => s.id !== id));
-    if (rotationSound === id) setRotationSound('none');
-  };
-
-  const currentSoundName = allSounds.find(s => s.id === rotationSound)?.name || 'None';
-
   const displayProps = { progress, mins, secs, barColor, isRunning, timePop, onTimeClick: triggerTimePop };
-  const styleIds = TIMER_STYLES.map(s => s.id);
-  const effectiveStyle = styleIds.includes(timerStyle) ? timerStyle : 'ring';
+  const effectiveStyle = VALID_TIMER_STYLES.includes(timerStyle) ? timerStyle : 'ring';
   const isSpace = effectiveStyle === 'space';
   const isOcean = effectiveStyle === 'ocean';
   const isArcade = effectiveStyle === 'arcade';
@@ -413,10 +362,10 @@ const TimerPanel = () => {
   const blendMode = !isImmersive && (effectiveStyle === 'ring' || effectiveStyle === 'hourglass' || effectiveStyle === 'classic');
 
   useEffect(() => {
-    if (!styleIds.includes(timerStyle)) {
+    if (!VALID_TIMER_STYLES.includes(timerStyle)) {
       setTimerStyle('ring');
     }
-  }, [styleIds, timerStyle, setTimerStyle]);
+  }, [timerStyle, setTimerStyle]);
 
   const controls = (
     <div className="flex flex-wrap gap-1 justify-center timer-controls">
@@ -974,13 +923,11 @@ const TimerPanel = () => {
         <div className="flex items-center justify-between px-2 pt-1">
           <div className="text-[11px] font-bold text-gray-400">⏱ TIMER</div>
           <button
-            onClick={() => setShowOptions(!showOptions)}
+            onClick={() => setShowSettings(true)}
             className={`px-2 py-0.5 rounded text-[10px] ${
-              showOptions
-                ? 'bg-purple-100 text-purple-700'
-                : blendMode
-                  ? 'bg-black/5 text-gray-600 hover:bg-black/10'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              blendMode
+                ? 'bg-black/5 text-gray-600 hover:bg-black/10'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             }`}
           >
             ⚙ Options
@@ -993,7 +940,7 @@ const TimerPanel = () => {
             {isOcean ? '🌊 Ocean' : isArcade ? '🕹️ Arcade' : '🪐 Space'}
           </div>
           <button
-            onClick={() => setShowOptions(!showOptions)}
+            onClick={() => setShowSettings(true)}
             className={`space-chip space-chip-right ${isOcean ? 'ocean-chip' : isArcade ? 'arcade-chip' : ''}`}
           >
             ⚙ Options
@@ -1024,87 +971,26 @@ const TimerPanel = () => {
         </div>
       )}
 
-      {/* Options */}
-      {showOptions && (
-        <div className="absolute top-8 left-2 right-2 z-30 rounded-lg border border-gray-200 bg-white/95 p-2 flex flex-col gap-2 max-h-[55%] overflow-y-auto shadow-xl">
-          <div className="flex gap-1 justify-center flex-wrap">
-            {TIMER_STYLES.map(s => (
-              <button key={s.id} onClick={() => setTimerStyle(s.id)}
-                className={`px-1.5 py-0.5 text-xs rounded-full font-medium transition-all ${effectiveStyle === s.id ? 'bg-purple-500 text-white shadow-sm scale-105' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
-                {s.icon} {s.label}
-              </button>
-            ))}
-          </div>
-          {!isRunning && !showCustom && (
-            <div className="flex gap-1 justify-center flex-wrap">
-              {[5, 10, 15, 20].map(m => (
-                <button key={m} onClick={() => { setTotalTime(m * 60); setTimeRemaining(m * 60); }}
-                  className={`px-2 py-0.5 text-xs rounded font-medium ${Math.floor(totalTime / 60) === m && totalTime % 60 === 0 ? 'bg-teal-500 text-white' : 'bg-gray-100 text-gray-600'}`} disabled={disabled}>{m}m</button>
-              ))}
-              <button onClick={() => { setCustomMins(Math.floor(totalTime / 60)); setCustomSecs(totalTime % 60); setShowCustom(true); }}
-                className="px-2 py-0.5 text-xs rounded font-medium bg-purple-100 text-purple-600" disabled={disabled}>⏱️</button>
-            </div>
-          )}
-          {!isRunning && showCustom && (
-            <div className="flex items-center justify-center gap-1">
-              <input type="number" min="0" max="120" value={customMins} onChange={(e) => setCustomMins(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-10 px-1 py-0.5 border rounded text-center text-sm" />
-              <span className="text-xs">:</span>
-              <input type="number" min="0" max="59" value={customSecs} onChange={(e) => setCustomSecs(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
-                className="w-10 px-1 py-0.5 border rounded text-center text-sm" />
-              <button onClick={() => { const total = customMins * 60 + customSecs; setTotalTime(total); setTimeRemaining(total); setShowCustom(false); }}
-                className="px-2 py-0.5 text-xs rounded bg-teal-500 text-white font-medium">✓</button>
-              <button onClick={() => setShowCustom(false)} className="px-2 py-0.5 text-xs rounded bg-gray-200">✕</button>
-            </div>
-          )}
-
-          <div className="flex items-center justify-between gap-2">
-            <button onClick={() => setAutoRepeat(!autoRepeat)} className={`px-2 py-1 rounded text-xs font-bold ${autoRepeat ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'}`}
-              style={{ opacity: isEditMode ? 0.5 : 1 }} disabled={isEditMode}>
-              {autoRepeat ? '🔁 Auto' : '👆 Manual'}
-            </button>
-
-            <div className="w-full" ref={soundMenuRef}>
-              <button onClick={() => setShowSoundMenu(!showSoundMenu)}
-                className={`w-full px-2 py-1 rounded text-xs font-bold ${showSoundMenu ? 'bg-purple-200 text-purple-700' : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}`}>
-                {rotationSound === 'none' ? '🔇 Sound Options' : '🔊 Sound Options'}
-              </button>
-              {showSoundMenu && (
-                <div className="mt-2 bg-white rounded-lg shadow-xl border border-gray-200 p-3">
-                  <div className="text-xs font-bold text-gray-500 mb-2">ROTATION SOUND</div>
-                  <div className="max-h-36 overflow-y-auto mb-2 space-y-0.5">
-                    {allSounds.map(sound => (
-                      <div key={sound.id} className="flex items-center gap-1">
-                        <button onClick={() => { setRotationSound(sound.id); playSound(sound.id, customSounds, soundVolume); }}
-                          className={`flex-1 text-left px-2 py-1 text-xs rounded transition-colors ${rotationSound === sound.id ? 'bg-purple-100 text-purple-700 font-bold' : 'hover:bg-gray-100 text-gray-600'}`}>
-                          {sound.name}
-                        </button>
-                        {sound.type === 'custom' && (
-                          <button onClick={() => handleDeleteSound(sound.id)} className="text-red-400 hover:text-red-600 text-xs px-1">✕</button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                  <input ref={fileInputRef} type="file" accept=".mp3,.wav,.ogg" className="hidden" onChange={handleUpload} />
-                  <button onClick={() => fileInputRef.current.click()}
-                    className="w-full text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1.5 rounded text-gray-600 mb-2">+ Upload Sound</button>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">🔈</span>
-                    <input type="range" min="0" max="1" step="0.05" value={soundVolume}
-                      onChange={(e) => setSoundVolume(parseFloat(e.target.value))}
-                      onMouseUp={() => playSound(rotationSound, customSounds, soundVolume)}
-                      onTouchEnd={() => playSound(rotationSound, customSounds, soundVolume)}
-                      className="flex-1 h-1.5 accent-purple-500" />
-                    <span className="text-xs text-gray-400">🔊</span>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Controls */}
+      {/* Settings Modal */}
+      <TimerSettingsModal
+        show={showSettings}
+        onClose={() => setShowSettings(false)}
+        timerStyle={timerStyle}
+        setTimerStyle={setTimerStyle}
+        totalTime={totalTime}
+        setTotalTime={setTotalTime}
+        setTimeRemaining={setTimeRemaining}
+        isRunning={isRunning}
+        autoRepeat={autoRepeat}
+        setAutoRepeat={setAutoRepeat}
+        rotationSound={rotationSound}
+        setRotationSound={setRotationSound}
+        customSounds={customSounds}
+        setCustomSounds={setCustomSounds}
+        soundVolume={soundVolume}
+        setSoundVolume={setSoundVolume}
+        isEditMode={isEditMode}
+      />
     </div>
   );
 };

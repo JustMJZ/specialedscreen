@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 import FloorPlanTabs from './FloorPlanTabs';
 import DraggableStation from './DraggableStation';
@@ -11,11 +11,16 @@ const FloorPlan = () => {
     teacherNames, allStationColors, tabStationKeys,
     isEditMode, toggleEditMode, isLayoutEditMode, floorPlanRef, isAnimating, animationTargets,
     setEditingBox, setSelectedStudentId, removeStationFromTab, setShowStudentManager,
-    addCustomStation
+    addCustomStation, setStudents, setAnimationTargets, setIsAnimating
   } = useAppState();
 
   // Track previous container size to detect actual resizes (not initial mount)
   const prevSizeRef = useRef(null);
+
+  // Drag and drop state
+  const [draggedStudentId, setDraggedStudentId] = useState(null);
+  const [dropTargetStation, setDropTargetStation] = useState(null);
+  const animationTimeoutRef = useRef(null);
 
   // When the floor plan container resizes, clamp all stations and boxes back into bounds
   useEffect(() => {
@@ -92,9 +97,68 @@ const FloorPlan = () => {
     return () => observer.disconnect();
   }, [floorPlanRef, setStationConfigs, setCustomBoxes]);
 
+  // Cleanup animation timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) clearTimeout(animationTimeoutRef.current);
+    };
+  }, []);
+
+  // Drag and drop handlers
+  const handleStudentDragStart = (studentId) => {
+    if (isAnimating || isEditMode) return;
+    setDraggedStudentId(studentId);
+  };
+
+  const handleStudentDragEnd = () => {
+    setDraggedStudentId(null);
+    setDropTargetStation(null);
+  };
+
+  const handleStationDragOver = (stationKey) => {
+    if (!draggedStudentId) return;
+    setDropTargetStation(stationKey);
+  };
+
+  const handleStationDragLeave = () => {
+    setDropTargetStation(null);
+  };
+
+  const handleStationDrop = (targetStationKey) => {
+    if (!draggedStudentId || !targetStationKey) return;
+
+    const student = students.find(s => s.id === draggedStudentId);
+    if (!student) return;
+
+    // Don't do anything if dropping on same station
+    if (student.group === targetStationKey) {
+      setDraggedStudentId(null);
+      setDropTargetStation(null);
+      return;
+    }
+
+    // Set animation target for this student
+    setAnimationTargets({ [draggedStudentId]: targetStationKey });
+    setIsAnimating(true);
+
+    // After animation completes, update the student's group
+    animationTimeoutRef.current = setTimeout(() => {
+      setStudents(prev => prev.map(s =>
+        s.id === draggedStudentId ? { ...s, group: targetStationKey } : s
+      ));
+      setAnimationTargets({});
+      setIsAnimating(false);
+      animationTimeoutRef.current = null;
+    }, 2500); // Match ANIMATION_TRANSITION duration
+
+    // Clear drag state
+    setDraggedStudentId(null);
+    setDropTargetStation(null);
+  };
+
   return (
     <div className="flex flex-col gap-0 h-full">
-      <div className="flex items-center justify-between px-1 pb-0" style={isLayoutEditMode ? { paddingRight: 90 } : undefined}>
+      <div className="flex items-center justify-between px-1 pb-0">
         <FloorPlanTabs />
         <div className="flex items-center gap-1">
           {isEditMode && (
@@ -125,9 +189,9 @@ const FloorPlan = () => {
       <div className="bg-transparent rounded-b-xl rounded-tr-xl shadow-lg p-2 flex-1 flex flex-col min-h-0">
         <div ref={floorPlanRef} className="flex-1 relative bg-transparent rounded-lg overflow-hidden"
           style={{ border: isEditMode ? '2px dashed #3B82F6' : 'none' }}>
-          {tabStationKeys.map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c] || c} stationColors={allStationColors} onRemove={removeStationFromTab} />)}
+          {tabStationKeys.map(c => <DraggableStation key={c} color={c} config={stationConfigs[c]} onUpdate={(col, cfg) => setStationConfigs(p => ({ ...p, [col]: cfg }))} isEditMode={isEditMode} isTarget={isAnimating && Object.values(animationTargets).includes(c)} containerRef={floorPlanRef} students={students} teacherName={teacherNames[c] || c} stationColors={allStationColors} onRemove={removeStationFromTab} isDropTarget={dropTargetStation === c} onDragOver={() => handleStationDragOver(c)} onDragLeave={handleStationDragLeave} onDrop={() => handleStationDrop(c)} />)}
           {customBoxes.map(b => <DraggableBox key={b.id} box={b} onUpdate={(ub) => setCustomBoxes(p => p.map(x => x.id === ub.id ? ub : x))} isEditMode={isEditMode} containerRef={floorPlanRef} onEdit={setEditingBox} students={students} />)}
-          {students.filter(s => stationConfigs[s.group]).map(s => { const grp = students.filter(x => x.group === s.group && stationConfigs[x.group]); return <AnimatedStudent key={s.id} name={s.name} photo={s.photo} emoji={s.emoji} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={!isEditMode && isAnimating} index={grp.findIndex(x => x.id === s.id)} groupSize={grp.length} onClick={isEditMode ? undefined : () => setSelectedStudentId(s.id)} isEditMode={isEditMode} />; })}
+          {students.filter(s => stationConfigs[s.group]).map(s => { const grp = students.filter(x => x.group === s.group && stationConfigs[x.group]); return <AnimatedStudent key={s.id} studentId={s.id} name={s.name} photo={s.photo} emoji={s.emoji} stationConfigs={stationConfigs} currentGroup={s.group} targetGroup={animationTargets[s.id] || s.group} isAnimating={!isEditMode && isAnimating} index={grp.findIndex(x => x.id === s.id)} groupSize={grp.length} onClick={isEditMode ? undefined : () => setSelectedStudentId(s.id)} isEditMode={isEditMode} isLayoutEditMode={isLayoutEditMode} onDragStart={handleStudentDragStart} onDragEnd={handleStudentDragEnd} isDragging={draggedStudentId === s.id} />; })}
         </div>
       </div>
     </div>
