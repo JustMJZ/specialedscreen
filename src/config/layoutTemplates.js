@@ -36,8 +36,7 @@ const layoutTemplates = {
 
       // Additional widgets positioned below
       { i: 'countdown', x: 7, y: 20, w: 5, h: 2, minW: 2, minH: 1 },
-      { i: 'quickMessage', x: 7, y: 22, w: 5, h: 2, minW: 2, minH: 1 },
-      { i: 'clock', x: 7, y: 24, w: 5, h: 1, minW: 1, minH: 1 },
+{ i: 'clock', x: 7, y: 24, w: 5, h: 1, minW: 1, minH: 1 },
     ],
   },
 

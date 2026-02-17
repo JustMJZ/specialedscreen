@@ -16,7 +16,6 @@ const FirstThen = lazy(() => import('../widgets/FirstThen'));
 const StationGroups = lazy(() => import('../widgets/StationGroups'));
 const Banner = lazy(() => import('../widgets/Banner'));
 const CountdownWidget = lazy(() => import('../widgets/CountdownWidget'));
-const QuickMessage = lazy(() => import('../widgets/QuickMessage'));
 const GoalLadder = lazy(() => import('../widgets/GoalLadder'));
 const Clock = lazy(() => import('../widgets/Clock'));
 const FloorPlan = lazy(() => import('../floorplan/FloorPlan'));
@@ -45,6 +44,10 @@ const WidgetGrid = ({ isKioskMode = false }) => {
     setRightNowText,
     bannerFontSize,
     setBannerFontSize,
+    bannerMode,
+    setBannerMode,
+    bannerConfig,
+    setBannerConfig,
     isEditMode,
     isAnimating,
     voiceLevel,
@@ -62,10 +65,6 @@ const WidgetGrid = ({ isKioskMode = false }) => {
     countdownTime,
     setCountdownEvent,
     setCountdownTime,
-    quickMessage,
-    setQuickMessage,
-    quickMessageFontSize,
-    setQuickMessageFontSize,
     goalLadder,
     setGoalLadder,
     googleSlidesUrl,
@@ -218,6 +217,10 @@ const WidgetGrid = ({ isKioskMode = false }) => {
             fontSize={bannerFontSize}
             onEdit={setRightNowText}
             onFontSizeChange={setBannerFontSize}
+            mode={bannerMode}
+            onModeChange={setBannerMode}
+            config={bannerConfig}
+            onConfigChange={setBannerConfig}
           />
         );
       case 'floorplan':
@@ -253,15 +256,6 @@ const WidgetGrid = ({ isKioskMode = false }) => {
               setCountdownEvent(evt);
               setCountdownTime(time);
             }}
-          />
-        );
-      case 'quickMessage':
-        return (
-          <QuickMessage
-            message={quickMessage}
-            onEdit={setQuickMessage}
-            fontSize={quickMessageFontSize}
-            onFontSizeChange={setQuickMessageFontSize}
           />
         );
       case 'goalLadder':

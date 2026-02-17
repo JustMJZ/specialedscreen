@@ -18,8 +18,7 @@ const defaultLayout = [
 
   // Additional widgets positioned below
   { i: 'countdown', x: 7, y: 20, w: 5, h: 2 },
-  { i: 'quickMessage', x: 7, y: 22, w: 5, h: 2 },
-  { i: 'clock', x: 7, y: 24, w: 5, h: 1 },
+{ i: 'clock', x: 7, y: 24, w: 5, h: 1 },
 ];
 
 export default defaultLayout;

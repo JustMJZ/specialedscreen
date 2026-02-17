@@ -91,9 +91,7 @@ export function createMockState(overrides = {}) {
     setCountdownEvent: jest.fn(),
     countdownTime: '12:00',
     setCountdownTime: jest.fn(),
-    quickMessage: 'Great job! ⭐',
-    setQuickMessage: jest.fn(),
-    studentGoals: {},
+studentGoals: {},
     setStudentGoals: jest.fn(),
 
     // Settings

@@ -56,13 +56,13 @@ const widgetRegistry = {
     defaultW: 5,
     defaultH: 2,
   },
-  quickMessage: {
-    label: 'Message',
-    icon: '📋',
-    minW: 2,
-    minH: 1,
-    defaultW: 5,
-    defaultH: 2,
+  textBox: {
+    label: 'Text Box',
+    icon: '📝',
+    minW: 3,
+    minH: 3,
+    defaultW: 6,
+    defaultH: 6,
   },
   goalLadder: {
     label: 'Goal Ladder',
@@ -103,14 +103,6 @@ const widgetRegistry = {
     minH: 3,
     defaultW: 5,
     defaultH: 5,
-  },
-  textBox: {
-    label: 'Text Box',
-    icon: '📝',
-    minW: 3,
-    minH: 3,
-    defaultW: 6,
-    defaultH: 6,
   },
 };
 

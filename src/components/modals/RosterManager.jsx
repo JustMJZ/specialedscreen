@@ -5,6 +5,25 @@ import EmojiPicker from './EmojiPicker';
 const RosterManager = ({ roster, onUpdateRoster, onClose }) => {
   const [editingRoster, setEditingRoster] = useState([...(roster || [])]);
   const [emojiPickerFor, setEmojiPickerFor] = useState(null);
+  const [showBulkAdd, setShowBulkAdd] = useState(false);
+  const [bulkText, setBulkText] = useState('');
+
+  const handleBulkAdd = () => {
+    const names = bulkText
+      .split('\n')
+      .map((n) => n.trim())
+      .filter((n) => n.length > 0);
+    if (names.length === 0) return;
+    const newStudents = names.map((name, i) => ({
+      id: `r-${Date.now()}-${i}`,
+      name,
+      photo: null,
+      emoji: null,
+    }));
+    setEditingRoster((prev) => [...prev, ...newStudents]);
+    setBulkText('');
+    setShowBulkAdd(false);
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -25,18 +44,60 @@ const RosterManager = ({ roster, onUpdateRoster, onClose }) => {
         <div className="p-3 overflow-y-auto">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-bold text-gray-700">All Students</div>
-            <button
-              onClick={() =>
-                setEditingRoster((prev) => [
-                  ...prev,
-                  { id: `r-${Date.now()}`, name: 'New Student', photo: null, emoji: null },
-                ])
-              }
-              className="text-xs px-2 py-1 rounded bg-purple-50 text-purple-600 hover:bg-purple-100"
-            >
-              + Add Student
-            </button>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setShowBulkAdd(!showBulkAdd)}
+                className={`text-xs px-2 py-1 rounded ${showBulkAdd ? 'bg-teal-100 text-teal-700' : 'bg-teal-50 text-teal-600 hover:bg-teal-100'}`}
+              >
+                + Add Multiple
+              </button>
+              <button
+                onClick={() =>
+                  setEditingRoster((prev) => [
+                    ...prev,
+                    { id: `r-${Date.now()}`, name: 'New Student', photo: null, emoji: null },
+                  ])
+                }
+                className="text-xs px-2 py-1 rounded bg-purple-50 text-purple-600 hover:bg-purple-100"
+              >
+                + Add Student
+              </button>
+            </div>
           </div>
+          {showBulkAdd && (
+            <div className="mb-3 p-3 bg-teal-50 rounded-lg border border-teal-200">
+              <div className="text-xs font-medium text-teal-700 mb-1">
+                Paste student names (one per line)
+              </div>
+              <textarea
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                placeholder={"John Smith\nJane Doe\nAlex Johnson"}
+                className="w-full px-2 py-1.5 border border-teal-300 rounded text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-400"
+                rows={5}
+                autoFocus
+              />
+              <div className="flex items-center justify-between mt-2">
+                <div className="text-[11px] text-teal-600">
+                  {bulkText.split('\n').filter((n) => n.trim()).length} student{bulkText.split('\n').filter((n) => n.trim()).length !== 1 ? 's' : ''} to add
+                </div>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => { setShowBulkAdd(false); setBulkText(''); }}
+                    className="text-xs px-2 py-1 rounded text-gray-600 hover:bg-gray-200"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleBulkAdd}
+                    className="text-xs px-2 py-1 rounded bg-teal-500 text-white hover:bg-teal-600"
+                  >
+                    Add All
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             {editingRoster.map((student) => (
               <div key={student.id} className="p-2 bg-gray-50 rounded-lg">

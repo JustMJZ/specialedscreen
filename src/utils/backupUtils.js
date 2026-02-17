@@ -5,6 +5,8 @@ import { validateBackup } from '../context/stateUtils';
  * Exports the current app state as a JSON backup file
  * @param {Function} onComplete - Optional callback to run after export
  */
+export const BACKUP_TIMESTAMP_KEY = 'specialedscreen-last-backup';
+
 export const exportBackup = (onComplete) => {
   const data = localStorage.getItem(STORAGE_KEY);
   if (!data) return;
@@ -16,6 +18,8 @@ export const exportBackup = (onComplete) => {
   a.download = `specialedscreen-backup-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
+
+  localStorage.setItem(BACKUP_TIMESTAMP_KEY, Date.now().toString());
 
   if (onComplete) onComplete();
 };

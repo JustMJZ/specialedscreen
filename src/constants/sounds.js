@@ -6,9 +6,21 @@ export const ROTATION_SOUNDS = [
   { id: 'jingleCalm', name: '🌈 Calm Jingle', type: 'synth' },
 ];
 
-export const playSynthSound = (soundId, volume = 0.7) => {
+let _sharedCtx = null;
+const getAudioContext = () => {
+  if (!_sharedCtx || _sharedCtx.state === 'closed') {
+    _sharedCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return _sharedCtx;
+};
+
+export const playSynthSound = async (soundId, volume = 0.7) => {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
+    // Chrome suspends AudioContext until user gesture; must await resume
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
     const now = ctx.currentTime;
     const vol = Math.max(0, Math.min(1, volume));
 
@@ -89,7 +101,6 @@ export const playSynthSound = (soundId, volume = 0.7) => {
       });
     }
 
-    setTimeout(() => ctx.close(), 5000); // Extended timeout for longer sounds
   } catch (e) {
     // Web Audio not supported - fail silently
   }

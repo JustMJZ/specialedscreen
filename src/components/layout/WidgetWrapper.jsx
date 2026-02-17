@@ -455,6 +455,9 @@ const WidgetWrapper = React.forwardRef(
               />
             </>
           )}
+          {isKioskMode && (
+            <div className="absolute inset-0 z-[9999] cursor-default" />
+          )}
           {children}
         </div>
       </div>

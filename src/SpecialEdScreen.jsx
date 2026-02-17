@@ -6,6 +6,7 @@ import WidgetGrid from './components/layout/WidgetGrid';
 import Modals from './components/modals';
 import RotationAnnouncement from './components/shared/RotationAnnouncement';
 import KeyboardShortcuts from './components/shared/KeyboardShortcuts';
+import BackupReminder from './components/shared/BackupReminder';
 import WelcomeModal from './components/modals/WelcomeModal';
 
 function ScreenLayout({ isKioskMode }) {
@@ -23,6 +24,7 @@ function ScreenLayout({ isKioskMode }) {
       {!isKioskMode && <Modals />}
       {!isKioskMode && <FloatingControls />}
       {!isKioskMode && <KeyboardShortcuts />}
+      {!isKioskMode && <BackupReminder />}
 
       <div className="flex-1 min-h-0 overflow-hidden">
         <WidgetGrid isKioskMode={isKioskMode} />

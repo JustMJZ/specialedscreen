@@ -430,6 +430,21 @@ const FloatingControls = () => {
         >
           {isLayoutEditMode ? '✓' : '📐'}
         </button>
+
+        {/* Divider */}
+        <div className="w-px h-4 bg-gray-300" />
+
+        {/* Student View (Kiosk) */}
+        <button
+          onClick={() => {
+            window.open(window.location.origin + '/specialedscreen/kiosk', '_blank');
+          }}
+          className={`${pillBtn} bg-indigo-50 hover:bg-indigo-100 text-indigo-700 flex items-center gap-1`}
+          title="Open student-facing kiosk view in a new tab"
+        >
+          <span>Student View</span>
+          <span className="bg-amber-400 text-amber-900 text-[8px] font-bold px-1 py-px rounded">BETA</span>
+        </button>
       </div>
 
       {/* Keyboard hint */}

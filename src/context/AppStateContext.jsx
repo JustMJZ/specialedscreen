@@ -135,6 +135,16 @@ export function AppStateProvider({ children }) {
     loadSaved('rightNowText', 'Working Quietly')
   );
   const [bannerFontSize, setBannerFontSize] = useState(() => loadSaved('bannerFontSize', 28));
+  const [bannerMode, setBannerMode] = useState(() => loadSaved('bannerMode', 'static'));
+  const [bannerConfig, setBannerConfig] = useState(() =>
+    loadSaved('bannerConfig', {
+      messages: ['Great job! ⭐', 'Stay focused! 🎯', 'You can do it! 💪'],
+      rotateInterval: 10,
+      subject: 'Math',
+      subjectColor: '#6366f1',
+      subjectIcon: '➕',
+    })
+  );
   const [firstThen, setFirstThen] = useState(() =>
     loadSaved('firstThen', {
       firstIcon: '📚',
@@ -143,16 +153,13 @@ export function AppStateProvider({ children }) {
       thenLabel: 'Free Time',
     })
   );
-  const [rotationSound, setRotationSound] = useState(() => loadSaved('rotationSound', 'chime'));
+  const [rotationSound, setRotationSound] = useState(() => {
+    const saved = loadSaved('rotationSound', 'marimba');
+    return saved === 'chime' ? 'marimba' : saved;
+  });
   const [voiceLevel, setVoiceLevel] = useState(() => loadSaved('voiceLevel', 1));
   const [countdownEvent, setCountdownEvent] = useState(() => loadSaved('countdownEvent', 'Lunch'));
   const [countdownTime, setCountdownTime] = useState(() => loadSaved('countdownTime', '12:00'));
-  const [quickMessage, setQuickMessage] = useState(() =>
-    loadSaved('quickMessage', 'Great job! ⭐')
-  );
-  const [quickMessageFontSize, setQuickMessageFontSize] = useState(() =>
-    loadSaved('quickMessageFontSize', 16)
-  );
   const [googleSlidesUrl, setGoogleSlidesUrl] = useState(() => loadSaved('googleSlidesUrl', ''));
   const [youtubeVideoUrl, setYoutubeVideoUrl] = useState(() => loadSaved('youtubeVideoUrl', ''));
   const [textBoxes, setTextBoxes] = useState(() => loadSaved('textBoxes', {}));
@@ -351,6 +358,8 @@ export function AppStateProvider({ children }) {
   const [editingTextBoxId, setEditingTextBoxId] = useState(null);
   const floorPlanRef = useRef(null);
   const rotationTimeoutsRef = useRef([]);
+  const triggerRotationRef = useRef(null);
+  const rotationInProgressRef = useRef(false);
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -529,13 +538,13 @@ export function AppStateProvider({ children }) {
         autoRepeat,
         rightNowText,
         bannerFontSize,
+        bannerMode,
+        bannerConfig,
         firstThen,
         rotationSound,
         voiceLevel,
         countdownEvent,
         countdownTime,
-        quickMessage,
-        quickMessageFontSize,
         googleSlidesUrl,
         youtubeVideoUrl,
         textBoxes,
@@ -570,13 +579,13 @@ export function AppStateProvider({ children }) {
     autoRepeat,
     rightNowText,
     bannerFontSize,
+    bannerMode,
+    bannerConfig,
     firstThen,
     rotationSound,
     voiceLevel,
     countdownEvent,
     countdownTime,
-    quickMessage,
-    quickMessageFontSize,
     googleSlidesUrl,
     youtubeVideoUrl,
     textBoxes,
@@ -596,28 +605,37 @@ export function AppStateProvider({ children }) {
     showClockDate,
   ]);
 
-  // Timer effect
+  // Timer effect — uses a local ref to track time so triggerRotation is called
+  // outside any state updater (state updaters must be pure; no side effects allowed).
+  const _timerTimeRef = useRef(timeRemaining);
+  _timerTimeRef.current = timeRemaining;
+
   useEffect(() => {
-    if (!isRunning || timeRemaining <= 0) return;
+    if (!isRunning) return;
     const timer = setInterval(() => {
-      setTimeRemaining((t) => {
-        if (t <= 1) {
-          if (autoRepeat) {
-            triggerRotation();
-            return totalTime;
-          }
+      const next = _timerTimeRef.current - 1;
+      if (next <= 0) {
+        if (autoRepeat) {
+          setTimeRemaining(totalTime);
+          triggerRotationRef.current?.();
+        } else {
+          setTimeRemaining(0);
           setIsRunning(false);
-          return 0;
         }
-        return t - 1;
-      });
+      } else {
+        setTimeRemaining(next);
+      }
     }, 1000);
     return () => clearInterval(timer);
   }, [isRunning, autoRepeat, totalTime]);
 
   const triggerRotation = () => {
-    if (isAnimating || isEditMode) return;
+    // rotationInProgressRef is set immediately (unlike isAnimating which takes 1.5s)
+    // This prevents double-fires from rapid clicks or timer/manual click overlap
+    if (rotationInProgressRef.current || isEditMode) return;
     if (!activeRotationOrder || activeRotationOrder.length === 0) return;
+
+    rotationInProgressRef.current = true;
 
     // Broadcast rotation trigger to kiosk mode (only from teacher mode)
     if (!isKioskMode && broadcastChannelRef.current) {
@@ -666,10 +684,14 @@ export function AppStateProvider({ children }) {
         );
         setAnimationTargets({});
         setIsAnimating(false);
+        rotationInProgressRef.current = false;
         rotationTimeoutsRef.current = [];
       }, 4500)
     );
   };
+
+  // Always keep ref in sync with latest triggerRotation (synchronous assignment, not useEffect)
+  triggerRotationRef.current = triggerRotation;
 
   const undoRotation = () => {
     if (isAnimating || isEditMode) return;
@@ -1093,6 +1115,10 @@ export function AppStateProvider({ children }) {
     setRightNowText,
     bannerFontSize,
     setBannerFontSize,
+    bannerMode,
+    setBannerMode,
+    bannerConfig,
+    setBannerConfig,
     firstThen,
     setFirstThen,
     rotationSound,
@@ -1103,10 +1129,6 @@ export function AppStateProvider({ children }) {
     setCountdownEvent,
     countdownTime,
     setCountdownTime,
-    quickMessage,
-    setQuickMessage,
-    quickMessageFontSize,
-    setQuickMessageFontSize,
     googleSlidesUrl,
     setGoogleSlidesUrl,
     youtubeVideoUrl,
@@ -1235,13 +1257,6 @@ export function AppStateProvider({ children }) {
   const isKioskMode = typeof window !== 'undefined' && window.location.pathname.includes('/kiosk');
   const broadcastChannelRef = useRef(null);
   const isReceivingRef = useRef(false); // Prevent broadcast loops
-  const triggerRotationRef = useRef(null); // Store rotation function for broadcast handler
-
-  // Store rotation function in ref so broadcast handler can access it
-  useEffect(() => {
-    triggerRotationRef.current = triggerRotation;
-  }, [triggerRotation]);
-
   // Set up BroadcastChannel for tab synchronization
   useEffect(() => {
     // Only use BroadcastChannel if supported
@@ -1280,8 +1295,7 @@ export function AppStateProvider({ children }) {
       if (payload.rightNowText !== undefined) setRightNowText(payload.rightNowText);
       if (payload.voiceLevel !== undefined) setVoiceLevel(payload.voiceLevel);
       if (payload.firstThen) setFirstThen(payload.firstThen);
-      if (payload.quickMessage !== undefined) setQuickMessage(payload.quickMessage);
-      if (payload.stationConfigs) {
+if (payload.stationConfigs) {
         setFloorPlansByLayout((prev) => {
           const set = prev[activeLayoutId];
           if (!set) return prev;
@@ -1324,7 +1338,6 @@ export function AppStateProvider({ children }) {
           rightNowText,
           voiceLevel,
           firstThen,
-          quickMessage,
           stationConfigs,
         },
       });
@@ -1343,7 +1356,6 @@ export function AppStateProvider({ children }) {
     rightNowText,
     voiceLevel,
     firstThen,
-    quickMessage,
     stationConfigs,
     isKioskMode,
   ]);
