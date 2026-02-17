@@ -5,7 +5,12 @@ const CLOCK_STYLES = ['digital', 'analog', 'minimal', 'flip'];
 
 const Clock = () => {
   const [time, setTime] = useState(new Date());
-  const { clockStyle = 'digital', setClockStyle, showClockDate = true, setShowClockDate } = useAppState() || {};
+  const {
+    clockStyle = 'digital',
+    setClockStyle,
+    showClockDate = true,
+    setShowClockDate,
+  } = useAppState() || {};
   const [showSettings, setShowSettings] = useState(false);
   const containerRef = useRef(null);
   const [size, setSize] = useState({ width: 200, height: 100 });
@@ -19,11 +24,11 @@ const Clock = () => {
   useEffect(() => {
     if (!containerRef.current) return;
     let rafId = null;
-    const observer = new ResizeObserver(entries => {
+    const observer = new ResizeObserver((entries) => {
       if (rafId) cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         const { width, height } = entries[0].contentRect;
-        setSize(prev => {
+        setSize((prev) => {
           // Only update if changed significantly (>1px) to avoid micro-updates
           if (Math.abs(prev.width - width) > 1 || Math.abs(prev.height - height) > 1) {
             return { width, height };
@@ -149,7 +154,10 @@ const Clock = () => {
           {/* Center dot */}
           <div
             className="absolute bg-slate-800 rounded-full left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10"
-            style={{ width: Math.max(8, analogSize * 0.08), height: Math.max(8, analogSize * 0.08) }}
+            style={{
+              width: Math.max(8, analogSize * 0.08),
+              height: Math.max(8, analogSize * 0.08),
+            }}
           />
         </div>
       </div>
@@ -165,9 +173,14 @@ const Clock = () => {
 
   const renderDigital = () => (
     <div className="flex flex-col items-center justify-center h-full w-full">
-      <div className="font-bold tracking-tight text-slate-800 tabular-nums" style={{ fontSize: timeSize }}>
+      <div
+        className="font-bold tracking-tight text-slate-800 tabular-nums"
+        style={{ fontSize: timeSize }}
+      >
         {hours12}:{minutes.toString().padStart(2, '0')}
-        <span className="text-slate-500 ml-1" style={{ fontSize: ampmSize }}>{ampm}</span>
+        <span className="text-slate-500 ml-1" style={{ fontSize: ampmSize }}>
+          {ampm}
+        </span>
       </div>
       {showDateInClock && (
         <div className="text-center" style={{ fontSize: dateSize }}>
@@ -181,12 +194,22 @@ const Clock = () => {
 
   const renderMinimal = () => (
     <div className="flex flex-col items-center justify-center h-full w-full">
-      <div className="font-extralight tracking-tight text-slate-700 tabular-nums" style={{ fontSize: timeSize * 1.2 }}>
+      <div
+        className="font-extralight tracking-tight text-slate-700 tabular-nums"
+        style={{ fontSize: timeSize * 1.2 }}
+      >
         {hours12}:{minutes.toString().padStart(2, '0')}
       </div>
-      <div className="font-light text-slate-400 uppercase tracking-widest" style={{ fontSize: ampmSize }}>{ampm}</div>
+      <div
+        className="font-light text-slate-400 uppercase tracking-widest"
+        style={{ fontSize: ampmSize }}
+      >
+        {ampm}
+      </div>
       {showDateInClock && (
-        <div className="text-slate-500 mt-1" style={{ fontSize: dateSize }}>{dayName}, {dateStr}</div>
+        <div className="text-slate-500 mt-1" style={{ fontSize: dateSize }}>
+          {dayName}, {dateStr}
+        </div>
       )}
     </div>
   );
@@ -201,17 +224,28 @@ const Clock = () => {
           className="bg-gradient-to-b from-slate-800 to-slate-900 rounded-lg shadow-lg flex items-center justify-center"
           style={{ width: flipCardSize, height: flipCardSize * 1.1, padding: flipCardSize * 0.1 }}
         >
-          <span className="font-bold text-white tabular-nums" style={{ fontSize: flipFontSize, fontFamily: 'monospace' }}>
+          <span
+            className="font-bold text-white tabular-nums"
+            style={{ fontSize: flipFontSize, fontFamily: 'monospace' }}
+          >
             {value.toString().padStart(2, '0')}
           </span>
         </div>
         {/* Flip line */}
         <div className="absolute left-0 right-0 top-1/2 h-px bg-black/30" />
         {/* Shine effect */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-lg pointer-events-none" style={{ height: '50%' }} />
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent rounded-lg pointer-events-none"
+          style={{ height: '50%' }}
+        />
       </div>
       {label && size.height > 100 && (
-        <span className="text-slate-500 mt-1 uppercase tracking-wider" style={{ fontSize: Math.max(8, flipCardSize * 0.2) }}>{label}</span>
+        <span
+          className="text-slate-500 mt-1 uppercase tracking-wider"
+          style={{ fontSize: Math.max(8, flipCardSize * 0.2) }}
+        >
+          {label}
+        </span>
       )}
     </div>
   );
@@ -220,26 +254,59 @@ const Clock = () => {
     <div className="flex flex-col items-center justify-center h-full w-full gap-2">
       <div className="flex items-center" style={{ gap: flipCardSize * 0.15 }}>
         <FlipCard value={hours12} label="hr" />
-        <span className="font-bold text-slate-600" style={{ fontSize: flipFontSize, marginBottom: size.height > 100 ? flipCardSize * 0.4 : 0 }}>:</span>
+        <span
+          className="font-bold text-slate-600"
+          style={{
+            fontSize: flipFontSize,
+            marginBottom: size.height > 100 ? flipCardSize * 0.4 : 0,
+          }}
+        >
+          :
+        </span>
         <FlipCard value={minutes} label="min" />
-        <span className="font-bold text-slate-600" style={{ fontSize: flipFontSize, marginBottom: size.height > 100 ? flipCardSize * 0.4 : 0 }}>:</span>
+        <span
+          className="font-bold text-slate-600"
+          style={{
+            fontSize: flipFontSize,
+            marginBottom: size.height > 100 ? flipCardSize * 0.4 : 0,
+          }}
+        >
+          :
+        </span>
         <FlipCard value={seconds} label="sec" />
-        <div className="flex flex-col justify-center" style={{ marginLeft: flipCardSize * 0.2, marginBottom: size.height > 100 ? flipCardSize * 0.4 : 0 }}>
-          <span className={`font-bold ${ampm === 'AM' ? 'text-amber-500' : 'text-indigo-500'}`} style={{ fontSize: flipFontSize * 0.4 }}>{ampm}</span>
+        <div
+          className="flex flex-col justify-center"
+          style={{
+            marginLeft: flipCardSize * 0.2,
+            marginBottom: size.height > 100 ? flipCardSize * 0.4 : 0,
+          }}
+        >
+          <span
+            className={`font-bold ${ampm === 'AM' ? 'text-amber-500' : 'text-indigo-500'}`}
+            style={{ fontSize: flipFontSize * 0.4 }}
+          >
+            {ampm}
+          </span>
         </div>
       </div>
       {showDateInClock && (
-        <div className="text-slate-600" style={{ fontSize: dateSize }}>{dayName}, {dateStr}</div>
+        <div className="text-slate-600" style={{ fontSize: dateSize }}>
+          {dayName}, {dateStr}
+        </div>
       )}
     </div>
   );
 
   const renderClock = () => {
     switch (clockStyle) {
-      case 'analog': return renderAnalog();
-      case 'minimal': return renderMinimal();
-      case 'flip': return renderFlip();
-      default: return renderDigital();
+      case 'analog':
+        return renderAnalog();
+      case 'minimal':
+        return renderMinimal();
+      case 'flip':
+        return renderFlip();
+      default:
+        return renderDigital();
     }
   };
 
@@ -254,7 +321,10 @@ const Clock = () => {
       {/* Settings button */}
       {setShowClockDate && (
         <button
-          onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowSettings(!showSettings);
+          }}
           className="absolute top-1 right-1 w-6 h-6 rounded-full bg-slate-200/60 hover:bg-slate-300 flex items-center justify-center text-slate-400 hover:text-slate-600 text-xs transition-colors"
           aria-label="Clock settings"
           title="Clock settings"

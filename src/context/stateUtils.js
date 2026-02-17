@@ -8,7 +8,7 @@ function createStudentId() {
 export function ensureUniqueStudents(list) {
   const seen = new Set();
   let changed = false;
-  const next = (list || []).map(s => {
+  const next = (list || []).map((s) => {
     let id = s.id;
     if (!id || seen.has(id)) {
       id = createStudentId();
@@ -23,17 +23,17 @@ export function ensureUniqueStudents(list) {
 export function normalizeStudentsByLayout(saved, fallbackLayoutId) {
   if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
     const next = {};
-    Object.keys(saved).forEach(id => {
+    Object.keys(saved).forEach((id) => {
       next[id] = ensureUniqueStudents(saved[id]).next;
     });
     return next;
   }
-  const legacy = Array.isArray(saved) ? saved : DEFAULT_STUDENTS;
+  const legacy = Array.isArray(saved) ? saved : [];
   return { [fallbackLayoutId]: ensureUniqueStudents(legacy).next };
 }
 
 export function createDefaultRoster() {
-  return DEFAULT_STUDENTS.map(s => ({
+  return DEFAULT_STUDENTS.map((s) => ({
     id: `r-${s.id}`,
     name: s.name,
     photo: s.photo || null,
@@ -48,8 +48,12 @@ export function getNextGroup(currentGroup, rotationOrder) {
 
 const REQUIRED_BACKUP_KEYS = ['layoutTabs', 'activeLayoutId'];
 const EXPECTED_BACKUP_KEYS = [
-  'layoutTabs', 'activeLayoutId', 'totalTime', 'studentsByLayout',
-  'floorPlansByLayout', 'rotationOrderByLayout',
+  'layoutTabs',
+  'activeLayoutId',
+  'totalTime',
+  'studentsByLayout',
+  'floorPlansByLayout',
+  'rotationOrderByLayout',
 ];
 
 export function validateBackup(data) {
@@ -64,9 +68,12 @@ export function validateBackup(data) {
   if (!Array.isArray(data.layoutTabs) || data.layoutTabs.length === 0) {
     return { valid: false, error: 'Backup contains no layout tabs.' };
   }
-  const presentCount = EXPECTED_BACKUP_KEYS.filter(k => k in data).length;
+  const presentCount = EXPECTED_BACKUP_KEYS.filter((k) => k in data).length;
   if (presentCount < 3) {
-    return { valid: false, error: 'File is missing too many expected fields to be a valid backup.' };
+    return {
+      valid: false,
+      error: 'File is missing too many expected fields to be a valid backup.',
+    };
   }
   return { valid: true, error: null };
 }
@@ -76,7 +83,7 @@ export function normalizeRotationOrder(order) {
   if (order.length === 0) return [];
 
   // Find missing defaults
-  const missing = DEFAULT_ROTATION_ORDER.filter(station => !order.includes(station));
+  const missing = DEFAULT_ROTATION_ORDER.filter((station) => !order.includes(station));
 
   // Append missing defaults to the end
   return [...order, ...missing];

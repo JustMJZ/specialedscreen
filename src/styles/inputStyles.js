@@ -4,13 +4,14 @@
  */
 
 // Base input styles
-const baseInput = "transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed border";
+const baseInput =
+  'transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed border';
 
 // Input sizes
 export const inputSizes = {
-  sm: "px-2 py-1 text-xs rounded-md",
-  md: "px-3 py-2 text-sm rounded-lg",
-  lg: "px-4 py-3 text-base rounded-lg",
+  sm: 'px-2 py-1 text-xs rounded-md',
+  md: 'px-3 py-2 text-sm rounded-lg',
+  lg: 'px-4 py-3 text-base rounded-lg',
 };
 
 // Input variants
@@ -42,8 +43,9 @@ export const selectVariants = {
 
 // Label styles
 export const labelStyles = {
-  default: "block text-sm font-medium text-gray-700 mb-1.5",
-  required: "block text-sm font-medium text-gray-700 mb-1.5 after:content-['*'] after:ml-0.5 after:text-red-500",
+  default: 'block text-sm font-medium text-gray-700 mb-1.5',
+  required:
+    "block text-sm font-medium text-gray-700 mb-1.5 after:content-['*'] after:ml-0.5 after:text-red-500",
 };
 
 // Helper functions

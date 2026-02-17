@@ -8,17 +8,18 @@ import React from 'react';
  * @param {string} className - Additional classes
  */
 const Skeleton = ({ variant = 'rect', width, height, className = '' }) => {
-  const baseClasses = 'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-[shimmer_1.5s_ease-in-out_infinite]';
+  const baseClasses =
+    'bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 bg-[length:200%_100%] animate-[shimmer_1.5s_ease-in-out_infinite]';
 
   const variants = {
     text: 'h-4 rounded',
     rect: 'h-20 rounded-lg',
-    circle: 'rounded-full aspect-square'
+    circle: 'rounded-full aspect-square',
   };
 
   const style = {
     width: width || (variant === 'circle' ? height : undefined),
-    height: height
+    height: height,
   };
 
   return (
@@ -44,12 +45,7 @@ const Skeleton = ({ variant = 'rect', width, height, className = '' }) => {
 export const SkeletonText = ({ lines = 3, ...props }) => (
   <div className="space-y-2">
     {Array.from({ length: lines }).map((_, i) => (
-      <Skeleton
-        key={i}
-        variant="text"
-        width={i === lines - 1 ? '80%' : '100%'}
-        {...props}
-      />
+      <Skeleton key={i} variant="text" width={i === lines - 1 ? '80%' : '100%'} {...props} />
     ))}
   </div>
 );

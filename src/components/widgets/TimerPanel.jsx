@@ -10,7 +10,10 @@ const VALID_TIMER_STYLES = ['ring', 'hourglass', 'space', 'ocean', 'arcade', 'cl
 const Confetti = ({ active, performanceMode }) => {
   const [particles, setParticles] = useState([]);
   useEffect(() => {
-    if (!active || performanceMode) { setParticles([]); return; }
+    if (!active || performanceMode) {
+      setParticles([]);
+      return;
+    }
     const colors = ['#FF8A7A', '#5BC0BE', '#FFD166', '#B39DDB', '#7BC47F', '#FF6B9D', '#45B7D1'];
     const p = Array.from({ length: 16 }, (_, i) => ({
       id: i,
@@ -30,14 +33,23 @@ const Confetti = ({ active, performanceMode }) => {
   if (particles.length === 0) return null;
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 30 }}>
-      {particles.map(p => (
-        <div key={p.id} style={{
-          position: 'absolute', left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
-          backgroundColor: p.color, borderRadius: p.shape === 'circle' ? '50%' : '2px',
-          transform: `rotate(${p.rot}deg)`,
-          animation: `confetti-burst 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
-          '--dx': `${p.dx}px`, '--dy': `${p.dy}px`,
-        }} />
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          style={{
+            position: 'absolute',
+            left: `${p.x}%`,
+            top: `${p.y}%`,
+            width: p.size,
+            height: p.size,
+            backgroundColor: p.color,
+            borderRadius: p.shape === 'circle' ? '50%' : '2px',
+            transform: `rotate(${p.rot}deg)`,
+            animation: `confetti-burst 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
+            '--dx': `${p.dx}px`,
+            '--dy': `${p.dy}px`,
+          }}
+        />
       ))}
       <style>{`
         @keyframes confetti-burst {
@@ -49,97 +61,568 @@ const Confetti = ({ active, performanceMode }) => {
   );
 };
 
-/* ── Ring display ── */
+/* ── Ring display (LEGENDARY Edition) ── */
 const RingDisplay = ({ progress, mins, secs, barColor, isRunning }) => {
-  const radius = 54;
+  const radius = 70;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
   const pulseClass = progress < 0.07 && isRunning ? 'animate-pulse' : '';
+
+  // Dynamic gradient colors based on progress
+  const getProgressGradient = () => {
+    if (progress < 0.07) return { start: '#FF6B6B', mid: '#FF8787', end: '#FFA3A3' }; // Critical red
+    if (progress < 0.15) return { start: '#FFB347', mid: '#FFC870', end: '#FFD999' }; // Warning orange
+    if (progress < 0.5) return { start: '#4ECDC4', mid: '#6DD5CD', end: '#8EDDD6' }; // Calm teal
+    return { start: '#95E1D3', mid: '#A8E6D9', end: '#BBEBDF' }; // Safe green
+  };
+  const gradColors = getProgressGradient();
+
   return (
-    <div className="flex items-center justify-center flex-1 min-h-0" style={{ color: COLORS.text }}>
-      <svg viewBox="0 0 160 160" className={pulseClass} style={{ width: '100%', height: '100%', maxWidth: 320, maxHeight: 320 }}>
-        <circle cx="80" cy="80" r={radius} fill="none" stroke="#E5E7EB" strokeWidth="10" />
-        <circle cx="80" cy="80" r={radius} fill="none" stroke={barColor} strokeWidth="10"
-          strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={offset}
-          transform="rotate(-90 80 80)" style={{ transition: 'stroke-dashoffset 1s linear, stroke 0.5s' }} />
-        <text x="80" y="80" textAnchor="middle" dominantBaseline="middle"
-          style={{ fontSize: 32, fontFamily: "'Fredoka One', cursive", fill: 'currentColor' }}>
+    <div className="flex items-center justify-center flex-1 min-h-0 p-4" style={{ color: COLORS.text }}>
+      <svg
+        viewBox="0 0 220 220"
+        className={pulseClass}
+        style={{ width: '100%', height: '100%' }}
+      >
+        <defs>
+          {/* Progress gradient */}
+          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor={gradColors.start} />
+            <stop offset="50%" stopColor={gradColors.mid} />
+            <stop offset="100%" stopColor={gradColors.end} />
+          </linearGradient>
+
+          {/* Glow gradient */}
+          <radialGradient id="glowGradient">
+            <stop offset="0%" stopColor={gradColors.start} stopOpacity="0.6" />
+            <stop offset="50%" stopColor={gradColors.mid} stopOpacity="0.3" />
+            <stop offset="100%" stopColor={gradColors.end} stopOpacity="0" />
+          </radialGradient>
+
+          {/* Shimmer gradient */}
+          <linearGradient id="shimmerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0)">
+              <animate attributeName="offset" values="-0.5;1.5" dur="3s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="0.5" stopColor="rgba(255,255,255,0.8)">
+              <animate attributeName="offset" values="-0.25;1.75" dur="3s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="1" stopColor="rgba(255,255,255,0)">
+              <animate attributeName="offset" values="0;2" dur="3s" repeatCount="indefinite" />
+            </stop>
+          </linearGradient>
+
+          {/* Shadow filter */}
+          <filter id="ringGlow">
+            <feGaussianBlur stdDeviation="4" result="blur" />
+            <feFlood floodColor={gradColors.start} floodOpacity="0.4" />
+            <feComposite in2="blur" operator="in" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+
+          {/* Inner shadow */}
+          <filter id="innerShadow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
+            <feOffset dx="0" dy="2" result="offsetblur" />
+            <feFlood floodColor="#000000" floodOpacity="0.15" />
+            <feComposite in2="offsetblur" operator="in" />
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
+        {/* Ambient glow when running */}
+        {isRunning && (
+          <circle cx="110" cy="110" r="90" fill="url(#glowGradient)" opacity="0.4">
+            <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite" />
+          </circle>
+        )}
+
+        {/* Outer ring shadow */}
+        <circle
+          cx="110"
+          cy="110"
+          r={radius + 3}
+          fill="none"
+          stroke="rgba(0,0,0,0.08)"
+          strokeWidth="16"
+        />
+
+        {/* Track background - multi-layer */}
+        <circle
+          cx="110"
+          cy="110"
+          r={radius}
+          fill="none"
+          stroke="#F3F4F6"
+          strokeWidth="14"
+        />
+        <circle
+          cx="110"
+          cy="110"
+          r={radius}
+          fill="none"
+          stroke="rgba(0,0,0,0.05)"
+          strokeWidth="14"
+          filter="url(#innerShadow)"
+        />
+
+        {/* Inner highlight on track */}
+        <circle
+          cx="110"
+          cy="110"
+          r={radius - 1}
+          fill="none"
+          stroke="rgba(255,255,255,0.6)"
+          strokeWidth="2"
+          strokeDasharray="4 8"
+          opacity="0.3"
+        />
+
+        {/* Progress ring - main */}
+        <circle
+          cx="110"
+          cy="110"
+          r={radius}
+          fill="none"
+          stroke="url(#progressGradient)"
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          transform="rotate(-90 110 110)"
+          style={{ transition: 'stroke-dashoffset 1s linear' }}
+          filter="url(#ringGlow)"
+        />
+
+        {/* Progress ring shimmer overlay */}
+        {isRunning && progress > 0.05 && (
+          <circle
+            cx="110"
+            cy="110"
+            r={radius}
+            fill="none"
+            stroke="url(#shimmerGradient)"
+            strokeWidth="14"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            transform="rotate(-90 110 110)"
+            opacity="0.6"
+          />
+        )}
+
+        {/* Outer glass highlight */}
+        <circle
+          cx="110"
+          cy="110"
+          r={radius + 1}
+          fill="none"
+          stroke="rgba(255,255,255,0.5)"
+          strokeWidth="1.5"
+        />
+
+        {/* Energy particles around ring when running */}
+        {isRunning && progress > 0.05 && [...Array(6)].map((_, i) => {
+          const angle = (i / 6) * 360;
+          const particleRadius = radius + 10;
+          const x = 110 + particleRadius * Math.cos((angle - 90) * Math.PI / 180);
+          const y = 110 + particleRadius * Math.sin((angle - 90) * Math.PI / 180);
+          return (
+            <circle
+              key={i}
+              cx={x}
+              cy={y}
+              r="3"
+              fill={gradColors.start}
+              opacity="0.7"
+            >
+              <animate
+                attributeName="opacity"
+                values="0.3;0.8;0.3"
+                dur="1.5s"
+                begin={`${i * 0.25}s`}
+                repeatCount="indefinite"
+              />
+              <animateTransform
+                attributeName="transform"
+                type="rotate"
+                from={`0 110 110`}
+                to={`360 110 110`}
+                dur="4s"
+                begin={`${i * 0.25}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          );
+        })}
+
+        {/* Center circle with gradient */}
+        <circle
+          cx="110"
+          cy="110"
+          r="55"
+          fill="url(#glowGradient)"
+          opacity="0.08"
+        />
+
+        {/* Time display with enhanced styling */}
+        <text
+          x="110"
+          y="105"
+          textAnchor="middle"
+          dominantBaseline="middle"
+          style={{
+            fontSize: 46,
+            fontFamily: "'Fredoka One', cursive",
+            fill: '#1F2937',
+            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
+            letterSpacing: '2px'
+          }}
+        >
           {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
         </text>
-        <text x="80" y="104" textAnchor="middle" style={{ fontSize: 10, fill: 'color-mix(in srgb, currentColor 55%, #9CA3AF 45%)' }}>
-          {isRunning ? 'running' : 'paused'}
-        </text>
+
+        {/* Status indicator */}
+        <g>
+          <circle
+            cx="110"
+            cy="135"
+            r="5"
+            fill={isRunning ? gradColors.start : '#9CA3AF'}
+          >
+            {isRunning && (
+              <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite" />
+            )}
+          </circle>
+          <text
+            x="110"
+            y="150"
+            textAnchor="middle"
+            style={{
+              fontSize: 11,
+              fill: '#6B7280',
+              fontWeight: 600,
+              letterSpacing: '0.5px',
+              textTransform: 'uppercase'
+            }}
+          >
+            {isRunning ? 'Active' : 'Paused'}
+          </text>
+        </g>
+
+        {/* Rotating accent ring when running */}
+        {isRunning && (
+          <circle
+            cx="110"
+            cy="110"
+            r={radius + 12}
+            fill="none"
+            stroke={gradColors.start}
+            strokeWidth="1"
+            strokeDasharray="8 12"
+            opacity="0.25"
+          >
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0 110 110"
+              to="360 110 110"
+              dur="8s"
+              repeatCount="indefinite"
+            />
+          </circle>
+        )}
       </svg>
     </div>
   );
 };
 
-/* ── Hourglass display ── */
+/* ── Hourglass display (Premium Edition) ── */
 const HourglassDisplay = ({ progress, mins, secs, barColor, isRunning }) => {
   const sandTop = Math.max(0, progress);
   const sandBottom = 1 - progress;
   const pulseClass = progress < 0.07 && isRunning ? 'animate-pulse' : '';
-  const sparkles = [
-    { top: '20%', left: '30%', delay: '0s' },
-    { top: '35%', left: '38%', delay: '0.6s' },
-    { top: '50%', left: '32%', delay: '1.1s' },
-  ];
   const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  // Generate falling sand particles
+  const particles = isRunning && progress > 0.01 ? Array.from({ length: 8 }, (_, i) => ({
+    id: i,
+    delay: i * 0.15,
+    offset: (Math.sin(i) * 3),
+  })) : [];
+
   return (
-    <div className={`flex items-center justify-center flex-1 min-h-0 w-full h-full ${pulseClass}`} style={{ color: COLORS.text }}>
-      <div className="relative hourglass-wrap" style={{ height: '100%', width: '100%' }}>
-        <div className="hourglass-glow" />
-        <div className="hourglass-shine" />
-        {sparkles.map((s, i) => (
-          <span
-            key={i}
-            className="hourglass-sparkle"
-            style={{ top: s.top, left: s.left, animationDelay: s.delay }}
+    <div
+      className={`flex items-center justify-center flex-1 min-h-0 w-full h-full ${pulseClass}`}
+      style={{ color: COLORS.text }}
+    >
+      <div className="relative flex items-center justify-center" style={{ height: '100%', width: '100%' }}>
+        <svg
+          viewBox="0 0 200 160"
+          preserveAspectRatio="xMidYMid meet"
+          style={{ maxHeight: '100%', maxWidth: '100%', width: 'auto', height: 'auto', filter: 'drop-shadow(0 6px 20px rgba(120,70,30,0.15))' }}
+        >
+          <defs>
+            {/* Brass/Bronze frame gradient */}
+            <linearGradient id="brassGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#F5DEB3" />
+              <stop offset="30%" stopColor="#DAA520" />
+              <stop offset="70%" stopColor="#B8860B" />
+              <stop offset="100%" stopColor="#8B6914" />
+            </linearGradient>
+
+            {/* Golden sand gradient */}
+            <linearGradient id="sandGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#FFF4D6" />
+              <stop offset="50%" stopColor="#FFE082" />
+              <stop offset="100%" stopColor="#FFAB00" />
+            </linearGradient>
+
+            {/* Glass tint */}
+            <linearGradient id="glassTint" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgba(200,230,255,0.08)" />
+              <stop offset="100%" stopColor="rgba(150,200,255,0.12)" />
+            </linearGradient>
+
+            {/* Glass shine */}
+            <linearGradient id="glassShine" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stopColor="rgba(255,255,255,0.5)" />
+              <stop offset="50%" stopColor="rgba(255,255,255,0.15)" />
+              <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+            </linearGradient>
+
+            {/* Shadow gradient */}
+            <radialGradient id="shadowGradient">
+              <stop offset="0%" stopColor="rgba(0,0,0,0.15)" />
+              <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+            </radialGradient>
+
+            {/* Sand shimmer */}
+            <linearGradient id="sandShimmer" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="rgba(255,255,255,0)">
+                <animate attributeName="offset" values="-0.5;1.5" dur="2.5s" repeatCount="indefinite" />
+              </stop>
+              <stop offset="0.5" stopColor="rgba(255,255,255,0.6)">
+                <animate attributeName="offset" values="-0.25;1.75" dur="2.5s" repeatCount="indefinite" />
+              </stop>
+              <stop offset="1" stopColor="rgba(255,255,255,0)">
+                <animate attributeName="offset" values="0;2" dur="2.5s" repeatCount="indefinite" />
+              </stop>
+            </linearGradient>
+          </defs>
+
+          {/* Base shadow */}
+          <ellipse cx="70" cy="150" rx="45" ry="6" fill="url(#shadowGradient)" opacity="0.4" />
+
+          {/* Bottom brass frame */}
+          <g>
+            <rect x="20" y="138" width="100" height="14" rx="7" fill="url(#brassGradient)" />
+            <rect x="20" y="138" width="100" height="4" rx="2" fill="rgba(255,255,255,0.25)" />
+            <path d="M25 145 Q70 143 115 145" stroke="rgba(0,0,0,0.2)" strokeWidth="1" fill="none" />
+            {/* Ornamental details */}
+            <circle cx="35" cy="145" r="2.5" fill="#8B6914" opacity="0.6" />
+            <circle cx="105" cy="145" r="2.5" fill="#8B6914" opacity="0.6" />
+          </g>
+
+          {/* Bottom bulb glass */}
+          <path
+            d="M30 138 L30 100 Q30 75 70 75 Q110 75 110 100 L110 138"
+            fill="url(#glassTint)"
+            stroke="rgba(150,200,230,0.4)"
+            strokeWidth="2.5"
           />
-        ))}
-        <svg viewBox="0 0 180 140" preserveAspectRatio="xMidYMid meet" style={{ height: '100%', width: '100%' }}>
-        {/* Frame */}
-        <rect x="14" y="4" width="72" height="8" rx="4" fill="#8B7355" />
-        <rect x="14" y="128" width="72" height="8" rx="4" fill="#8B7355" />
-        {/* Glass outline */}
-        <path d="M24 14 L24 50 Q24 70 50 70 Q76 70 76 50 L76 14" fill="none" stroke="#C4A882" strokeWidth="3.5" />
-        <path d="M24 128 L24 92 Q24 70 50 70 Q76 70 76 92 L76 128" fill="none" stroke="#C4A882" strokeWidth="3.5" />
-        {/* Top sand */}
-        <clipPath id="topClip">
-          <path d="M25 15 L25 49 Q25 69 50 69 Q75 69 75 49 L75 15 Z" />
-        </clipPath>
-        <rect clipPath="url(#topClip)" x="25" y={15 + (1 - sandTop) * 56} width="50" height={sandTop * 56}
-          fill={`url(#sandGradient)`} style={{ transition: 'all 1s linear' }} />
-        {/* Bottom sand */}
-        <clipPath id="botClip">
-          <path d="M25 127 L25 93 Q25 71 50 71 Q75 71 75 93 L75 127 Z" />
-        </clipPath>
-        <rect clipPath="url(#botClip)" x="25" y={127 - sandBottom * 56} width="50" height={sandBottom * 56}
-          fill={`url(#sandGradient)`} style={{ transition: 'all 1s linear' }} />
-        {/* Falling stream */}
-        {isRunning && progress > 0.01 && (
-          <line x1="50" y1="70" x2="50" y2={127 - sandBottom * 56} stroke={barColor} strokeWidth="3" opacity="0.7">
-            <animate attributeName="opacity" values="0.7;0.35;0.7" dur="0.7s" repeatCount="indefinite" />
-          </line>
-        )}
-        {/* Time text */}
-        <text x="130" y="78" textAnchor="middle" dominantBaseline="middle"
-          style={{ fontSize: 32, fontFamily: "'Fredoka One', cursive", fill: 'currentColor' }}>
-          {timeStr}
-        </text>
-        <defs>
-          <linearGradient id="sandGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#FFD166" />
-            <stop offset="50%" stopColor="#FBBF24" />
-            <stop offset="100%" stopColor="#F59E0B" />
-          </linearGradient>
-        </defs>
-      </svg>
+
+          {/* Bottom sand */}
+          <clipPath id="botClip">
+            <path d="M31 137 L31 101 Q31 76 70 76 Q109 76 109 101 L109 137 Z" />
+          </clipPath>
+          <g clipPath="url(#botClip)">
+            <rect
+              x="31"
+              y={137 - sandBottom * 62}
+              width="78"
+              height={sandBottom * 62}
+              fill="url(#sandGradient)"
+              style={{ transition: 'all 1s linear' }}
+            />
+            {/* Sand shimmer effect */}
+            <rect
+              x="31"
+              y={137 - sandBottom * 62}
+              width="78"
+              height={Math.max(4, sandBottom * 62)}
+              fill="url(#sandShimmer)"
+              opacity="0.8"
+            />
+            {/* Sand texture granules */}
+            {[...Array(12)].map((_, i) => (
+              <circle
+                key={`bot-${i}`}
+                cx={40 + (i % 4) * 15}
+                cy={137 - sandBottom * 62 + 3 + Math.floor(i / 4) * 4}
+                r="1.5"
+                fill="#FFAB00"
+                opacity="0.3"
+              />
+            ))}
+          </g>
+
+          {/* Narrow neck */}
+          <path
+            d="M64 75 Q67 76 70 76 Q73 76 76 75"
+            fill="rgba(180,200,220,0.15)"
+            stroke="rgba(150,200,230,0.5)"
+            strokeWidth="1.5"
+          />
+
+          {/* Falling sand particles */}
+          {particles.map((p) => (
+            <g key={p.id}>
+              <circle
+                cx={70 + p.offset}
+                cy={76}
+                r="1.2"
+                fill="#FFAB00"
+                opacity="0.7"
+              >
+                <animate
+                  attributeName="cy"
+                  values={`76;${137 - sandBottom * 62}`}
+                  dur="1.2s"
+                  begin={`${p.delay}s`}
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  values="0.7;0.9;0"
+                  dur="1.2s"
+                  begin={`${p.delay}s`}
+                  repeatCount="indefinite"
+                />
+              </circle>
+            </g>
+          ))}
+
+          {/* Falling sand stream (subtle glow) */}
+          {isRunning && progress > 0.01 && (
+            <line
+              x1="70"
+              y1="76"
+              x2="70"
+              y2={137 - sandBottom * 62}
+              stroke="rgba(255,235,170,0.4)"
+              strokeWidth="1.5"
+            >
+              <animate
+                attributeName="opacity"
+                values="0.4;0.2;0.4"
+                dur="0.6s"
+                repeatCount="indefinite"
+              />
+            </line>
+          )}
+
+          {/* Top bulb glass */}
+          <path
+            d="M30 22 L30 60 Q30 75 70 75 Q110 75 110 60 L110 22"
+            fill="url(#glassTint)"
+            stroke="rgba(150,200,230,0.4)"
+            strokeWidth="2.5"
+          />
+
+          {/* Top sand */}
+          <clipPath id="topClip">
+            <path d="M31 23 L31 59 Q31 74 70 74 Q109 74 109 59 L109 23 Z" />
+          </clipPath>
+          <g clipPath="url(#topClip)">
+            <rect
+              x="31"
+              y={23 + (1 - sandTop) * 52}
+              width="78"
+              height={sandTop * 52}
+              fill="url(#sandGradient)"
+              style={{ transition: 'all 1s linear' }}
+            />
+            {/* Top sand shimmer */}
+            <rect
+              x="31"
+              y={23 + (1 - sandTop) * 52}
+              width="78"
+              height={Math.max(4, sandTop * 52)}
+              fill="url(#sandShimmer)"
+              opacity="0.8"
+            />
+            {/* Top sand texture */}
+            {sandTop > 0.05 && [...Array(10)].map((_, i) => (
+              <circle
+                key={`top-${i}`}
+                cx={38 + (i % 4) * 13}
+                cy={23 + (1 - sandTop) * 52 + 2 + Math.floor(i / 4) * 3}
+                r="1.2"
+                fill="#FFAB00"
+                opacity="0.25"
+              />
+            ))}
+          </g>
+
+          {/* Glass highlights (left side) */}
+          <path
+            d="M34 28 L34 54 Q34 70 64 72"
+            fill="none"
+            stroke="url(#glassShine)"
+            strokeWidth="8"
+            opacity="0.4"
+          />
+          <path
+            d="M34 132 L34 106 Q34 88 64 85"
+            fill="none"
+            stroke="url(#glassShine)"
+            strokeWidth="8"
+            opacity="0.4"
+          />
+
+          {/* Specular highlights */}
+          <ellipse cx="45" cy="35" rx="8" ry="12" fill="rgba(255,255,255,0.35)" />
+          <ellipse cx="42" cy="120" rx="6" ry="10" fill="rgba(255,255,255,0.3)" />
+
+          {/* Top brass frame */}
+          <g>
+            <rect x="20" y="8" width="100" height="14" rx="7" fill="url(#brassGradient)" />
+            <rect x="20" y="8" width="100" height="4" rx="2" fill="rgba(255,255,255,0.3)" />
+            <path d="M25 15 Q70 17 115 15" stroke="rgba(0,0,0,0.15)" strokeWidth="1" fill="none" />
+            {/* Ornamental details */}
+            <circle cx="35" cy="15" r="2.5" fill="#8B6914" opacity="0.6" />
+            <circle cx="105" cy="15" r="2.5" fill="#8B6914" opacity="0.6" />
+            <path d="M60 12 L65 10 L70 12 L75 10 L80 12" stroke="#8B6914" strokeWidth="0.8" fill="none" opacity="0.5" />
+          </g>
+
+          {/* Time display */}
+          <text
+            x="155"
+            y="80"
+            textAnchor="middle"
+            dominantBaseline="middle"
+            style={{
+              fontSize: 38,
+              fontFamily: "'Fredoka One', cursive",
+              fill: '#5D4E37',
+              filter: 'drop-shadow(0 2px 4px rgba(93,78,55,0.2))',
+              letterSpacing: '1px'
+            }}
+          >
+            {timeStr}
+          </text>
+        </svg>
       </div>
     </div>
   );
 };
-
 
 /* ── Space display ── */
 const SpaceDisplay = ({ progress, mins, secs, isRunning, timePop, onTimeClick }) => {
@@ -170,10 +653,7 @@ const SpaceDisplay = ({ progress, mins, secs, isRunning, timePop, onTimeClick })
         ))}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="orbit-ring orbit-ring-lg" />
-          <div
-            className="absolute rocket-orbit"
-            style={{ transform: `rotate(${angle}deg)` }}
-          >
+          <div className="absolute rocket-orbit" style={{ transform: `rotate(${angle}deg)` }}>
             <div className={`rocket-mini ${isRunning ? 'rocket-mini-wiggle' : ''}`}>
               🚀
               <span className={`rocket-mini-flame ${isRunning ? 'rocket-flame-on' : ''}`}>✨</span>
@@ -247,12 +727,8 @@ const OceanDisplay = ({ progress, mins, secs, barColor, isRunning, timePop, onTi
             {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
           </button>
         </div>
-        <div className={`ocean-dolphin ${isRunning ? 'ocean-dolphin-jump' : ''}`}>
-          🐬
-        </div>
-        <div className={`ocean-splash ${isRunning ? 'ocean-splash-pop' : ''}`}>
-          💦
-        </div>
+        <div className={`ocean-dolphin ${isRunning ? 'ocean-dolphin-jump' : ''}`}>🐬</div>
+        <div className={`ocean-splash ${isRunning ? 'ocean-splash-pop' : ''}`}>💦</div>
       </div>
     </div>
   );
@@ -267,7 +743,10 @@ const ArcadeDisplay = ({ progress, mins, secs, isRunning, timePop, onTimeClick }
         <div className="arcade-grid" />
         <div className="arcade-glow" />
         <div className="arcade-beam" />
-        <div className={`arcade-comet ${isRunning ? 'arcade-comet-fly' : ''}`} style={{ left: `calc(${clamped * 100}% - 12px)` }}>
+        <div
+          className={`arcade-comet ${isRunning ? 'arcade-comet-fly' : ''}`}
+          style={{ left: `calc(${clamped * 100}% - 12px)` }}
+        >
           ⭐
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
@@ -284,12 +763,18 @@ const ArcadeDisplay = ({ progress, mins, secs, isRunning, timePop, onTimeClick }
   );
 };
 
-
 /* ── Classic display (original) ── */
 const ClassicDisplay = ({ progress, mins, secs, barColor, isRunning, blendMode }) => (
   <div className="flex flex-col justify-center flex-1 min-h-0 gap-2" style={{ color: COLORS.text }}>
     <div className="flex items-center justify-between">
-      <span style={{ fontSize: 'clamp(48px, 9vw, 80px)', color: 'currentColor', lineHeight: 1, fontFamily: "'Fredoka One', cursive" }}>
+      <span
+        style={{
+          fontSize: 'clamp(48px, 9vw, 80px)',
+          color: 'currentColor',
+          lineHeight: 1,
+          fontFamily: "'Fredoka One', cursive",
+        }}
+      >
         {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
       </span>
       <span
@@ -307,22 +792,36 @@ const ClassicDisplay = ({ progress, mins, secs, barColor, isRunning, blendMode }
       className="h-4 rounded-full overflow-hidden"
       style={{ backgroundColor: blendMode ? 'rgba(0,0,0,0.06)' : '#E5E7EB' }}
     >
-      <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${progress * 100}%`, backgroundColor: barColor }} />
+      <div
+        className="h-full rounded-full transition-all duration-1000"
+        style={{ width: `${progress * 100}%`, backgroundColor: barColor }}
+      />
     </div>
   </div>
 );
 
 /* ── Main TimerPanel ── */
-const TimerPanel = () => {
+const TimerPanel = ({ isKioskMode = false }) => {
   const {
-    timeRemaining, totalTime, isRunning, setIsRunning,
-    setTimeRemaining, setTotalTime,
-    autoRepeat, setAutoRepeat,
-    triggerRotation, isAnimating, isEditMode,
-    rotationSound, setRotationSound,
-    customSounds, setCustomSounds,
-    timerStyle, setTimerStyle,
-    soundVolume, setSoundVolume,
+    timeRemaining,
+    totalTime,
+    isRunning,
+    setIsRunning,
+    setTimeRemaining,
+    setTotalTime,
+    autoRepeat,
+    setAutoRepeat,
+    triggerRotation,
+    isAnimating,
+    isEditMode,
+    rotationSound,
+    setRotationSound,
+    customSounds,
+    setCustomSounds,
+    timerStyle,
+    setTimerStyle,
+    soundVolume,
+    setSoundVolume,
     performanceMode,
   } = useAppState();
 
@@ -352,14 +851,24 @@ const TimerPanel = () => {
     setTimeout(() => setTimePop(false), 280);
   };
 
-  const displayProps = { progress, mins, secs, barColor, isRunning, timePop, onTimeClick: triggerTimePop };
+  const displayProps = {
+    progress,
+    mins,
+    secs,
+    barColor,
+    isRunning,
+    timePop,
+    onTimeClick: triggerTimePop,
+  };
   const effectiveStyle = VALID_TIMER_STYLES.includes(timerStyle) ? timerStyle : 'ring';
   const isSpace = effectiveStyle === 'space';
   const isOcean = effectiveStyle === 'ocean';
   const isArcade = effectiveStyle === 'arcade';
   const isImmersive = isSpace || isOcean || isArcade;
   const isHourglass = effectiveStyle === 'hourglass';
-  const blendMode = !isImmersive && (effectiveStyle === 'ring' || effectiveStyle === 'hourglass' || effectiveStyle === 'classic');
+  const blendMode =
+    !isImmersive &&
+    (effectiveStyle === 'ring' || effectiveStyle === 'hourglass' || effectiveStyle === 'classic');
 
   useEffect(() => {
     if (!VALID_TIMER_STYLES.includes(timerStyle)) {
@@ -369,21 +878,41 @@ const TimerPanel = () => {
 
   const controls = (
     <div className="flex flex-wrap gap-1 justify-center timer-controls">
-      <button onClick={() => setIsRunning(!isRunning)} className="timer-btn timer-btn-primary"
-        style={{ backgroundColor: isRunning ? '#FF8A7A' : '#5BC0BE', opacity: disabled ? 0.5 : 1 }} disabled={disabled}>
+      <button
+        onClick={() => setIsRunning(!isRunning)}
+        className="timer-btn timer-btn-primary"
+        style={{ backgroundColor: isRunning ? '#FF8A7A' : '#5BC0BE', opacity: disabled ? 0.5 : 1 }}
+        disabled={disabled}
+      >
         {isRunning ? '⏸ Pause' : '▶ Start'}
       </button>
-      <button onClick={() => setTimeRemaining(totalTime)} className="timer-btn timer-btn-ghost"
-        style={{ opacity: disabled ? 0.5 : 1 }} disabled={disabled}>↺</button>
-      <button onClick={triggerRotation} className="timer-btn timer-btn-ghost"
-        style={{ backgroundColor: isAnimating ? '#FEF3C7' : '#E5E7EB', color: isAnimating ? '#D97706' : '#374151', opacity: isEditMode ? 0.5 : 1 }} disabled={disabled}>
+      <button
+        onClick={() => setTimeRemaining(totalTime)}
+        className="timer-btn timer-btn-ghost"
+        style={{ opacity: disabled ? 0.5 : 1 }}
+        disabled={disabled}
+      >
+        ↺
+      </button>
+      <button
+        onClick={triggerRotation}
+        className="timer-btn timer-btn-ghost"
+        style={{
+          backgroundColor: isAnimating ? '#FEF3C7' : '#E5E7EB',
+          color: isAnimating ? '#D97706' : '#374151',
+          opacity: isEditMode ? 0.5 : 1,
+        }}
+        disabled={disabled}
+      >
         ⏭ Next
       </button>
     </div>
   );
 
   return (
-    <div className={`rounded-lg p-0 shadow-md flex flex-col gap-1 h-full relative timer-immersive ${blendMode ? 'timer-blend' : ''}`}>
+    <div
+      className={`rounded-lg p-0 shadow-md flex flex-col gap-1 h-full relative timer-immersive ${blendMode ? 'timer-blend' : ''}`}
+    >
       <style>{`
         @keyframes timer-breathe {
           0% { transform: scale(1); }
@@ -534,8 +1063,8 @@ const TimerPanel = () => {
           box-shadow: inset 0 0 20px rgba(0,0,0,0.08);
         }
         .timer-shell.theme-hourglass {
-          border-color: rgba(251,191,36,0.55);
-          box-shadow: 0 0 18px rgba(251,191,36,0.35), inset 0 0 18px rgba(245,158,11,0.2);
+          border-color: transparent;
+          box-shadow: none;
         }
         .timer-shell.theme-emoji {
           border-color: rgba(250,204,21,0.55);
@@ -922,54 +1451,58 @@ const TimerPanel = () => {
       {!isImmersive && (
         <div className="flex items-center justify-between px-2 pt-1">
           <div className="text-[11px] font-bold text-gray-400">⏱ TIMER</div>
-          <button
-            onClick={() => setShowSettings(true)}
-            className={`px-2 py-0.5 rounded text-[10px] ${
-              blendMode
-                ? 'bg-black/5 text-gray-600 hover:bg-black/10'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-            }`}
-          >
-            ⚙ Options
-          </button>
+          {!isKioskMode && (
+            <button
+              onClick={() => setShowSettings(true)}
+              className={`px-2 py-0.5 rounded text-[10px] ${
+                blendMode
+                  ? 'bg-black/5 text-gray-600 hover:bg-black/10'
+                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+              }`}
+            >
+              ⚙ Options
+            </button>
+          )}
         </div>
       )}
       {isImmersive ? (
         <div className={`space-shell ${isRunning ? 'timer-running' : ''}`}>
-          <div className={`space-chip space-chip-left ${isOcean ? 'ocean-chip' : isArcade ? 'arcade-chip' : ''}`}>
+          <div
+            className={`space-chip space-chip-left ${isOcean ? 'ocean-chip' : isArcade ? 'arcade-chip' : ''}`}
+          >
             {isOcean ? '🌊 Ocean' : isArcade ? '🕹️ Arcade' : '🪐 Space'}
           </div>
-          <button
-            onClick={() => setShowSettings(true)}
-            className={`space-chip space-chip-right ${isOcean ? 'ocean-chip' : isArcade ? 'arcade-chip' : ''}`}
-          >
-            ⚙ Options
-          </button>
+          {!isKioskMode && (
+            <button
+              onClick={() => setShowSettings(true)}
+              className={`space-chip space-chip-right ${isOcean ? 'ocean-chip' : isArcade ? 'arcade-chip' : ''}`}
+            >
+              ⚙ Options
+            </button>
+          )}
           <div className="space-shell-body">
             {isSpace && <SpaceDisplay {...displayProps} />}
             {isOcean && <OceanDisplay {...displayProps} />}
             {isArcade && <ArcadeDisplay {...displayProps} />}
           </div>
-          <div className="space-controls">
-            {controls}
-          </div>
+          {!isKioskMode && <div className="space-controls">{controls}</div>}
         </div>
       ) : (
-        <div className={`timer-shell timer-accent theme-${effectiveStyle} ${isRunning ? 'timer-running' : ''}`}>
+        <div
+          className={`timer-shell timer-accent theme-${effectiveStyle} ${isRunning ? 'timer-running' : ''}`}
+        >
           <div className="timer-display">
             {effectiveStyle === 'ring' && <RingDisplay {...displayProps} />}
             {effectiveStyle === 'hourglass' && <HourglassDisplay {...displayProps} />}
             {effectiveStyle === 'ocean' && <OceanDisplay {...displayProps} />}
             {effectiveStyle === 'arcade' && <ArcadeDisplay {...displayProps} />}
-            {effectiveStyle === 'classic' && <ClassicDisplay {...displayProps} blendMode={blendMode} />}
+            {effectiveStyle === 'classic' && (
+              <ClassicDisplay {...displayProps} blendMode={blendMode} />
+            )}
           </div>
         </div>
       )}
-      {!isImmersive && (
-        <div className="pb-1">
-          {controls}
-        </div>
-      )}
+      {!isImmersive && !isKioskMode && <div className="pb-1">{controls}</div>}
 
       {/* Settings Modal */}
       <TimerSettingsModal

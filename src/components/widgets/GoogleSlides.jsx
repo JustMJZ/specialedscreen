@@ -17,13 +17,19 @@ const normalizeSlidesUrl = (input) => {
   // Published link: /d/e/{id}/pub
   if (value.includes('/pub')) {
     const embedUrl = value.replace('/pub', '/embed');
-    return { url: embedUrl.includes('?') ? embedUrl : `${embedUrl}?${DEFAULT_SLIDES_PARAMS}`, error: '' };
+    return {
+      url: embedUrl.includes('?') ? embedUrl : `${embedUrl}?${DEFAULT_SLIDES_PARAMS}`,
+      error: '',
+    };
   }
 
   // Share link: /d/{id}/edit
   const match = value.match(/\/presentation\/d\/([^/]+)\//i);
   if (match && match[1]) {
-    return { url: `https://docs.google.com/presentation/d/${match[1]}/embed?${DEFAULT_SLIDES_PARAMS}`, error: '' };
+    return {
+      url: `https://docs.google.com/presentation/d/${match[1]}/embed?${DEFAULT_SLIDES_PARAMS}`,
+      error: '',
+    };
   }
 
   return { url: '', error: 'Use a Share or Published Google Slides link.' };
@@ -55,7 +61,10 @@ const GoogleSlides = ({ url, onChange }) => {
         <div className="text-xs font-bold text-gray-500">🖥️ GOOGLE SLIDES</div>
         <input
           value={value}
-          onChange={(e) => { setValue(e.target.value); setError(''); }}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError('');
+          }}
           className="w-full px-2 py-1 rounded text-sm border text-gray-800"
           placeholder="Paste a Google Slides share or publish link"
           autoFocus
@@ -65,10 +74,21 @@ const GoogleSlides = ({ url, onChange }) => {
           Tip: For the best embed, use File → Share → Publish to web.
         </div>
         <div className="flex items-center gap-2 justify-end mt-auto">
-          <button onClick={() => { setEditing(false); setError(''); }}
-            className="px-2 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300">Cancel</button>
-          <button onClick={handleSave}
-            className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-800">Save</button>
+          <button
+            onClick={() => {
+              setEditing(false);
+              setError('');
+            }}
+            className="px-2 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-800"
+          >
+            Save
+          </button>
         </div>
       </div>
     );
@@ -79,7 +99,10 @@ const GoogleSlides = ({ url, onChange }) => {
       {!url ? (
         <div className="h-full w-full flex flex-col items-center justify-center gap-2 text-gray-500">
           <div className="text-sm font-semibold">Google Slides</div>
-          <button onClick={() => setEditing(true)} className="px-3 py-1 bg-gray-100 rounded text-xs hover:bg-gray-200">
+          <button
+            onClick={() => setEditing(true)}
+            className="px-3 py-1 bg-gray-100 rounded text-xs hover:bg-gray-200"
+          >
             Add Slides Link
           </button>
         </div>

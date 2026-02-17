@@ -1,11 +1,22 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
 import {
-  DEFAULT_STUDENTS, DEFAULT_TEACHER_NAMES, DEFAULT_STATION_CONFIG,
-  DEFAULT_ROTATION_ORDER, DEFAULT_STATION_COLORS, STATION_COLOR_OPTIONS
+  DEFAULT_STUDENTS,
+  DEFAULT_TEACHER_NAMES,
+  DEFAULT_STATION_CONFIG,
+  DEFAULT_ROTATION_ORDER,
+  DEFAULT_STATION_COLORS,
+  STATION_COLOR_OPTIONS,
 } from '../constants';
 import { playSound } from '../constants/sounds';
 import { STORAGE_KEY, loadSaved } from '../hooks/usePersistedState';
-import { ensureUniqueStudents, normalizeStudentsByLayout, createDefaultRoster, getNextGroup, normalizeRotationOrder } from './stateUtils';
+import {
+  ensureUniqueStudents,
+  normalizeStudentsByLayout,
+  createDefaultRoster,
+  getNextGroup,
+  normalizeRotationOrder,
+} from './stateUtils';
+import { TEMPLATES, applyTemplate } from '../config/templates';
 
 // Legacy migration: Old versions stored layout under a different key.
 // This function migrates users from the old format to the new unified storage.
@@ -46,10 +57,10 @@ function cleanupDeprecatedData() {
 
     // Remove morningCheckin widgets from all layouts
     if (Array.isArray(data.layoutTabs)) {
-      data.layoutTabs.forEach(tab => {
+      data.layoutTabs.forEach((tab) => {
         if (Array.isArray(tab.layout)) {
           const beforeLength = tab.layout.length;
-          tab.layout = tab.layout.filter(widget => widget.i !== 'morningCheckin');
+          tab.layout = tab.layout.filter((widget) => widget.i !== 'morningCheckin');
           if (tab.layout.length !== beforeLength) {
             modified = true;
           }
@@ -60,7 +71,9 @@ function cleanupDeprecatedData() {
     // Only save if we made changes
     if (modified) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      console.log('Migration: Removed deprecated Morning Check-In data and widgets');
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Migration: Removed deprecated Morning Check-In data and widgets');
+      }
     }
   } catch (e) {
     console.warn('Could not clean up deprecated data:', e);
@@ -95,7 +108,6 @@ function createDefaultGoalLadder() {
   };
 }
 
-
 const AppStateContext = createContext(null);
 
 export function useAppState() {
@@ -105,11 +117,13 @@ export function useAppState() {
 }
 
 export function AppStateProvider({ children }) {
-  const [globalRoster, setGlobalRoster] = useState(() => loadSaved('globalRoster', createDefaultRoster()));
+  const [globalRoster, setGlobalRoster] = useState(() =>
+    loadSaved('globalRoster', [])
+  );
   const [studentsByLayout, setStudentsByLayout] = useState(() => {
     const saved = loadSaved('studentsByLayout', null);
     if (saved) return normalizeStudentsByLayout(saved, getSavedMainLayoutId());
-    const legacy = loadSaved('students', DEFAULT_STUDENTS);
+    const legacy = loadSaved('students', []);
     return normalizeStudentsByLayout(legacy, getSavedMainLayoutId());
   });
   const [totalTime, setTotalTime] = useState(() => loadSaved('totalTime', 900));
@@ -117,26 +131,42 @@ export function AppStateProvider({ children }) {
   const [isRunning, setIsRunning] = useState(false);
   const [autoRepeat, setAutoRepeat] = useState(() => loadSaved('autoRepeat', true));
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [rightNowText, setRightNowText] = useState(() => loadSaved('rightNowText', 'Working Quietly'));
+  const [rightNowText, setRightNowText] = useState(() =>
+    loadSaved('rightNowText', 'Working Quietly')
+  );
   const [bannerFontSize, setBannerFontSize] = useState(() => loadSaved('bannerFontSize', 28));
-  const [firstThen, setFirstThen] = useState(() => loadSaved('firstThen', { firstIcon: '📚', firstLabel: 'Reading', thenIcon: '🎮', thenLabel: 'Free Time' }));
+  const [firstThen, setFirstThen] = useState(() =>
+    loadSaved('firstThen', {
+      firstIcon: '📚',
+      firstLabel: 'Reading',
+      thenIcon: '🎮',
+      thenLabel: 'Free Time',
+    })
+  );
   const [rotationSound, setRotationSound] = useState(() => loadSaved('rotationSound', 'chime'));
   const [voiceLevel, setVoiceLevel] = useState(() => loadSaved('voiceLevel', 1));
   const [countdownEvent, setCountdownEvent] = useState(() => loadSaved('countdownEvent', 'Lunch'));
   const [countdownTime, setCountdownTime] = useState(() => loadSaved('countdownTime', '12:00'));
-  const [quickMessage, setQuickMessage] = useState(() => loadSaved('quickMessage', 'Great job! ⭐'));
-  const [quickMessageFontSize, setQuickMessageFontSize] = useState(() => loadSaved('quickMessageFontSize', 16));
+  const [quickMessage, setQuickMessage] = useState(() =>
+    loadSaved('quickMessage', 'Great job! ⭐')
+  );
+  const [quickMessageFontSize, setQuickMessageFontSize] = useState(() =>
+    loadSaved('quickMessageFontSize', 16)
+  );
   const [googleSlidesUrl, setGoogleSlidesUrl] = useState(() => loadSaved('googleSlidesUrl', ''));
   const [youtubeVideoUrl, setYoutubeVideoUrl] = useState(() => loadSaved('youtubeVideoUrl', ''));
+  const [textBoxes, setTextBoxes] = useState(() => loadSaved('textBoxes', {}));
   const [layoutTabs, setLayoutTabs] = useState(() => {
     const saved = loadSaved('layoutTabs', null);
     if (Array.isArray(saved) && saved.length > 0) return saved;
     const legacy = loadLegacyLayout();
-    return [{
-      id: 'layout-1',
-      name: 'Main Layout',
-      layout: legacy && legacy.length > 0 ? legacy : []
-    }];
+    return [
+      {
+        id: 'layout-1',
+        name: 'Main Layout',
+        layout: legacy && legacy.length > 0 ? legacy : [],
+      },
+    ];
   });
   const [activeLayoutId, setActiveLayoutId] = useState(() => loadSaved('activeLayoutId', null));
   const [layoutRenamingId, setLayoutRenamingId] = useState(null);
@@ -152,7 +182,6 @@ export function AppStateProvider({ children }) {
     if (saved && typeof saved === 'object') return saved;
     return { [getSavedMainLayoutId()]: createDefaultGoalLadder() };
   });
-  const [starPoints, setStarPoints] = useState(() => loadSaved('starPoints', 0));
   const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
   const [customSounds, setCustomSounds] = useState(() => loadSaved('customSounds', []));
   const [stationColorsByLayout, setStationColorsByLayout] = useState(() => {
@@ -180,17 +209,18 @@ export function AppStateProvider({ children }) {
     const legacyFloorPlans = loadSaved('floorPlans', null);
     const legacyActive = loadSaved('activeFloorPlanId', null);
     const savedLayouts = loadSaved('layoutTabs', null);
-    const mainLayoutId = Array.isArray(savedLayouts) && savedLayouts.length > 0 ? savedLayouts[0].id : 'layout-1';
+    const mainLayoutId =
+      Array.isArray(savedLayouts) && savedLayouts.length > 0 ? savedLayouts[0].id : 'layout-1';
     if (legacyFloorPlans) {
-      const normalized = legacyFloorPlans.map(fp => ({
+      const normalized = legacyFloorPlans.map((fp) => ({
         ...fp,
-        teacherNames: fp.teacherNames || loadSaved('teacherNames', DEFAULT_TEACHER_NAMES)
+        teacherNames: fp.teacherNames || loadSaved('teacherNames', DEFAULT_TEACHER_NAMES),
       }));
       return {
         [mainLayoutId]: {
           floorPlans: normalized,
-          activeFloorPlanId: legacyActive || normalized[0]?.id
-        }
+          activeFloorPlanId: legacyActive || normalized[0]?.id,
+        },
       };
     }
     return {};
@@ -199,96 +229,110 @@ export function AppStateProvider({ children }) {
   const [renameValue, setRenameValue] = useState('');
 
   const setStationConfigs = (updater) => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
-        ? { ...fp, stationConfigs: typeof updater === 'function' ? updater(fp.stationConfigs) : updater }
-        : fp
+      const nextPlans = set.floorPlans.map((fp) =>
+        fp.id === activeFloorPlanId
+          ? {
+              ...fp,
+              stationConfigs: typeof updater === 'function' ? updater(fp.stationConfigs) : updater,
+            }
+          : fp
       );
       return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
   const setCustomBoxes = (updater) => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
-        ? { ...fp, customBoxes: typeof updater === 'function' ? updater(fp.customBoxes) : updater }
-        : fp
+      const nextPlans = set.floorPlans.map((fp) =>
+        fp.id === activeFloorPlanId
+          ? {
+              ...fp,
+              customBoxes: typeof updater === 'function' ? updater(fp.customBoxes) : updater,
+            }
+          : fp
       );
       return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
   const setTeacherNames = (updater) => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
-        ? { ...fp, teacherNames: typeof updater === 'function' ? updater(fp.teacherNames || DEFAULT_TEACHER_NAMES) : updater }
-        : fp
+      const nextPlans = set.floorPlans.map((fp) =>
+        fp.id === activeFloorPlanId
+          ? {
+              ...fp,
+              teacherNames:
+                typeof updater === 'function'
+                  ? updater(fp.teacherNames || DEFAULT_TEACHER_NAMES)
+                  : updater,
+            }
+          : fp
       );
       return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
   const setStudents = (updater) => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const currentPlan = set.floorPlans.find(fp => fp.id === activeFloorPlanId) || set.floorPlans[0];
+      const currentPlan =
+        set.floorPlans.find((fp) => fp.id === activeFloorPlanId) || set.floorPlans[0];
       const currentStudents = currentPlan?.students || [];
       const nextRaw = typeof updater === 'function' ? updater(currentStudents) : updater;
       const { next } = ensureUniqueStudents(nextRaw);
-      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
-        ? { ...fp, students: next }
-        : fp
+      const nextPlans = set.floorPlans.map((fp) =>
+        fp.id === activeFloorPlanId ? { ...fp, students: next } : fp
       );
       return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
   const setRotationOrder = (updater) => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const currentPlan = set.floorPlans.find(fp => fp.id === activeFloorPlanId) || set.floorPlans[0];
+      const currentPlan =
+        set.floorPlans.find((fp) => fp.id === activeFloorPlanId) || set.floorPlans[0];
       const currentOrder = currentPlan?.rotationOrder || [];
       const nextRaw = typeof updater === 'function' ? updater(currentOrder) : updater;
       const next = normalizeRotationOrder(nextRaw);
-      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
-        ? { ...fp, rotationOrder: next }
-        : fp
+      const nextPlans = set.floorPlans.map((fp) =>
+        fp.id === activeFloorPlanId ? { ...fp, rotationOrder: next } : fp
       );
       return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
   const setStationColors = (updater) => {
-    setStationColorsByLayout(prev => {
+    setStationColorsByLayout((prev) => {
       const current = prev[activeLayoutId] || DEFAULT_STATION_COLORS;
       const next = typeof updater === 'function' ? updater(current) : updater;
       return { ...prev, [activeLayoutId]: next };
     });
   };
   const setWidgetColors = (updater) => {
-    setWidgetColorsByLayout(prev => {
+    setWidgetColorsByLayout((prev) => {
       const current = prev[activeLayoutId] || {};
       const next = typeof updater === 'function' ? updater(current) : updater;
       return { ...prev, [activeLayoutId]: next };
     });
   };
   const setCustomStationColorsForPlan = (colors) => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
-        ? { ...fp, customStationColors: colors }
-        : fp
+      const nextPlans = set.floorPlans.map((fp) =>
+        fp.id === activeFloorPlanId ? { ...fp, customStationColors: colors } : fp
       );
       return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
 
   const setActiveFloorPlanId = (id) => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
       return { ...prev, [activeLayoutId]: { ...set, activeFloorPlanId: id } };
@@ -303,6 +347,8 @@ export function AppStateProvider({ children }) {
   const [showFirstThenEditor, setShowFirstThenEditor] = useState(false);
   const [showGoalEditor, setShowGoalEditor] = useState(false);
   const [editingBox, setEditingBox] = useState(null);
+  const [showTextBoxEditor, setShowTextBoxEditor] = useState(false);
+  const [editingTextBoxId, setEditingTextBoxId] = useState(null);
   const floorPlanRef = useRef(null);
   const rotationTimeoutsRef = useRef([]);
 
@@ -310,42 +356,57 @@ export function AppStateProvider({ children }) {
   const [showAnnouncement, setShowAnnouncement] = useState(false);
   const [announcementPhase, setAnnouncementPhase] = useState('start');
   const [animationTargets, setAnimationTargets] = useState({});
+  const [rotationHistory, setRotationHistory] = useState(null); // Stores previous student state for undo
+  const initialStudentStateRef = useRef(null); // Stores initial state for reset
+
+  // Welcome modal for first-time users
+  const [showWelcomeModal, setShowWelcomeModal] = useState(() => {
+    try {
+      const hasSeenWelcome = localStorage.getItem('specialedscreen-welcome-seen');
+      const hasSavedData = localStorage.getItem(STORAGE_KEY);
+      return !hasSeenWelcome && !hasSavedData;
+    } catch (e) {
+      return false;
+    }
+  });
 
   useEffect(() => {
     if (!Array.isArray(layoutTabs) || layoutTabs.length === 0) {
       const legacy = loadLegacyLayout();
-      setLayoutTabs([{
-        id: 'layout-1',
-        name: 'Main Layout',
-        layout: legacy && legacy.length > 0 ? legacy : []
-      }]);
+      setLayoutTabs([
+        {
+          id: 'layout-1',
+          name: 'Main Layout',
+          layout: legacy && legacy.length > 0 ? legacy : [],
+        },
+      ]);
       return;
     }
     if (!Array.isArray(layoutTabs) || layoutTabs.length === 0) return;
-    if (!activeLayoutId || !layoutTabs.some(t => t.id === activeLayoutId)) {
+    if (!activeLayoutId || !layoutTabs.some((t) => t.id === activeLayoutId)) {
       setActiveLayoutId(layoutTabs[0].id);
     }
   }, [layoutTabs, activeLayoutId]);
 
   useEffect(() => {
     if (!activeLayoutId) return;
-    setStudentsByLayout(prev => {
+    setStudentsByLayout((prev) => {
       if (prev[activeLayoutId]) return prev;
       return { ...prev, [activeLayoutId]: [] };
     });
-    setStationColorsByLayout(prev => {
+    setStationColorsByLayout((prev) => {
       if (prev[activeLayoutId]) return prev;
       return { ...prev, [activeLayoutId]: DEFAULT_STATION_COLORS };
     });
-    setWidgetColorsByLayout(prev => {
+    setWidgetColorsByLayout((prev) => {
       if (prev[activeLayoutId]) return prev;
       return { ...prev, [activeLayoutId]: {} };
     });
-    setGoalLaddersByLayout(prev => {
+    setGoalLaddersByLayout((prev) => {
       if (prev[activeLayoutId]) return prev;
       return { ...prev, [activeLayoutId]: createDefaultGoalLadder() };
     });
-    setRotationOrderByLayout(prev => {
+    setRotationOrderByLayout((prev) => {
       const existing = prev[activeLayoutId];
       if (Array.isArray(existing)) return prev;
       return { ...prev, [activeLayoutId]: [] };
@@ -353,10 +414,10 @@ export function AppStateProvider({ children }) {
   }, [activeLayoutId]);
 
   useEffect(() => {
-    setStudentsByLayout(prev => {
+    setStudentsByLayout((prev) => {
       let changed = false;
       const next = {};
-      Object.keys(prev || {}).forEach(id => {
+      Object.keys(prev || {}).forEach((id) => {
         const { next: normalized, changed: c } = ensureUniqueStudents(prev[id]);
         if (c) changed = true;
         next[id] = normalized;
@@ -370,7 +431,7 @@ export function AppStateProvider({ children }) {
   const goalLadder = goalLaddersByLayout[activeLayoutId] || createDefaultGoalLadder();
 
   const setGoalLadder = (updater) => {
-    setGoalLaddersByLayout(prev => {
+    setGoalLaddersByLayout((prev) => {
       const current = prev[activeLayoutId] || createDefaultGoalLadder();
       const next = typeof updater === 'function' ? updater(current) : updater;
       return { ...prev, [activeLayoutId]: next };
@@ -382,14 +443,15 @@ export function AppStateProvider({ children }) {
   const activeFloorPlanSet = floorPlansByLayout[activeLayoutId] || fallbackFloorPlanSet;
   const floorPlans = activeFloorPlanSet.floorPlans || [];
   const activeFloorPlanId = activeFloorPlanSet.activeFloorPlanId || floorPlans[0]?.id;
-  const activeFloorPlan = floorPlans.find(fp => fp.id === activeFloorPlanId) || floorPlans[0] || {
-    stationConfigs: {},
-    customBoxes: [],
-    teacherNames: DEFAULT_TEACHER_NAMES,
-    customStationColors: {},
-    students: [],
-    rotationOrder: [],
-  };
+  const activeFloorPlan = floorPlans.find((fp) => fp.id === activeFloorPlanId) ||
+    floorPlans[0] || {
+      stationConfigs: {},
+      customBoxes: [],
+      teacherNames: DEFAULT_TEACHER_NAMES,
+      customStationColors: {},
+      students: [],
+      rotationOrder: [],
+    };
   const stationConfigs = activeFloorPlan.stationConfigs || {};
   const customBoxes = activeFloorPlan.customBoxes || [];
   const teacherNames = activeFloorPlan.teacherNames || DEFAULT_TEACHER_NAMES;
@@ -399,7 +461,7 @@ export function AppStateProvider({ children }) {
   const rotationOrder = normalizeRotationOrder(activeFloorPlan.rotationOrder);
   const allStationColors = { ...stationColors, ...customStationColors };
   const tabStationKeys = Object.keys(stationConfigs);
-  const activeRotationOrder = rotationOrder.filter(k => tabStationKeys.includes(k));
+  const activeRotationOrder = rotationOrder.filter((k) => tabStationKeys.includes(k));
 
   // Note: Previously this effect would clear students/rotationOrder for layouts
   // without stations. This was removed because it caused a bug where students
@@ -408,7 +470,7 @@ export function AppStateProvider({ children }) {
 
   useEffect(() => {
     if (!activeLayoutId) return;
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const existing = prev[activeLayoutId];
       if (!existing) {
         return { ...prev, [activeLayoutId]: createFloorPlanSet() };
@@ -417,7 +479,10 @@ export function AppStateProvider({ children }) {
         return { ...prev, [activeLayoutId]: createFloorPlanSet() };
       }
       if (!existing.activeFloorPlanId) {
-        return { ...prev, [activeLayoutId]: { ...existing, activeFloorPlanId: existing.floorPlans[0].id } };
+        return {
+          ...prev,
+          [activeLayoutId]: { ...existing, activeFloorPlanId: existing.floorPlans[0].id },
+        };
       }
       return prev;
     });
@@ -425,10 +490,10 @@ export function AppStateProvider({ children }) {
 
   // Migration: Move students and rotationOrder from per-layout to per-floor-plan
   useEffect(() => {
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       let changed = false;
       const next = { ...prev };
-      Object.keys(next).forEach(layoutId => {
+      Object.keys(next).forEach((layoutId) => {
         const set = next[layoutId];
         if (!set || !set.floorPlans || set.floorPlans.length === 0) return;
         // Check if first floor plan needs students migrated
@@ -436,10 +501,16 @@ export function AppStateProvider({ children }) {
         const legacyStudents = studentsByLayout[layoutId];
         const legacyRotation = rotationOrderByLayout[layoutId];
         // Only migrate if floor plan has no students but legacy data exists
-        if ((!firstPlan.students || firstPlan.students.length === 0) && legacyStudents && legacyStudents.length > 0) {
+        if (
+          (!firstPlan.students || firstPlan.students.length === 0) &&
+          legacyStudents &&
+          legacyStudents.length > 0
+        ) {
           changed = true;
           const migratedPlans = set.floorPlans.map((fp, idx) =>
-            idx === 0 ? { ...fp, students: legacyStudents, rotationOrder: legacyRotation || [] } : fp
+            idx === 0
+              ? { ...fp, students: legacyStudents, rotationOrder: legacyRotation || [] }
+              : fp
           );
           next[layoutId] = { ...set, floorPlans: migratedPlans };
         }
@@ -452,13 +523,36 @@ export function AppStateProvider({ children }) {
   useEffect(() => {
     try {
       const data = JSON.stringify({
-        globalRoster, studentsByLayout, totalTime, autoRepeat, rightNowText, bannerFontSize, firstThen,
-        rotationSound, voiceLevel, countdownEvent, countdownTime,
-        quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl,
-        layoutTabs, activeLayoutId,
-        widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
-        customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume, performanceMode,
-        clockStyle, showClockDate
+        globalRoster,
+        studentsByLayout,
+        totalTime,
+        autoRepeat,
+        rightNowText,
+        bannerFontSize,
+        firstThen,
+        rotationSound,
+        voiceLevel,
+        countdownEvent,
+        countdownTime,
+        quickMessage,
+        quickMessageFontSize,
+        googleSlidesUrl,
+        youtubeVideoUrl,
+        textBoxes,
+        layoutTabs,
+        activeLayoutId,
+        widgetColorsByLayout,
+        goalLaddersByLayout,
+        studentGoals,
+        floorPlansByLayout,
+        customSounds,
+        stationColorsByLayout,
+        rotationOrderByLayout,
+        timerStyle,
+        soundVolume,
+        performanceMode,
+        clockStyle,
+        showClockDate,
       });
       localStorage.setItem(STORAGE_KEY, data);
     } catch (e) {
@@ -469,19 +563,52 @@ export function AppStateProvider({ children }) {
         // Could add a toast notification here in the future
       }
     }
-  }, [globalRoster, studentsByLayout, totalTime, autoRepeat, rightNowText, bannerFontSize, firstThen,
-      rotationSound, voiceLevel, countdownEvent, countdownTime,
-      quickMessage, quickMessageFontSize, googleSlidesUrl, youtubeVideoUrl, layoutTabs, activeLayoutId,
-      widgetColorsByLayout, goalLaddersByLayout, starPoints, studentGoals, floorPlansByLayout,
-      customSounds, stationColorsByLayout, rotationOrderByLayout, timerStyle, soundVolume, performanceMode,
-      clockStyle, showClockDate]);
+  }, [
+    globalRoster,
+    studentsByLayout,
+    totalTime,
+    autoRepeat,
+    rightNowText,
+    bannerFontSize,
+    firstThen,
+    rotationSound,
+    voiceLevel,
+    countdownEvent,
+    countdownTime,
+    quickMessage,
+    quickMessageFontSize,
+    googleSlidesUrl,
+    youtubeVideoUrl,
+    textBoxes,
+    layoutTabs,
+    activeLayoutId,
+    widgetColorsByLayout,
+    goalLaddersByLayout,
+    studentGoals,
+    floorPlansByLayout,
+    customSounds,
+    stationColorsByLayout,
+    rotationOrderByLayout,
+    timerStyle,
+    soundVolume,
+    performanceMode,
+    clockStyle,
+    showClockDate,
+  ]);
 
   // Timer effect
   useEffect(() => {
     if (!isRunning || timeRemaining <= 0) return;
     const timer = setInterval(() => {
-      setTimeRemaining(t => {
-        if (t <= 1) { if (autoRepeat) { triggerRotation(); return totalTime; } setIsRunning(false); return 0; }
+      setTimeRemaining((t) => {
+        if (t <= 1) {
+          if (autoRepeat) {
+            triggerRotation();
+            return totalTime;
+          }
+          setIsRunning(false);
+          return 0;
+        }
         return t - 1;
       });
     }, 1000);
@@ -491,90 +618,294 @@ export function AppStateProvider({ children }) {
   const triggerRotation = () => {
     if (isAnimating || isEditMode) return;
     if (!activeRotationOrder || activeRotationOrder.length === 0) return;
+
+    // Broadcast rotation trigger to kiosk mode (only from teacher mode)
+    if (!isKioskMode && broadcastChannelRef.current) {
+      broadcastChannelRef.current.postMessage({ type: 'ROTATION_TRIGGER' });
+    }
+
     // Clear any pending rotation timeouts to prevent race conditions
-    rotationTimeoutsRef.current.forEach(id => clearTimeout(id));
+    rotationTimeoutsRef.current.forEach((id) => clearTimeout(id));
     rotationTimeoutsRef.current = [];
 
-    playSound(rotationSound, customSounds, soundVolume);
-    setShowAnnouncement(true); setAnnouncementPhase('start');
+    // Save current state for undo (deep copy)
+    setRotationHistory(students.map((s) => ({ ...s })));
+    // Store initial state for reset if not already stored
+    if (!initialStudentStateRef.current && students.length > 0) {
+      initialStudentStateRef.current = students.map((s) => ({ ...s }));
+    }
 
-    rotationTimeoutsRef.current.push(setTimeout(() => {
-      setAnnouncementPhase('moving');
-      setIsAnimating(true);
-      const t = {};
-      students.forEach(s => {
-        const current = activeRotationOrder.includes(s.group) ? s.group : activeRotationOrder[0];
-        t[s.id] = getNextGroup(current, activeRotationOrder);
-      });
-      setAnimationTargets(t);
-    }, 1500));
+    playSound(rotationSound, customSounds, soundVolume);
+    setShowAnnouncement(true);
+    setAnnouncementPhase('start');
+
+    rotationTimeoutsRef.current.push(
+      setTimeout(() => {
+        setAnnouncementPhase('moving');
+        setIsAnimating(true);
+        const t = {};
+        students.forEach((s) => {
+          const current = activeRotationOrder.includes(s.group) ? s.group : activeRotationOrder[0];
+          t[s.id] = getNextGroup(current, activeRotationOrder);
+        });
+        setAnimationTargets(t);
+      }, 1500)
+    );
 
     rotationTimeoutsRef.current.push(setTimeout(() => setShowAnnouncement(false), 3000));
 
-    rotationTimeoutsRef.current.push(setTimeout(() => {
-      setStudents(p => p.map(s => {
-        const current = activeRotationOrder.includes(s.group) ? s.group : activeRotationOrder[0];
-        return { ...s, group: getNextGroup(current, activeRotationOrder) };
-      }));
-      setAnimationTargets({});
-      setIsAnimating(false);
-      rotationTimeoutsRef.current = [];
-    }, 4500));
+    rotationTimeoutsRef.current.push(
+      setTimeout(() => {
+        setStudents((p) =>
+          p.map((s) => {
+            const current = activeRotationOrder.includes(s.group)
+              ? s.group
+              : activeRotationOrder[0];
+            return { ...s, group: getNextGroup(current, activeRotationOrder) };
+          })
+        );
+        setAnimationTargets({});
+        setIsAnimating(false);
+        rotationTimeoutsRef.current = [];
+      }, 4500)
+    );
   };
 
-  const addBox = () => setCustomBoxes(p => [...p, { id: `box-${Date.now()}`, top: 120, left: 180, width: 45, height: 45, label: '', icon: '', color: '#6B7280', assignedStudents: [] }]);
+  const undoRotation = () => {
+    if (isAnimating || isEditMode) return;
+    if (!rotationHistory) return;
+
+    // Restore previous student positions
+    setStudents(rotationHistory.map((s) => ({ ...s })));
+    setRotationHistory(null); // Clear history after undo
+  };
+
+  const resetRotation = () => {
+    if (isAnimating || isEditMode) return;
+    if (!initialStudentStateRef.current) {
+      // If no initial state stored, use current students as baseline
+      initialStudentStateRef.current = students.map((s) => ({ ...s }));
+      return;
+    }
+
+    // Save current state for undo before resetting
+    setRotationHistory(students.map((s) => ({ ...s })));
+
+    // Restore initial student positions
+    setStudents(initialStudentStateRef.current.map((s) => ({ ...s })));
+  };
+
+  const loadTemplate = (templateId) => {
+    const template = TEMPLATES[templateId];
+    if (!template) return;
+
+    const applied = applyTemplate(template);
+
+    // Update layout
+    setLayoutTabs((prev) =>
+      prev.map((tab) =>
+        tab.id === activeLayoutId ? { ...tab, layout: applied.layoutItems } : tab
+      )
+    );
+
+    // Update floor plan - create set if it doesn't exist, then apply template
+    setFloorPlansByLayout((prev) => {
+      const set = prev[activeLayoutId] || createFloorPlanSet();
+
+      // Get the current active floor plan to preserve its ID
+      const currentPlan = set.floorPlans.find((fp) => fp.id === activeFloorPlanId) || set.floorPlans[0];
+
+      return {
+        ...prev,
+        [activeLayoutId]: {
+          ...set,
+          floorPlans: set.floorPlans.map((fp) =>
+            fp.id === (currentPlan?.id || activeFloorPlanId)
+              ? { ...applied.floorPlan, id: fp.id }
+              : fp
+          ),
+        },
+      };
+    });
+
+    // Update other state
+    setRightNowText(applied.rightNowText);
+    setFirstThen(applied.firstThen);
+    setVoiceLevel(applied.voiceLevel);
+    setStationColorsByLayout((prev) => ({
+      ...prev,
+      [activeLayoutId]: applied.stationColors,
+    }));
+
+    // Mark welcome as seen
+    try {
+      localStorage.setItem('specialedscreen-welcome-seen', 'true');
+    } catch (e) {}
+
+    setShowWelcomeModal(false);
+  };
+
+  // Custom template management
+  const getCustomTemplates = () => {
+    try {
+      const saved = localStorage.getItem('customLayoutTemplates');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const saveCurrentLayoutAsTemplate = (name, description = '') => {
+    const currentTab = layoutTabs.find((t) => t.id === activeLayoutId);
+    if (!currentTab) return;
+
+    const newTemplate = {
+      id: `custom-${Date.now()}`,
+      name,
+      description,
+      layout: currentTab.layout,
+      createdAt: new Date().toISOString(),
+      isCustom: true,
+    };
+
+    const customTemplates = getCustomTemplates();
+    const updated = [...customTemplates, newTemplate];
+
+    try {
+      localStorage.setItem('customLayoutTemplates', JSON.stringify(updated));
+      return newTemplate;
+    } catch (e) {
+      console.error('Failed to save template:', e);
+      return null;
+    }
+  };
+
+  const deleteCustomTemplate = (templateId) => {
+    const customTemplates = getCustomTemplates();
+    const updated = customTemplates.filter((t) => t.id !== templateId);
+
+    try {
+      localStorage.setItem('customLayoutTemplates', JSON.stringify(updated));
+      return true;
+    } catch (e) {
+      console.error('Failed to delete template:', e);
+      return false;
+    }
+  };
+
+  const loadCustomTemplate = (templateId) => {
+    const customTemplates = getCustomTemplates();
+    const template = customTemplates.find((t) => t.id === templateId);
+    if (!template) return;
+
+    // Update layout
+    setLayoutTabs((prev) =>
+      prev.map((tab) =>
+        tab.id === activeLayoutId ? { ...tab, layout: template.layout } : tab
+      )
+    );
+  };
+
+  const skipWelcome = () => {
+    try {
+      localStorage.setItem('specialedscreen-welcome-seen', 'true');
+    } catch (e) {}
+    setShowWelcomeModal(false);
+  };
+
+  const addBox = () =>
+    setCustomBoxes((p) => [
+      ...p,
+      {
+        id: `box-${Date.now()}`,
+        top: 120,
+        left: 180,
+        width: 45,
+        height: 45,
+        label: '',
+        icon: '',
+        color: '#6B7280',
+        assignedStudents: [],
+      },
+    ]);
 
   const addFloorPlan = () => {
     const newId = `plan-${Date.now()}`;
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId] || createFloorPlanSet();
-      const nextPlans = [...set.floorPlans, {
-        id: newId,
-        name: `Layout ${set.floorPlans.length + 1}`,
-        stationConfigs: {},
-        customBoxes: [],
-        teacherNames: { ...DEFAULT_TEACHER_NAMES }
-      }];
-      return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans, activeFloorPlanId: newId } };
+      const nextPlans = [
+        ...set.floorPlans,
+        {
+          id: newId,
+          name: `Layout ${set.floorPlans.length + 1}`,
+          stationConfigs: {},
+          customBoxes: [],
+          teacherNames: { ...DEFAULT_TEACHER_NAMES },
+          students: [],
+          rotationOrder: [],
+          customStationColors: {},
+        },
+      ];
+      return {
+        ...prev,
+        [activeLayoutId]: { ...set, floorPlans: nextPlans, activeFloorPlanId: newId },
+      };
     });
   };
 
   const addStationToTab = (color) => {
-    const defaultPositions = DEFAULT_STATION_CONFIG[color] || { top: 50, left: 50, width: 100, height: 65 };
-    setStationConfigs(p => ({ ...p, [color]: { ...defaultPositions } }));
-    setRotationOrder(prev => (prev.includes(color) ? prev : [...prev, color]));
+    const defaultPositions = DEFAULT_STATION_CONFIG[color] || {
+      top: 50,
+      left: 50,
+      width: 100,
+      height: 65,
+    };
+    setStationConfigs((p) => ({ ...p, [color]: { ...defaultPositions } }));
+    setRotationOrder((prev) => (prev.includes(color) ? prev : [...prev, color]));
   };
 
   const addCustomStation = () => {
     const id = `station-${Date.now()}`;
-    const colorOpt = STATION_COLOR_OPTIONS[Math.floor(Math.random() * STATION_COLOR_OPTIONS.length)];
-    setStationConfigs(p => ({ ...p, [id]: { top: 50, left: 50, width: 100, height: 65 } }));
-    setTeacherNames(p => ({ ...p, [id]: 'New Station' }));
-    setFloorPlansByLayout(prev => {
+    const colorOpt =
+      STATION_COLOR_OPTIONS[Math.floor(Math.random() * STATION_COLOR_OPTIONS.length)];
+    setStationConfigs((p) => ({ ...p, [id]: { top: 50, left: 50, width: 100, height: 65 } }));
+    setTeacherNames((p) => ({ ...p, [id]: 'New Station' }));
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const nextPlans = set.floorPlans.map(fp => fp.id === activeFloorPlanId
-        ? { ...fp, customStationColors: { ...(fp.customStationColors || {}), [id]: { bg: colorOpt.bg, light: colorOpt.light } } }
-        : fp
+      const nextPlans = set.floorPlans.map((fp) =>
+        fp.id === activeFloorPlanId
+          ? {
+              ...fp,
+              customStationColors: {
+                ...(fp.customStationColors || {}),
+                [id]: { bg: colorOpt.bg, light: colorOpt.light },
+              },
+            }
+          : fp
       );
       return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
     });
   };
 
   const removeStationFromTab = (color) => {
-    setStationConfigs(p => {
+    setStationConfigs((p) => {
       const next = { ...p };
       delete next[color];
       return next;
     });
     // Only remove from global rotation order if no other tab still has this station
-    const existsOnOtherTab = floorPlans.some(fp => fp.id !== activeFloorPlanId && fp.stationConfigs[color]);
+    const existsOnOtherTab = floorPlans.some(
+      (fp) => fp.id !== activeFloorPlanId && fp.stationConfigs[color]
+    );
     if (!existsOnOtherTab && rotationOrder.includes(color)) {
-      const newOrder = rotationOrder.filter(k => k !== color);
+      const newOrder = rotationOrder.filter((k) => k !== color);
       setRotationOrder(newOrder);
       const firstRemaining = newOrder[0];
       if (firstRemaining) {
-        setStudents(prev => prev.map(s => s.group === color ? { ...s, group: firstRemaining } : s));
+        setStudents((prev) =>
+          prev.map((s) => (s.group === color ? { ...s, group: firstRemaining } : s))
+        );
       }
     }
   };
@@ -582,32 +913,44 @@ export function AppStateProvider({ children }) {
   const equalizeStationSizes = () => {
     const stationKeys = tabStationKeys;
     const allItems = [];
-    stationKeys.forEach(c => allItems.push({ type: 'station', key: c, w: stationConfigs[c].width, h: stationConfigs[c].height }));
-    customBoxes.forEach(b => allItems.push({ type: 'box', key: b.id, w: b.width, h: b.height }));
+    stationKeys.forEach((c) =>
+      allItems.push({
+        type: 'station',
+        key: c,
+        w: stationConfigs[c].width,
+        h: stationConfigs[c].height,
+      })
+    );
+    customBoxes.forEach((b) => allItems.push({ type: 'box', key: b.id, w: b.width, h: b.height }));
     if (allItems.length === 0) return;
     const targetW = allItems[0].w;
     const targetH = allItems[0].h;
     if (stationKeys.length > 0) {
-      setStationConfigs(p => {
+      setStationConfigs((p) => {
         const next = { ...p };
-        stationKeys.forEach(c => { next[c] = { ...next[c], width: targetW, height: targetH }; });
+        stationKeys.forEach((c) => {
+          next[c] = { ...next[c], width: targetW, height: targetH };
+        });
         return next;
       });
     }
     if (customBoxes.length > 0) {
-      setCustomBoxes(p => p.map(b => ({ ...b, width: targetW, height: targetH })));
+      setCustomBoxes((p) => p.map((b) => ({ ...b, width: targetW, height: targetH })));
     }
   };
 
   const deleteFloorPlan = (id) => {
     if (floorPlans.length <= 1) return;
     if (!window.confirm('Delete this floor plan layout?')) return;
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       const set = prev[activeLayoutId];
       if (!set) return prev;
-      const nextPlans = set.floorPlans.filter(fp => fp.id !== id);
+      const nextPlans = set.floorPlans.filter((fp) => fp.id !== id);
       const nextActive = activeFloorPlanId === id ? nextPlans[0]?.id : set.activeFloorPlanId;
-      return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans, activeFloorPlanId: nextActive } };
+      return {
+        ...prev,
+        [activeLayoutId]: { ...set, floorPlans: nextPlans, activeFloorPlanId: nextActive },
+      };
     });
   };
 
@@ -618,10 +961,12 @@ export function AppStateProvider({ children }) {
 
   const finishRenamingTab = () => {
     if (renamingTabId && renameValue.trim()) {
-      setFloorPlansByLayout(prev => {
+      setFloorPlansByLayout((prev) => {
         const set = prev[activeLayoutId];
         if (!set) return prev;
-        const nextPlans = set.floorPlans.map(fp => fp.id === renamingTabId ? { ...fp, name: renameValue.trim() } : fp);
+        const nextPlans = set.floorPlans.map((fp) =>
+          fp.id === renamingTabId ? { ...fp, name: renameValue.trim() } : fp
+        );
         return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
       });
     }
@@ -631,66 +976,58 @@ export function AppStateProvider({ children }) {
   const addLayoutTab = (type = 'blank') => {
     const id = `layout-${Date.now()}`;
     const name = type === 'slides' ? 'Slides' : `Layout ${layoutTabs.length + 1}`;
-    const layout = type === 'slides'
-      ? [{ i: 'googleSlides', x: 0, y: 0, w: 12, h: 18 }]
-      : [];
-    setLayoutTabs(prev => [...prev, { id, name, layout }]);
-    setFloorPlansByLayout(prev => ({ ...prev, [id]: createFloorPlanSet() }));
-    setStudentsByLayout(prev => ({ ...prev, [id]: [] }));
-    setStationColorsByLayout(prev => ({ ...prev, [id]: DEFAULT_STATION_COLORS }));
-    setWidgetColorsByLayout(prev => ({ ...prev, [id]: {} }));
-    setGoalLaddersByLayout(prev => ({ ...prev, [id]: createDefaultGoalLadder() }));
-    setRotationOrderByLayout(prev => ({ ...prev, [id]: [] }));
+    const layout = type === 'slides' ? [{ i: 'googleSlides', x: 0, y: 0, w: 12, h: 18 }] : [];
+    setLayoutTabs((prev) => [...prev, { id, name, layout }]);
+    setFloorPlansByLayout((prev) => ({ ...prev, [id]: createFloorPlanSet() }));
+    setStudentsByLayout((prev) => ({ ...prev, [id]: [] }));
+    setStationColorsByLayout((prev) => ({ ...prev, [id]: DEFAULT_STATION_COLORS }));
+    setWidgetColorsByLayout((prev) => ({ ...prev, [id]: {} }));
+    setGoalLaddersByLayout((prev) => ({ ...prev, [id]: createDefaultGoalLadder() }));
+    setRotationOrderByLayout((prev) => ({ ...prev, [id]: [] }));
     setActiveLayoutId(id);
   };
 
   const deleteLayoutTab = (id) => {
     if (layoutTabs.length <= 1) return;
     if (!window.confirm('Delete this layout tab?')) return;
-    setLayoutTabs(prev => {
-      const nextTabs = prev.filter(t => t.id !== id);
+    setLayoutTabs((prev) => {
+      const nextTabs = prev.filter((t) => t.id !== id);
       if (activeLayoutId === id && nextTabs.length > 0) {
         setActiveLayoutId(nextTabs[0].id);
       }
       return nextTabs;
     });
-    setFloorPlansByLayout(prev => {
+    setFloorPlansByLayout((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
       return next;
     });
-    setStudentsByLayout(prev => {
+    setStudentsByLayout((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
       return next;
     });
-    setStationColorsByLayout(prev => {
+    setStationColorsByLayout((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
       return next;
     });
-    setWidgetColorsByLayout(prev => {
+    setWidgetColorsByLayout((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
       return next;
     });
-    setGoalLaddersByLayout(prev => {
+    setGoalLaddersByLayout((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
       return next;
     });
-    setMissionControlByLayout(prev => {
-      if (!prev[id]) return prev;
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
-    setRotationOrderByLayout(prev => {
+    setRotationOrderByLayout((prev) => {
       if (!prev[id]) return prev;
       const next = { ...prev };
       delete next[id];
@@ -705,87 +1042,171 @@ export function AppStateProvider({ children }) {
 
   const finishLayoutRenaming = () => {
     if (layoutRenamingId && layoutRenameValue.trim()) {
-      setLayoutTabs(prev => prev.map(t => t.id === layoutRenamingId ? { ...t, name: layoutRenameValue.trim() } : t));
+      setLayoutTabs((prev) =>
+        prev.map((t) => (t.id === layoutRenamingId ? { ...t, name: layoutRenameValue.trim() } : t))
+      );
     }
     setLayoutRenamingId(null);
   };
 
   // Mutual exclusion for edit modes
-  const enterEditMode = () => { setIsEditMode(true); setIsLayoutEditMode(false); };
-  const exitEditMode = () => { setIsEditMode(false); };
-  const enterLayoutEditMode = () => { setIsLayoutEditMode(true); setIsEditMode(false); };
-  const exitLayoutEditMode = () => { setIsLayoutEditMode(false); };
-  const toggleEditMode = () => { if (isEditMode) exitEditMode(); else enterEditMode(); };
-  const toggleLayoutEditMode = () => { if (isLayoutEditMode) exitLayoutEditMode(); else enterLayoutEditMode(); };
+  const enterEditMode = () => {
+    setIsEditMode(true);
+    setIsLayoutEditMode(false);
+  };
+  const exitEditMode = () => {
+    setIsEditMode(false);
+  };
+  const enterLayoutEditMode = () => {
+    setIsLayoutEditMode(true);
+    setIsEditMode(false);
+  };
+  const exitLayoutEditMode = () => {
+    setIsLayoutEditMode(false);
+  };
+  const toggleEditMode = () => {
+    if (isEditMode) exitEditMode();
+    else enterEditMode();
+  };
+  const toggleLayoutEditMode = () => {
+    if (isLayoutEditMode) exitLayoutEditMode();
+    else enterLayoutEditMode();
+  };
 
   const value = {
     // State
-    globalRoster, setGlobalRoster,
-    students, setStudents,
-    totalTime, setTotalTime,
-    timeRemaining, setTimeRemaining,
-    isRunning, setIsRunning,
-    autoRepeat, setAutoRepeat,
-    selectedStudentId, setSelectedStudentId,
-    rightNowText, setRightNowText,
-    bannerFontSize, setBannerFontSize,
-    firstThen, setFirstThen,
-    rotationSound, setRotationSound,
-    voiceLevel, setVoiceLevel,
-    countdownEvent, setCountdownEvent,
-    countdownTime, setCountdownTime,
-    quickMessage, setQuickMessage,
-    quickMessageFontSize, setQuickMessageFontSize,
-    googleSlidesUrl, setGoogleSlidesUrl,
-    youtubeVideoUrl, setYoutubeVideoUrl,
-    layoutTabs, setLayoutTabs,
-    activeLayoutId, setActiveLayoutId,
-    layoutRenamingId, setLayoutRenamingId,
-    layoutRenameValue, setLayoutRenameValue,
-    widgetColors, setWidgetColors,
-    goalLadder, setGoalLadder,
-    starPoints, setStarPoints,
-    studentGoals, setStudentGoals,
-    customSounds, setCustomSounds,
-    stationColors, setStationColors,
-    rotationOrder: activeRotationOrder, setRotationOrder,
-    timerStyle, setTimerStyle,
-    soundVolume, setSoundVolume,
-    clockStyle, setClockStyle,
-    showClockDate, setShowClockDate,
+    globalRoster,
+    setGlobalRoster,
+    students,
+    setStudents,
+    totalTime,
+    setTotalTime,
+    timeRemaining,
+    setTimeRemaining,
+    isRunning,
+    setIsRunning,
+    autoRepeat,
+    setAutoRepeat,
+    selectedStudentId,
+    setSelectedStudentId,
+    rightNowText,
+    setRightNowText,
+    bannerFontSize,
+    setBannerFontSize,
+    firstThen,
+    setFirstThen,
+    rotationSound,
+    setRotationSound,
+    voiceLevel,
+    setVoiceLevel,
+    countdownEvent,
+    setCountdownEvent,
+    countdownTime,
+    setCountdownTime,
+    quickMessage,
+    setQuickMessage,
+    quickMessageFontSize,
+    setQuickMessageFontSize,
+    googleSlidesUrl,
+    setGoogleSlidesUrl,
+    youtubeVideoUrl,
+    setYoutubeVideoUrl,
+    textBoxes,
+    setTextBoxes,
+    layoutTabs,
+    setLayoutTabs,
+    activeLayoutId,
+    setActiveLayoutId,
+    layoutRenamingId,
+    setLayoutRenamingId,
+    layoutRenameValue,
+    setLayoutRenameValue,
+    widgetColors,
+    setWidgetColors,
+    goalLadder,
+    setGoalLadder,
+    studentGoals,
+    setStudentGoals,
+    customSounds,
+    setCustomSounds,
+    stationColors,
+    setStationColors,
+    rotationOrder: activeRotationOrder,
+    setRotationOrder,
+    timerStyle,
+    setTimerStyle,
+    soundVolume,
+    setSoundVolume,
+    clockStyle,
+    setClockStyle,
+    showClockDate,
+    setShowClockDate,
     floorPlans,
-    activeFloorPlanId, setActiveFloorPlanId,
-    renamingTabId, setRenamingTabId,
-    renameValue, setRenameValue,
+    activeFloorPlanId,
+    setActiveFloorPlanId,
+    renamingTabId,
+    setRenamingTabId,
+    renameValue,
+    setRenameValue,
 
     // Derived
     activeFloorPlan,
-    stationConfigs, setStationConfigs,
-    customBoxes, setCustomBoxes,
-    teacherNames, setTeacherNames,
+    stationConfigs,
+    setStationConfigs,
+    customBoxes,
+    setCustomBoxes,
+    teacherNames,
+    setTeacherNames,
     setCustomStationColorsForPlan,
     customStationColors,
     allStationColors,
     tabStationKeys,
 
     // UI state
-    performanceMode, setPerformanceMode,
-    isPresentationMode, setIsPresentationMode,
-    isEditMode, setIsEditMode,
-    isLayoutEditMode, setIsLayoutEditMode,
-    showStudentManager, setShowStudentManager,
-    showRosterManager, setShowRosterManager,
-    showFirstThenEditor, setShowFirstThenEditor,
-    showGoalEditor, setShowGoalEditor,
-    editingBox, setEditingBox,
+    performanceMode,
+    setPerformanceMode,
+    isPresentationMode,
+    setIsPresentationMode,
+    isEditMode,
+    setIsEditMode,
+    isLayoutEditMode,
+    setIsLayoutEditMode,
+    showStudentManager,
+    setShowStudentManager,
+    showRosterManager,
+    setShowRosterManager,
+    showFirstThenEditor,
+    setShowFirstThenEditor,
+    showGoalEditor,
+    setShowGoalEditor,
+    editingBox,
+    setEditingBox,
+    showTextBoxEditor,
+    setShowTextBoxEditor,
+    editingTextBoxId,
+    setEditingTextBoxId,
     floorPlanRef,
-    isAnimating, setIsAnimating,
-    showAnnouncement, setShowAnnouncement,
-    announcementPhase, setAnnouncementPhase,
-    animationTargets, setAnimationTargets,
+    isAnimating,
+    setIsAnimating,
+    showAnnouncement,
+    setShowAnnouncement,
+    announcementPhase,
+    setAnnouncementPhase,
+    animationTargets,
+    setAnimationTargets,
+    rotationHistory,
 
     // Actions
     triggerRotation,
+    undoRotation,
+    resetRotation,
+    loadTemplate,
+    getCustomTemplates,
+    saveCurrentLayoutAsTemplate,
+    deleteCustomTemplate,
+    loadCustomTemplate,
+    skipWelcome,
+    showWelcomeModal,
     addBox,
     addFloorPlan,
     addStationToTab,
@@ -807,6 +1228,125 @@ export function AppStateProvider({ children }) {
     toggleEditMode,
     toggleLayoutEditMode,
   };
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // BroadcastChannel: Real-time sync between teacher mode and kiosk mode
+  // ══════════════════════════════════════════════════════════════════════════
+  const isKioskMode = typeof window !== 'undefined' && window.location.pathname.includes('/kiosk');
+  const broadcastChannelRef = useRef(null);
+  const isReceivingRef = useRef(false); // Prevent broadcast loops
+  const triggerRotationRef = useRef(null); // Store rotation function for broadcast handler
+
+  // Store rotation function in ref so broadcast handler can access it
+  useEffect(() => {
+    triggerRotationRef.current = triggerRotation;
+  }, [triggerRotation]);
+
+  // Set up BroadcastChannel for tab synchronization
+  useEffect(() => {
+    // Only use BroadcastChannel if supported
+    if (typeof window === 'undefined' || !window.BroadcastChannel) {
+      return;
+    }
+
+    const channel = new BroadcastChannel('specialedscreen-sync');
+    broadcastChannelRef.current = channel;
+
+    // Listen for messages from other tabs
+    channel.onmessage = (event) => {
+      if (!event.data) return;
+
+      // Handle rotation trigger events separately - execute same rotation in kiosk
+      if (event.data.type === 'ROTATION_TRIGGER') {
+        if (triggerRotationRef.current && typeof triggerRotationRef.current === 'function') {
+          triggerRotationRef.current();
+        }
+        return;
+      }
+
+      if (event.data.type !== 'STATE_SYNC') return;
+
+      const { payload } = event.data;
+      isReceivingRef.current = true;
+
+      // Apply state updates (excluding students during sync)
+      if (payload.timeRemaining !== undefined) setTimeRemaining(payload.timeRemaining);
+      if (payload.isRunning !== undefined) setIsRunning(payload.isRunning);
+      if (payload.totalTime !== undefined) setTotalTime(payload.totalTime);
+      // Don't sync students - let rotation events handle that
+      // if (payload.students) setStudentsByLayout(payload.students);
+      if (payload.isAnimating !== undefined) setIsAnimating(payload.isAnimating);
+      if (payload.animationTargets) setAnimationTargets(payload.animationTargets);
+      if (payload.rightNowText !== undefined) setRightNowText(payload.rightNowText);
+      if (payload.voiceLevel !== undefined) setVoiceLevel(payload.voiceLevel);
+      if (payload.firstThen) setFirstThen(payload.firstThen);
+      if (payload.quickMessage !== undefined) setQuickMessage(payload.quickMessage);
+      if (payload.stationConfigs) {
+        setFloorPlansByLayout((prev) => {
+          const set = prev[activeLayoutId];
+          if (!set) return prev;
+          const nextPlans = set.floorPlans.map((fp) =>
+            fp.id === activeFloorPlanId
+              ? { ...fp, stationConfigs: payload.stationConfigs }
+              : fp
+          );
+          return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
+        });
+      }
+
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isReceivingRef.current = false;
+      }, 50);
+    };
+
+    return () => {
+      channel.close();
+    };
+  }, [activeLayoutId, activeFloorPlanId]);
+
+  // Broadcast state changes from teacher mode
+  useEffect(() => {
+    if (isKioskMode || !broadcastChannelRef.current || isReceivingRef.current) {
+      return; // Only broadcast from teacher mode, not during receiving
+    }
+
+    const broadcast = () => {
+      broadcastChannelRef.current?.postMessage({
+        type: 'STATE_SYNC',
+        payload: {
+          timeRemaining,
+          isRunning,
+          totalTime,
+          students: studentsByLayout,
+          isAnimating,
+          animationTargets,
+          rightNowText,
+          voiceLevel,
+          firstThen,
+          quickMessage,
+          stationConfigs,
+        },
+      });
+    };
+
+    // Broadcast changes (debounced to avoid spam)
+    const timeoutId = setTimeout(broadcast, 100);
+    return () => clearTimeout(timeoutId);
+  }, [
+    timeRemaining,
+    isRunning,
+    totalTime,
+    studentsByLayout,
+    isAnimating,
+    animationTargets,
+    rightNowText,
+    voiceLevel,
+    firstThen,
+    quickMessage,
+    stationConfigs,
+    isKioskMode,
+  ]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

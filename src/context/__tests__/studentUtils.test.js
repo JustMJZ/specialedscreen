@@ -1,4 +1,8 @@
-import { ensureUniqueStudents, normalizeStudentsByLayout, createDefaultRoster } from '../stateUtils';
+import {
+  ensureUniqueStudents,
+  normalizeStudentsByLayout,
+  createDefaultRoster,
+} from '../stateUtils';
 
 describe('ensureUniqueStudents', () => {
   it('keeps students that already have unique IDs', () => {
@@ -12,10 +16,7 @@ describe('ensureUniqueStudents', () => {
   });
 
   it('assigns IDs to students without IDs', () => {
-    const students = [
-      { name: 'Alice' },
-      { id: null, name: 'Bob' },
-    ];
+    const students = [{ name: 'Alice' }, { id: null, name: 'Bob' }];
     const { next, changed } = ensureUniqueStudents(students);
     expect(changed).toBe(true);
     expect(next[0].id).toBeTruthy();
@@ -60,13 +61,9 @@ describe('ensureUniqueStudents', () => {
   });
 
   it('generates unique IDs for multiple students without IDs', () => {
-    const students = [
-      { name: 'Alice' },
-      { name: 'Bob' },
-      { name: 'Charlie' },
-    ];
+    const students = [{ name: 'Alice' }, { name: 'Bob' }, { name: 'Charlie' }];
     const { next } = ensureUniqueStudents(students);
-    const ids = next.map(s => s.id);
+    const ids = next.map((s) => s.id);
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(3);
   });
@@ -109,7 +106,7 @@ describe('normalizeStudentsByLayout', () => {
       ],
     };
     const result = normalizeStudentsByLayout(input, 'layout-1');
-    const ids = result['layout-1'].map(s => s.id);
+    const ids = result['layout-1'].map((s) => s.id);
     expect(new Set(ids).size).toBe(2);
   });
 
@@ -128,7 +125,7 @@ describe('createDefaultRoster', () => {
 
   it('each entry has id, name, photo, and emoji fields', () => {
     const roster = createDefaultRoster();
-    roster.forEach(entry => {
+    roster.forEach((entry) => {
       expect(entry).toHaveProperty('id');
       expect(entry).toHaveProperty('name');
       expect(entry).toHaveProperty('photo');
@@ -138,7 +135,7 @@ describe('createDefaultRoster', () => {
 
   it('roster IDs are prefixed with r-', () => {
     const roster = createDefaultRoster();
-    roster.forEach(entry => {
+    roster.forEach((entry) => {
       expect(entry.id).toMatch(/^r-/);
     });
   });

@@ -8,7 +8,12 @@ const TokenBoardCard = () => {
     <div className="rounded-lg p-2 shadow-md h-full flex flex-col">
       <div className="flex items-center justify-between">
         <div className="text-xs font-bold text-purple-600">🎯 TOKEN BOARD</div>
-        <button onClick={() => setShowGoalEditor(true)} className="text-xs bg-white/50 hover:bg-white/80 px-2 py-1 rounded focus:ring-2 focus:ring-purple-400 focus:outline-none">✏️ Setup</button>
+        <button
+          onClick={() => setShowGoalEditor(true)}
+          className="text-xs bg-white/50 hover:bg-white/80 px-2 py-1 rounded focus:ring-2 focus:ring-purple-400 focus:outline-none"
+        >
+          ✏️ Setup
+        </button>
       </div>
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center">

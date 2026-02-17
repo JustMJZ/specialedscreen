@@ -82,7 +82,9 @@ const GoalLadder = ({
         </button>
       </div>
       <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-400">
-        <span>{completedCount} / {totalSteps} steps</span>
+        <span>
+          {completedCount} / {totalSteps} steps
+        </span>
         <span className="text-gray-600 font-bold">{progressPercent}%</span>
       </div>
       <div className="h-2 rounded-full bg-black/5 border border-emerald-200/70 overflow-hidden shadow-inner">
@@ -98,12 +100,36 @@ const GoalLadder = ({
             const stepNumber = safeSteps.length - i;
             const displayLabel = label?.trim() || `Step ${stepNumber}`;
             const colors = [
-              { chip: 'bg-rose-400 border-rose-500', bar: 'from-rose-200 to-rose-300', text: 'text-rose-600' },
-              { chip: 'bg-amber-400 border-amber-500', bar: 'from-amber-200 to-amber-300', text: 'text-amber-600' },
-              { chip: 'bg-lime-400 border-lime-500', bar: 'from-lime-200 to-lime-300', text: 'text-lime-600' },
-              { chip: 'bg-cyan-400 border-cyan-500', bar: 'from-cyan-200 to-cyan-300', text: 'text-cyan-600' },
-              { chip: 'bg-indigo-400 border-indigo-500', bar: 'from-indigo-200 to-indigo-300', text: 'text-indigo-600' },
-              { chip: 'bg-fuchsia-400 border-fuchsia-500', bar: 'from-fuchsia-200 to-fuchsia-300', text: 'text-fuchsia-600' },
+              {
+                chip: 'bg-rose-600 border-rose-700',
+                bar: 'from-rose-200 to-rose-300',
+                text: 'text-rose-600',
+              },
+              {
+                chip: 'bg-amber-600 border-amber-700',
+                bar: 'from-amber-200 to-amber-300',
+                text: 'text-amber-600',
+              },
+              {
+                chip: 'bg-lime-600 border-lime-700',
+                bar: 'from-lime-200 to-lime-300',
+                text: 'text-lime-600',
+              },
+              {
+                chip: 'bg-cyan-600 border-cyan-700',
+                bar: 'from-cyan-200 to-cyan-300',
+                text: 'text-cyan-600',
+              },
+              {
+                chip: 'bg-indigo-600 border-indigo-700',
+                bar: 'from-indigo-200 to-indigo-300',
+                text: 'text-indigo-600',
+              },
+              {
+                chip: 'bg-fuchsia-600 border-fuchsia-700',
+                bar: 'from-fuchsia-200 to-fuchsia-300',
+                text: 'text-fuchsia-600',
+              },
             ];
             const palette = colors[i % colors.length];
             return (
@@ -153,16 +179,27 @@ const GoalLadder = ({
           })}
           {!isEditing && (
             <div className="mt-2 text-center text-xs text-gray-400 flex items-center justify-center gap-1">
-              <span className="inline-block" style={{ animation: 'ladder-sparkle 1.6s ease-in-out infinite' }}>✨</span>
+              <span
+                className="inline-block"
+                style={{ animation: 'ladder-sparkle 1.6s ease-in-out infinite' }}
+              >
+                ✨
+              </span>
               Tap a rung to track progress
             </div>
           )}
         </div>
       </div>
       <div className="flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest text-gray-400">
-        <button onClick={handleAddStep} className="hover:text-emerald-600">+ Step</button>
-        <button onClick={handleRemoveStep} className="hover:text-emerald-600">- Step</button>
-        <button onClick={handleReset} className="hover:text-emerald-600">Reset</button>
+        <button onClick={handleAddStep} className="hover:text-emerald-600">
+          + Step
+        </button>
+        <button onClick={handleRemoveStep} className="hover:text-emerald-600">
+          - Step
+        </button>
+        <button onClick={handleReset} className="hover:text-emerald-600">
+          Reset
+        </button>
       </div>
     </div>
   );

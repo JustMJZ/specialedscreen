@@ -57,9 +57,20 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
 
   // Fun event emojis
   const eventEmojis = {
-    lunch: '🍕', recess: '🏃', home: '🏠', bus: '🚌', snack: '🍪',
-    art: '🎨', music: '🎵', pe: '⚽', library: '📚', science: '🔬',
-    party: '🎉', assembly: '🎤', dismissal: '👋', breakfast: '🥞',
+    lunch: '🍕',
+    recess: '🏃',
+    home: '🏠',
+    bus: '🚌',
+    snack: '🍪',
+    art: '🎨',
+    music: '🎵',
+    pe: '⚽',
+    library: '📚',
+    science: '🔬',
+    party: '🎉',
+    assembly: '🎤',
+    dismissal: '👋',
+    breakfast: '🥞',
   };
   const eventLower = event.toLowerCase();
   const matchedEmoji = Object.entries(eventEmojis).find(([key]) => eventLower.includes(key));
@@ -71,23 +82,45 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
   if (editing) {
     return (
       <div className="rounded-lg p-3 shadow-md h-full flex flex-col justify-center">
-        <input value={newEvent} onChange={e => setNewEvent(e.target.value)} placeholder="Event name (e.g. Lunch, Recess)"
-          className="w-full px-3 py-1.5 rounded text-sm mb-2 border focus:ring-2 focus:ring-purple-400 focus:outline-none" autoFocus />
+        <input
+          value={newEvent}
+          onChange={(e) => setNewEvent(e.target.value)}
+          placeholder="Event name (e.g. Lunch, Recess)"
+          className="w-full px-3 py-1.5 rounded text-sm mb-2 border focus:ring-2 focus:ring-purple-400 focus:outline-none"
+          autoFocus
+        />
         <div className="flex gap-1">
-          <input type="time" value={newTime} onChange={e => setNewTime(e.target.value)}
-            className="flex-1 px-3 py-1.5 rounded text-sm border focus:ring-2 focus:ring-purple-400 focus:outline-none" />
-          <button onClick={() => { onEdit(newEvent, newTime); setEditing(false); }}
-            className="px-3 py-1.5 bg-purple-500 text-white rounded text-sm font-bold">✓</button>
-          <button onClick={() => setEditing(false)} className="px-3 py-1.5 bg-gray-200 rounded text-sm">✕</button>
+          <input
+            type="time"
+            value={newTime}
+            onChange={(e) => setNewTime(e.target.value)}
+            className="flex-1 px-3 py-1.5 rounded text-sm border focus:ring-2 focus:ring-purple-400 focus:outline-none"
+          />
+          <button
+            onClick={() => {
+              onEdit(newEvent, newTime);
+              setEditing(false);
+            }}
+            className="px-3 py-1.5 bg-purple-500 text-white rounded text-sm font-bold"
+          >
+            ✓
+          </button>
+          <button
+            onClick={() => setEditing(false)}
+            className="px-3 py-1.5 bg-gray-200 rounded text-sm"
+          >
+            ✕
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div onClick={() => setEditing(true)}
-      className="rounded-lg p-2 shadow-md cursor-pointer hover:shadow-lg transition-all h-full flex flex-col justify-center overflow-hidden relative">
-
+    <div
+      onClick={() => setEditing(true)}
+      className="rounded-lg p-2 shadow-md cursor-pointer hover:shadow-lg transition-all h-full flex flex-col justify-center overflow-hidden relative"
+    >
       <style>{`
         @keyframes countdown-pulse {
           0%, 100% { transform: scale(1); }
@@ -107,40 +140,63 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
       {/* Event name + emoji */}
       <div className="flex items-center justify-center gap-1 mb-1">
         <span style={{ fontSize: 'clamp(16px, 3vw, 28px)' }}>{emoji}</span>
-        <span className="font-black text-gray-700 uppercase tracking-wide" style={{
-          fontSize: 'clamp(11px, 1.5vw, 16px)',
-        }}>{event}</span>
+        <span
+          className="font-black text-gray-700 uppercase tracking-wide"
+          style={{
+            fontSize: 'clamp(11px, 1.5vw, 16px)',
+          }}
+        >
+          {event}
+        </span>
         <span style={{ fontSize: 'clamp(16px, 3vw, 28px)' }}>{emoji}</span>
       </div>
 
       {/* Big time display */}
-      <div className="text-center" style={{
-        animation: isVeryClose ? 'countdown-shake 0.3s infinite' : pulse ? 'countdown-pulse 1s infinite' : 'none',
-      }}>
-        <div className="font-black" style={{
-          fontSize: 'clamp(28px, 6vw, 56px)',
-          fontFamily: "'Fredoka One', cursive",
-          color: '#374151',
-          lineHeight: 1,
-          textShadow: isClose ? '0 0 16px rgba(0,0,0,0.12)' : 'none',
-        }}>
+      <div
+        className="text-center"
+        style={{
+          animation: isVeryClose
+            ? 'countdown-shake 0.3s infinite'
+            : pulse
+              ? 'countdown-pulse 1s infinite'
+              : 'none',
+        }}
+      >
+        <div
+          className="font-black"
+          style={{
+            fontSize: 'clamp(28px, 6vw, 56px)',
+            fontFamily: "'Fredoka One', cursive",
+            color: '#374151',
+            lineHeight: 1,
+            textShadow: isClose ? '0 0 16px rgba(0,0,0,0.12)' : 'none',
+          }}
+        >
           {timeDisplay}
         </div>
       </div>
 
       {/* Progress bar */}
-      <div className="h-2 rounded-full overflow-hidden mt-1.5" style={{ backgroundColor: barColor + '20' }}>
-        <div className="h-full rounded-full transition-all duration-1000"
+      <div
+        className="h-2 rounded-full overflow-hidden mt-1.5"
+        style={{ backgroundColor: barColor + '20' }}
+      >
+        <div
+          className="h-full rounded-full transition-all duration-1000"
           style={{
             width: `${progress * 100}%`,
             backgroundColor: barColor,
             boxShadow: isClose ? `0 0 8px ${barColor}` : 'none',
-          }}>
+          }}
+        >
           {isClose && (
-            <div className="h-full w-full rounded-full" style={{
-              animation: 'countdown-glow 1s infinite',
-              backgroundColor: 'rgba(255,255,255,0.5)',
-            }} />
+            <div
+              className="h-full w-full rounded-full"
+              style={{
+                animation: 'countdown-glow 1s infinite',
+                backgroundColor: 'rgba(255,255,255,0.5)',
+              }}
+            />
           )}
         </div>
       </div>
@@ -148,9 +204,14 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
       {/* Status text */}
       <div className="text-center mt-1">
         {isUnderMinute ? (
-          <span className="text-xs font-black text-red-500 uppercase tracking-widest" style={{
-            animation: 'countdown-pulse 0.5s infinite',
-          }}>Almost time!</span>
+          <span
+            className="text-xs font-black text-red-500 uppercase tracking-widest"
+            style={{
+              animation: 'countdown-pulse 0.5s infinite',
+            }}
+          >
+            Almost time!
+          </span>
         ) : isVeryClose ? (
           <span className="text-xs font-bold text-red-400">Get ready!</span>
         ) : isClose ? (

@@ -4,14 +4,15 @@
  */
 
 // Base button styles
-const baseBtn = "font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
+const baseBtn =
+  'font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
 
 // Size variants
 export const buttonSizes = {
-  xs: "px-2 py-1 text-[10px] rounded",
-  sm: "px-3 py-1.5 text-xs rounded-md",
-  md: "px-4 py-2 text-sm rounded-lg",
-  lg: "px-6 py-3 text-base rounded-lg",
+  xs: 'px-2 py-1 text-[10px] rounded',
+  sm: 'px-3 py-1.5 text-xs rounded-md',
+  md: 'px-4 py-2 text-sm rounded-lg',
+  lg: 'px-6 py-3 text-base rounded-lg',
 };
 
 // Style variants
@@ -37,11 +38,11 @@ export const buttonVariants = {
 
 // Pill button styles (compact, rounded-full)
 export const pillButton = {
-  base: "px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200",
-  default: "bg-black/10 hover:bg-black/20 text-gray-700 active:bg-black/30",
-  active: "bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800",
-  success: "bg-green-600 text-white hover:bg-green-700 active:bg-green-800",
-  danger: "bg-red-600 text-white hover:bg-red-700 active:bg-red-800",
+  base: 'px-3 py-1 rounded-full text-[11px] font-semibold transition-all duration-200',
+  default: 'bg-black/10 hover:bg-black/20 text-gray-700 active:bg-black/30',
+  active: 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+  success: 'bg-green-600 text-white hover:bg-green-700 active:bg-green-800',
+  danger: 'bg-red-600 text-white hover:bg-red-700 active:bg-red-800',
 };
 
 // Icon button styles
@@ -52,7 +53,8 @@ export const iconButton = {
 };
 
 // Menu item button (for dropdowns/modals)
-export const menuButton = "w-full text-left px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 transition-colors rounded-md";
+export const menuButton =
+  'w-full text-left px-3 py-2 text-sm hover:bg-gray-100 active:bg-gray-200 transition-colors rounded-md';
 
 // Helper function to combine button classes
 export const getButtonClass = (variant = 'secondary', size = 'md') => {

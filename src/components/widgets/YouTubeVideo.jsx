@@ -43,17 +43,31 @@ const YouTubeVideo = ({ url, onChange }) => {
         <div className="text-xs font-bold text-gray-500">🎥 YOUTUBE VIDEO</div>
         <input
           value={value}
-          onChange={(e) => { setValue(e.target.value); setError(''); }}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setError('');
+          }}
           className="w-full px-2 py-1 rounded text-sm border text-gray-800"
           placeholder="Paste a YouTube link"
           autoFocus
         />
         {error && <div className="text-xs text-red-500">{error}</div>}
         <div className="flex items-center gap-2 justify-end mt-auto">
-          <button onClick={() => { setEditing(false); setError(''); }}
-            className="px-2 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300">Cancel</button>
-          <button onClick={handleSave}
-            className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-800">Save</button>
+          <button
+            onClick={() => {
+              setEditing(false);
+              setError('');
+            }}
+            className="px-2 py-1 bg-gray-200 rounded text-xs hover:bg-gray-300"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-2 py-1 bg-gray-700 text-white rounded text-xs font-medium hover:bg-gray-800"
+          >
+            Save
+          </button>
         </div>
       </div>
     );
@@ -64,7 +78,10 @@ const YouTubeVideo = ({ url, onChange }) => {
       {!url ? (
         <div className="h-full w-full flex flex-col items-center justify-center gap-2 text-gray-500">
           <div className="text-sm font-semibold">YouTube Video</div>
-          <button onClick={() => setEditing(true)} className="px-3 py-1 bg-gray-100 rounded text-xs hover:bg-gray-200">
+          <button
+            onClick={() => setEditing(true)}
+            className="px-3 py-1 bg-gray-100 rounded text-xs hover:bg-gray-200"
+          >
             Add YouTube Link
           </button>
         </div>

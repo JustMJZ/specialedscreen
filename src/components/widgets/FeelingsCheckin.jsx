@@ -24,7 +24,7 @@ const FeelingsCheckin = ({ students }) => {
   // Measure container
   useEffect(() => {
     if (!containerRef.current) return;
-    const obs = new ResizeObserver(entries => {
+    const obs = new ResizeObserver((entries) => {
       for (const e of entries) {
         setSize({ w: e.contentRect.width, h: e.contentRect.height });
       }
@@ -91,7 +91,7 @@ const FeelingsCheckin = ({ students }) => {
 
   const pickFeeling = (feeling) => {
     if (!activeStudent) return;
-    setSelections(prev => ({ ...prev, [activeStudent.id]: feeling }));
+    setSelections((prev) => ({ ...prev, [activeStudent.id]: feeling }));
     setActiveStudent(null);
 
     // Activate cooldown to prevent accidental double-taps
@@ -128,7 +128,11 @@ const FeelingsCheckin = ({ students }) => {
         className="rounded-full bg-blue-100 flex items-center justify-center font-bold text-blue-700 border-4 border-blue-300"
         style={{ width: avatarSize, height: avatarSize, fontSize: initialsSize }}
       >
-        {student.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+        {student.name
+          .split(' ')
+          .map((n) => n[0])
+          .join('')
+          .toUpperCase()}
       </div>
     );
   };
@@ -153,7 +157,7 @@ const FeelingsCheckin = ({ students }) => {
         }
       `}</style>
 
-      {(!students || students.length === 0) ? (
+      {!students || students.length === 0 ? (
         <div className="h-full flex items-center justify-center text-gray-400 text-lg">
           Add students in the roster to use Feelings Check-in
         </div>
@@ -165,7 +169,7 @@ const FeelingsCheckin = ({ students }) => {
             gridTemplateRows: `repeat(${Math.ceil(students.length / cols)}, 1fr)`,
           }}
         >
-          {students.map(student => {
+          {students.map((student) => {
             const sel = selections[student.id];
             return (
               <button
@@ -188,7 +192,7 @@ const FeelingsCheckin = ({ students }) => {
                     onClick={(e) => {
                       e.stopPropagation();
                       e.preventDefault();
-                      setSelections(prev => {
+                      setSelections((prev) => {
                         const updated = { ...prev };
                         delete updated[student.id];
                         return updated;
@@ -203,8 +207,18 @@ const FeelingsCheckin = ({ students }) => {
                     </div>
                     {/* Tail dots */}
                     <div className="flex flex-col items-center" style={{ marginTop: -2 }}>
-                      <div className="rounded-full bg-white border border-gray-200" style={{ width: bubbleSize * 0.22, height: bubbleSize * 0.22 }} />
-                      <div className="rounded-full bg-white border border-gray-200" style={{ width: bubbleSize * 0.13, height: bubbleSize * 0.13, marginTop: -1 }} />
+                      <div
+                        className="rounded-full bg-white border border-gray-200"
+                        style={{ width: bubbleSize * 0.22, height: bubbleSize * 0.22 }}
+                      />
+                      <div
+                        className="rounded-full bg-white border border-gray-200"
+                        style={{
+                          width: bubbleSize * 0.13,
+                          height: bubbleSize * 0.13,
+                          marginTop: -1,
+                        }}
+                      />
                     </div>
                   </div>
                 )}
@@ -239,12 +253,19 @@ const FeelingsCheckin = ({ students }) => {
       {/* Feelings popup */}
       {activeStudent && (
         <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/25">
-          <div ref={popupRef} className="bg-white rounded-3xl shadow-2xl p-6" style={{ maxWidth: Math.min(size.w * 0.95, 1200) }}>
-            <div className="text-center font-bold text-gray-700 mb-4" style={{ fontSize: Math.max(18, Math.min(size.w * 0.03, 28)) }}>
+          <div
+            ref={popupRef}
+            className="bg-white rounded-3xl shadow-2xl p-6"
+            style={{ maxWidth: Math.min(size.w * 0.95, 1200) }}
+          >
+            <div
+              className="text-center font-bold text-gray-700 mb-4"
+              style={{ fontSize: Math.max(18, Math.min(size.w * 0.03, 28)) }}
+            >
               How does {activeStudent.name.split(' ')[0]} feel?
             </div>
             <div className="flex flex-wrap justify-center gap-3">
-              {FEELINGS.map(f => (
+              {FEELINGS.map((f) => (
                 <button
                   key={f.label}
                   onClick={(e) => {
@@ -255,11 +276,18 @@ const FeelingsCheckin = ({ students }) => {
                   className="flex flex-col items-center justify-center gap-1.5 rounded-2xl hover:bg-gray-100 active:bg-gray-200 active:scale-95 transition-all cursor-pointer"
                   style={{
                     padding: Math.max(12, size.w * 0.015),
-                    minWidth: Math.max(80, size.w * 0.08)
+                    minWidth: Math.max(80, size.w * 0.08),
                   }}
                 >
-                  <span style={{ fontSize: Math.max(40, Math.min(size.w * 0.06, 64)) }}>{f.emoji}</span>
-                  <span className="font-semibold text-gray-600" style={{ fontSize: Math.max(12, Math.min(size.w * 0.016, 18)) }}>{f.label}</span>
+                  <span style={{ fontSize: Math.max(40, Math.min(size.w * 0.06, 64)) }}>
+                    {f.emoji}
+                  </span>
+                  <span
+                    className="font-semibold text-gray-600"
+                    style={{ fontSize: Math.max(12, Math.min(size.w * 0.016, 18)) }}
+                  >
+                    {f.label}
+                  </span>
                 </button>
               ))}
             </div>

@@ -64,14 +64,6 @@ const widgetRegistry = {
     defaultW: 5,
     defaultH: 2,
   },
-  starPoints: {
-    label: 'Class Stars',
-    icon: '⭐',
-    minW: 2,
-    minH: 2,
-    defaultW: 5,
-    defaultH: 3,
-  },
   goalLadder: {
     label: 'Goal Ladder',
     icon: '🪜',
@@ -111,6 +103,14 @@ const widgetRegistry = {
     minH: 3,
     defaultW: 5,
     defaultH: 5,
+  },
+  textBox: {
+    label: 'Text Box',
+    icon: '📝',
+    minW: 3,
+    minH: 3,
+    defaultW: 6,
+    defaultH: 6,
   },
 };
 

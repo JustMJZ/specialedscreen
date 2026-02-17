@@ -37,7 +37,10 @@ const TimerSettingsModal = ({
 
   if (!show) return null;
 
-  const allSounds = [...ROTATION_SOUNDS, ...customSounds.map(s => ({ id: s.id, name: `🎵 ${s.name}`, type: 'custom' }))];
+  const allSounds = [
+    ...ROTATION_SOUNDS,
+    ...customSounds.map((s) => ({ id: s.id, name: `🎵 ${s.name}`, type: 'custom' })),
+  ];
 
   const handleUpload = (e) => {
     const file = e.target.files[0];
@@ -56,7 +59,7 @@ const TimerSettingsModal = ({
 
   const handleDeleteSound = (id) => {
     if (!window.confirm('Delete this custom sound?')) return;
-    setCustomSounds(customSounds.filter(s => s.id !== id));
+    setCustomSounds(customSounds.filter((s) => s.id !== id));
     if (rotationSound === id) setRotationSound('none');
   };
 
@@ -72,25 +75,34 @@ const TimerSettingsModal = ({
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[9999]" />
 
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="timer-settings-title"
         className="relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto z-[10000]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 rounded-t-2xl flex items-center justify-between z-10">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800">Timer Settings</h2>
-            <p className="text-sm text-gray-500 mt-1">Customize your timer appearance and behavior</p>
+            <h2 id="timer-settings-title" className="text-2xl font-bold text-gray-800">
+              Timer Settings
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Customize your timer appearance and behavior
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={onClose}
               className="px-6 py-2 bg-purple-500 hover:bg-purple-600 text-white font-semibold rounded-lg transition-colors"
+              aria-label="Done and close"
             >
               Done
             </button>
             <button
               onClick={onClose}
               className="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close modal"
             >
               <span className="text-2xl leading-none">×</span>
             </button>
@@ -99,12 +111,11 @@ const TimerSettingsModal = ({
 
         {/* Content */}
         <div className="px-6 py-6 pb-8 space-y-8">
-
           {/* Timer Style Section */}
           <section>
             <h3 className="text-lg font-bold text-gray-800 mb-4">Timer Style</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {TIMER_STYLES.map(style => (
+              {TIMER_STYLES.map((style) => (
                 <button
                   key={style.id}
                   onClick={() => setTimerStyle(style.id)}
@@ -128,7 +139,7 @@ const TimerSettingsModal = ({
               <h3 className="text-lg font-bold text-gray-800 mb-4">Duration</h3>
               {!showCustomTime ? (
                 <div className="flex flex-wrap gap-2">
-                  {[5, 10, 15, 20].map(minutes => (
+                  {[5, 10, 15, 20].map((minutes) => (
                     <button
                       key={minutes}
                       onClick={() => {
@@ -177,7 +188,9 @@ const TimerSettingsModal = ({
                         min="0"
                         max="59"
                         value={customSecs}
-                        onChange={(e) => setCustomSecs(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                        onChange={(e) =>
+                          setCustomSecs(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-lg font-semibold"
                       />
                     </div>
@@ -208,9 +221,7 @@ const TimerSettingsModal = ({
               onClick={() => setAutoRepeat(!autoRepeat)}
               disabled={isEditMode}
               className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                autoRepeat
-                  ? 'border-green-500 bg-green-50'
-                  : 'border-gray-200 bg-gray-50'
+                autoRepeat ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-gray-50'
               } ${isEditMode ? 'opacity-50 cursor-not-allowed' : 'hover:border-gray-300'}`}
             >
               <div className="flex items-center justify-between">
@@ -224,8 +235,12 @@ const TimerSettingsModal = ({
                       : 'Click "Next" button to rotate students manually'}
                   </div>
                 </div>
-                <div className={`w-12 h-6 rounded-full transition-colors ${autoRepeat ? 'bg-green-500' : 'bg-gray-300'}`}>
-                  <div className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform mt-0.5 ${autoRepeat ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`} />
+                <div
+                  className={`w-12 h-6 rounded-full transition-colors ${autoRepeat ? 'bg-green-500' : 'bg-gray-300'}`}
+                >
+                  <div
+                    className={`w-5 h-5 bg-white rounded-full shadow-md transition-transform mt-0.5 ${autoRepeat ? 'translate-x-6 ml-0.5' : 'translate-x-0.5'}`}
+                  />
                 </div>
               </div>
             </button>
@@ -237,7 +252,7 @@ const TimerSettingsModal = ({
 
             {/* Sound Selection */}
             <div className="space-y-2 mb-4 max-h-48 overflow-y-auto border border-gray-200 rounded-lg">
-              {allSounds.map(sound => (
+              {allSounds.map((sound) => (
                 <div
                   key={sound.id}
                   className={`flex items-center gap-2 px-4 py-3 hover:bg-gray-50 cursor-pointer ${
@@ -260,9 +275,7 @@ const TimerSettingsModal = ({
                       ✕
                     </button>
                   )}
-                  {rotationSound === sound.id && (
-                    <span className="text-purple-500">✓</span>
-                  )}
+                  {rotationSound === sound.id && <span className="text-purple-500">✓</span>}
                 </div>
               ))}
             </div>
@@ -305,7 +318,6 @@ const TimerSettingsModal = ({
               </div>
             </div>
           </section>
-
         </div>
       </div>
     </div>,
