@@ -61,283 +61,73 @@ const Confetti = ({ active, performanceMode }) => {
   );
 };
 
-/* ── Ring display (LEGENDARY Edition) ── */
-const RingDisplay = ({ progress, mins, secs, barColor, isRunning }) => {
-  const radius = 70;
+/* ── Ring display ── */
+const RingDisplay = ({ progress, mins, secs, isRunning }) => {
+  const p = Math.max(0, Math.min(1, progress));
+  const radius = 74;
   const circumference = 2 * Math.PI * radius;
-  const offset = circumference * (1 - progress);
-  const pulseClass = progress < 0.07 && isRunning ? 'animate-pulse' : '';
+  const offset = circumference * (1 - p);
 
-  // Dynamic gradient colors based on progress
-  const getProgressGradient = () => {
-    if (progress < 0.07) return { start: '#FF6B6B', mid: '#FF8787', end: '#FFA3A3' }; // Critical red
-    if (progress < 0.15) return { start: '#FFB347', mid: '#FFC870', end: '#FFD999' }; // Warning orange
-    if (progress < 0.5) return { start: '#4ECDC4', mid: '#6DD5CD', end: '#8EDDD6' }; // Calm teal
-    return { start: '#95E1D3', mid: '#A8E6D9', end: '#BBEBDF' }; // Safe green
-  };
-  const gradColors = getProgressGradient();
+  const color =
+    p < 0.07 ? '#ef4444' :
+    p < 0.15 ? '#f97316' :
+    p < 0.5  ? '#38bdf8' : '#22c55e';
 
   return (
-    <div className="flex items-center justify-center flex-1 min-h-0 p-4" style={{ color: COLORS.text }}>
-      <svg
-        viewBox="0 0 220 220"
-        className={pulseClass}
-        style={{ width: '100%', height: '100%' }}
-      >
-        <defs>
-          {/* Progress gradient */}
-          <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor={gradColors.start} />
-            <stop offset="50%" stopColor={gradColors.mid} />
-            <stop offset="100%" stopColor={gradColors.end} />
-          </linearGradient>
+    <div className="flex items-center justify-center flex-1 min-h-0 w-full h-full p-2">
+      <svg viewBox="0 0 220 220" style={{ width: '100%', height: '100%', overflow: 'visible' }}>
 
-          {/* Glow gradient */}
-          <radialGradient id="glowGradient">
-            <stop offset="0%" stopColor={gradColors.start} stopOpacity="0.6" />
-            <stop offset="50%" stopColor={gradColors.mid} stopOpacity="0.3" />
-            <stop offset="100%" stopColor={gradColors.end} stopOpacity="0" />
-          </radialGradient>
-
-          {/* Shimmer gradient */}
-          <linearGradient id="shimmerGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0)">
-              <animate attributeName="offset" values="-0.5;1.5" dur="3s" repeatCount="indefinite" />
-            </stop>
-            <stop offset="0.5" stopColor="rgba(255,255,255,0.8)">
-              <animate attributeName="offset" values="-0.25;1.75" dur="3s" repeatCount="indefinite" />
-            </stop>
-            <stop offset="1" stopColor="rgba(255,255,255,0)">
-              <animate attributeName="offset" values="0;2" dur="3s" repeatCount="indefinite" />
-            </stop>
-          </linearGradient>
-
-          {/* Shadow filter */}
-          <filter id="ringGlow">
-            <feGaussianBlur stdDeviation="4" result="blur" />
-            <feFlood floodColor={gradColors.start} floodOpacity="0.4" />
-            <feComposite in2="blur" operator="in" result="glow" />
-            <feMerge>
-              <feMergeNode in="glow" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-
-          {/* Inner shadow */}
-          <filter id="innerShadow">
-            <feGaussianBlur in="SourceAlpha" stdDeviation="2" />
-            <feOffset dx="0" dy="2" result="offsetblur" />
-            <feFlood floodColor="#000000" floodOpacity="0.15" />
-            <feComposite in2="offsetblur" operator="in" />
-            <feMerge>
-              <feMergeNode />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Ambient glow when running */}
-        {isRunning && (
-          <circle cx="110" cy="110" r="90" fill="url(#glowGradient)" opacity="0.4">
-            <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2.5s" repeatCount="indefinite" />
-          </circle>
-        )}
-
-        {/* Outer ring shadow */}
+        {/* Track */}
         <circle
-          cx="110"
-          cy="110"
-          r={radius + 3}
+          cx="110" cy="110" r={radius}
           fill="none"
-          stroke="rgba(0,0,0,0.08)"
-          strokeWidth="16"
+          stroke="rgba(0,0,0,0.07)"
+          strokeWidth="13"
         />
 
-        {/* Track background - multi-layer */}
+        {/* Progress arc */}
         <circle
-          cx="110"
-          cy="110"
-          r={radius}
+          cx="110" cy="110" r={radius}
           fill="none"
-          stroke="#F3F4F6"
-          strokeWidth="14"
-        />
-        <circle
-          cx="110"
-          cy="110"
-          r={radius}
-          fill="none"
-          stroke="rgba(0,0,0,0.05)"
-          strokeWidth="14"
-          filter="url(#innerShadow)"
-        />
-
-        {/* Inner highlight on track */}
-        <circle
-          cx="110"
-          cy="110"
-          r={radius - 1}
-          fill="none"
-          stroke="rgba(255,255,255,0.6)"
-          strokeWidth="2"
-          strokeDasharray="4 8"
-          opacity="0.3"
-        />
-
-        {/* Progress ring - main */}
-        <circle
-          cx="110"
-          cy="110"
-          r={radius}
-          fill="none"
-          stroke="url(#progressGradient)"
-          strokeWidth="14"
+          stroke={color}
+          strokeWidth="13"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           transform="rotate(-90 110 110)"
-          style={{ transition: 'stroke-dashoffset 1s linear' }}
-          filter="url(#ringGlow)"
+          style={{
+            transition: 'stroke-dashoffset 1s linear, stroke 1.5s ease',
+            filter: `drop-shadow(0 0 5px ${color}88)`,
+          }}
         />
 
-        {/* Progress ring shimmer overlay */}
-        {isRunning && progress > 0.05 && (
-          <circle
-            cx="110"
-            cy="110"
-            r={radius}
-            fill="none"
-            stroke="url(#shimmerGradient)"
-            strokeWidth="14"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            transform="rotate(-90 110 110)"
-            opacity="0.6"
-          />
-        )}
-
-        {/* Outer glass highlight */}
-        <circle
-          cx="110"
-          cy="110"
-          r={radius + 1}
-          fill="none"
-          stroke="rgba(255,255,255,0.5)"
-          strokeWidth="1.5"
-        />
-
-        {/* Energy particles around ring when running */}
-        {isRunning && progress > 0.05 && [...Array(6)].map((_, i) => {
-          const angle = (i / 6) * 360;
-          const particleRadius = radius + 10;
-          const x = 110 + particleRadius * Math.cos((angle - 90) * Math.PI / 180);
-          const y = 110 + particleRadius * Math.sin((angle - 90) * Math.PI / 180);
-          return (
-            <circle
-              key={i}
-              cx={x}
-              cy={y}
-              r="3"
-              fill={gradColors.start}
-              opacity="0.7"
-            >
-              <animate
-                attributeName="opacity"
-                values="0.3;0.8;0.3"
-                dur="1.5s"
-                begin={`${i * 0.25}s`}
-                repeatCount="indefinite"
-              />
-              <animateTransform
-                attributeName="transform"
-                type="rotate"
-                from={`0 110 110`}
-                to={`360 110 110`}
-                dur="4s"
-                begin={`${i * 0.25}s`}
-                repeatCount="indefinite"
-              />
-            </circle>
-          );
-        })}
-
-        {/* Center circle with gradient */}
-        <circle
-          cx="110"
-          cy="110"
-          r="55"
-          fill="url(#glowGradient)"
-          opacity="0.08"
-        />
-
-        {/* Time display with enhanced styling */}
+        {/* Time */}
         <text
-          x="110"
-          y="105"
+          x="110" y="108"
           textAnchor="middle"
           dominantBaseline="middle"
           style={{
-            fontSize: 46,
+            fontSize: 48,
             fontFamily: "'Fredoka One', cursive",
             fill: '#1F2937',
-            filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.1))',
-            letterSpacing: '2px'
+            letterSpacing: '1px',
           }}
         >
           {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
         </text>
 
-        {/* Status indicator */}
-        <g>
-          <circle
-            cx="110"
-            cy="135"
-            r="5"
-            fill={isRunning ? gradColors.start : '#9CA3AF'}
-          >
-            {isRunning && (
-              <animate attributeName="opacity" values="1;0.4;1" dur="1.5s" repeatCount="indefinite" />
-            )}
-          </circle>
-          <text
-            x="110"
-            y="150"
-            textAnchor="middle"
-            style={{
-              fontSize: 11,
-              fill: '#6B7280',
-              fontWeight: 600,
-              letterSpacing: '0.5px',
-              textTransform: 'uppercase'
-            }}
-          >
-            {isRunning ? 'Active' : 'Paused'}
-          </text>
-        </g>
+        {/* Status dot */}
+        <circle
+          cx="110" cy="140"
+          r="4"
+          fill={isRunning ? color : '#D1D5DB'}
+          style={{ transition: 'fill 1.5s ease' }}
+        >
+          {isRunning && (
+            <animate attributeName="opacity" values="1;0.35;1" dur="1.6s" repeatCount="indefinite" />
+          )}
+        </circle>
 
-        {/* Rotating accent ring when running */}
-        {isRunning && (
-          <circle
-            cx="110"
-            cy="110"
-            r={radius + 12}
-            fill="none"
-            stroke={gradColors.start}
-            strokeWidth="1"
-            strokeDasharray="8 12"
-            opacity="0.25"
-          >
-            <animateTransform
-              attributeName="transform"
-              type="rotate"
-              from="0 110 110"
-              to="360 110 110"
-              dur="8s"
-              repeatCount="indefinite"
-            />
-          </circle>
-        )}
       </svg>
     </div>
   );
@@ -763,42 +553,110 @@ const ArcadeDisplay = ({ progress, mins, secs, isRunning, timePop, onTimeClick }
   );
 };
 
-/* ── Classic display (original) ── */
-const ClassicDisplay = ({ progress, mins, secs, barColor, isRunning, blendMode }) => (
-  <div className="flex flex-col justify-center flex-1 min-h-0 gap-2" style={{ color: COLORS.text }}>
-    <div className="flex items-center justify-between">
-      <span
-        style={{
-          fontSize: 'clamp(48px, 9vw, 80px)',
-          color: 'currentColor',
-          lineHeight: 1,
-          fontFamily: "'Fredoka One', cursive",
-        }}
-      >
+/* ── Classic display (revamped — dark glass neon edition) ── */
+const ClassicDisplay = ({ progress, mins, secs, isRunning, accentColor }) => {
+  const urgencyColor =
+    progress < 0.07 ? '#ef4444' :
+    progress < 0.15 ? '#f97316' :
+    progress < 0.5  ? '#38bdf8' : '#22c55e';
+
+  // Convert a 6-digit hex to rgba — used to derive glow from user-picked color
+  const hexToRgba = (hex, alpha) => {
+    if (!hex || hex[0] !== '#' || hex.length < 7) return null;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  };
+
+  const activeColor = accentColor || urgencyColor;
+  const glowRgba = accentColor
+    ? (hexToRgba(accentColor, 0.3) || 'rgba(34,197,94,0.25)')
+    : progress < 0.07 ? 'rgba(239,68,68,0.35)'
+    : progress < 0.15 ? 'rgba(249,115,22,0.3)'
+    : progress < 0.5  ? 'rgba(56,189,248,0.25)' : 'rgba(34,197,94,0.25)';
+
+  return (
+    <div style={{
+      width: '100%', height: '100%', borderRadius: 14,
+      background: 'linear-gradient(160deg, #0f172a 0%, #1e293b 100%)',
+      border: '1px solid rgba(255,255,255,0.07)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      gap: 14, padding: '14px 18px',
+      position: 'relative', overflow: 'hidden',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+    }}>
+      {/* Ambient colour glow */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        background: `radial-gradient(ellipse at 50% 45%, ${glowRgba} 0%, transparent 68%)`,
+        transition: 'background 2s ease',
+      }} />
+
+      {/* Scanline texture */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.03,
+        backgroundImage: 'repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)',
+      }} />
+
+      {/* Time digits */}
+      <div style={{
+        fontSize: 'clamp(48px, 10vw, 88px)',
+        fontFamily: "'Fredoka One', cursive",
+        fontWeight: 700, lineHeight: 1,
+        color: '#ffffff',
+        letterSpacing: '0.04em',
+        textShadow: `0 0 10px ${activeColor}, 0 3px 10px rgba(0,0,0,0.6)`,
+        transition: 'text-shadow 1.5s ease',
+        position: 'relative', zIndex: 1,
+      }}>
         {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
-      </span>
-      <span
-        className="text-base px-3 py-1.5 rounded-full"
-        style={{
-          backgroundColor: blendMode ? 'rgba(0,0,0,0.06)' : isRunning ? '#DCFCE7' : '#F3F4F6',
-          color: isRunning ? '#15803D' : '#6B7280',
-          border: blendMode ? '1px solid rgba(148,163,184,0.35)' : 'none',
-        }}
-      >
-        {isRunning ? '●' : '○'}
-      </span>
+      </div>
+
+      {/* Status row */}
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 7,
+        fontSize: 11, fontWeight: 700, letterSpacing: '0.12em',
+        textTransform: 'uppercase', zIndex: 1,
+        color: isRunning ? activeColor : 'rgba(148,163,184,0.5)',
+        transition: 'color 1.5s ease',
+      }}>
+        <div style={{
+          width: 7, height: 7, borderRadius: '50%',
+          background: isRunning ? activeColor : 'rgba(148,163,184,0.3)',
+          boxShadow: isRunning ? `0 0 8px ${activeColor}, 0 0 16px ${activeColor}80` : 'none',
+          animation: isRunning ? 'classic-dot-pulse 1.6s ease-in-out infinite' : 'none',
+          transition: 'background 1.5s ease, box-shadow 1.5s ease',
+          flexShrink: 0,
+        }} />
+        {isRunning ? 'Running' : 'Paused'}
+      </div>
+
+      {/* Progress bar */}
+      <div style={{
+        width: '100%', height: 6, borderRadius: 99, zIndex: 1,
+        background: 'rgba(255,255,255,0.07)',
+        overflow: 'hidden', position: 'relative',
+      }}>
+        <div style={{
+          height: '100%', borderRadius: 99,
+          width: `${Math.max(0, Math.min(1, progress)) * 100}%`,
+          background: `linear-gradient(90deg, ${activeColor}cc, ${activeColor})`,
+          boxShadow: `0 0 10px ${activeColor}90`,
+          transition: 'width 1s linear, background 1.5s ease, box-shadow 1.5s ease',
+        }} />
+        {/* Shimmer on the bar */}
+        <div style={{
+          position: 'absolute', top: 0, bottom: 0, left: 0,
+          width: `${Math.max(0, Math.min(1, progress)) * 100}%`,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+          animation: isRunning ? 'classic-bar-shimmer 2.4s ease-in-out infinite' : 'none',
+        }} />
+      </div>
     </div>
-    <div
-      className="h-4 rounded-full overflow-hidden"
-      style={{ backgroundColor: blendMode ? 'rgba(0,0,0,0.06)' : '#E5E7EB' }}
-    >
-      <div
-        className="h-full rounded-full transition-all duration-1000"
-        style={{ width: `${progress * 100}%`, backgroundColor: barColor }}
-      />
-    </div>
-  </div>
-);
+  );
+};
 
 /* ── Main TimerPanel ── */
 const TimerPanel = ({ isKioskMode = false }) => {
@@ -823,7 +681,11 @@ const TimerPanel = ({ isKioskMode = false }) => {
     soundVolume,
     setSoundVolume,
     performanceMode,
+    widgetColors,
   } = useAppState();
+
+  // User-set accent color from the widget's Text color picker (Classic style only)
+  const userAccentColor = widgetColors?.['timerPanel']?.text || null;
 
   const mins = Math.floor(timeRemaining / 60);
   const secs = timeRemaining % 60;
@@ -914,6 +776,14 @@ const TimerPanel = ({ isKioskMode = false }) => {
       className={`rounded-lg p-0 shadow-md flex flex-col gap-1 h-full relative timer-immersive ${blendMode ? 'timer-blend' : ''}`}
     >
       <style>{`
+        @keyframes classic-dot-pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.5; transform: scale(0.75); }
+        }
+        @keyframes classic-bar-shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
         @keyframes timer-breathe {
           0% { transform: scale(1); }
           50% { transform: scale(1.02); }
@@ -1497,7 +1367,7 @@ const TimerPanel = ({ isKioskMode = false }) => {
             {effectiveStyle === 'ocean' && <OceanDisplay {...displayProps} />}
             {effectiveStyle === 'arcade' && <ArcadeDisplay {...displayProps} />}
             {effectiveStyle === 'classic' && (
-              <ClassicDisplay {...displayProps} blendMode={blendMode} />
+              <ClassicDisplay {...displayProps} accentColor={userAccentColor} />
             )}
           </div>
         </div>

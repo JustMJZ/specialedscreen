@@ -38,8 +38,8 @@ describe('StationGroups', () => {
 
       // Component should render without errors
       expect(container).toBeInTheDocument();
-      // At least one station should be shown
-      expect(screen.getByText('Red')).toBeInTheDocument();
+      // At least one station should be shown (full teacher name now displayed)
+      expect(screen.getByText('Mrs. Red')).toBeInTheDocument();
     });
 
     test('displays station count badges', () => {

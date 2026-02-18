@@ -126,10 +126,22 @@ export function AppStateProvider({ children }) {
     const legacy = loadSaved('students', []);
     return normalizeStudentsByLayout(legacy, getSavedMainLayoutId());
   });
-  const [totalTime, setTotalTime] = useState(() => loadSaved('totalTime', 900));
-  const [timeRemaining, setTimeRemaining] = useState(() => loadSaved('totalTime', 900));
-  const [isRunning, setIsRunning] = useState(false);
-  const [autoRepeat, setAutoRepeat] = useState(() => loadSaved('autoRepeat', true));
+  const DEFAULT_TIMER = { totalTime: 900, timeRemaining: 900, isRunning: false, autoRepeat: true, timerStyle: 'ring' };
+  const [timerByLayout, setTimerByLayout] = useState(() => {
+    const saved = loadSaved('timerByLayout', null);
+    if (saved && typeof saved === 'object') return saved;
+    const legacyTotal = loadSaved('totalTime', 900);
+    const legacyAutoRepeat = loadSaved('autoRepeat', true);
+    return {
+      [getSavedMainLayoutId()]: {
+        totalTime: legacyTotal,
+        timeRemaining: legacyTotal,
+        isRunning: false,
+        autoRepeat: legacyAutoRepeat,
+      },
+    };
+  });
+
   const [selectedStudentId, setSelectedStudentId] = useState(null);
   const [rightNowText, setRightNowText] = useState(() =>
     loadSaved('rightNowText', 'Working Quietly')
@@ -176,6 +188,28 @@ export function AppStateProvider({ children }) {
     ];
   });
   const [activeLayoutId, setActiveLayoutId] = useState(() => loadSaved('activeLayoutId', null));
+
+  // Derive per-layout timer values — must be after activeLayoutId is declared
+  const activeTimer   = timerByLayout[activeLayoutId] || DEFAULT_TIMER;
+  const totalTime     = activeTimer.totalTime;
+  const timeRemaining = activeTimer.timeRemaining;
+  const isRunning     = activeTimer.isRunning;
+  const autoRepeat    = activeTimer.autoRepeat;
+  const timerStyle    = activeTimer.timerStyle ?? 'ring';
+
+  // Setters that write only to the active layout's timer slot
+  const _setTimer = (field, updater) =>
+    setTimerByLayout((prev) => {
+      const cur = prev[activeLayoutId] || DEFAULT_TIMER;
+      const next = typeof updater === 'function' ? updater(cur[field]) : updater;
+      return { ...prev, [activeLayoutId]: { ...cur, [field]: next } };
+    });
+  const setTotalTime     = (v) => _setTimer('totalTime', v);
+  const setTimeRemaining = (v) => _setTimer('timeRemaining', v);
+  const setIsRunning     = (v) => _setTimer('isRunning', v);
+  const setAutoRepeat    = (v) => _setTimer('autoRepeat', v);
+  const setTimerStyle    = (v) => _setTimer('timerStyle', v);
+
   const [layoutRenamingId, setLayoutRenamingId] = useState(null);
   const [layoutRenameValue, setLayoutRenameValue] = useState('');
   const [widgetColorsByLayout, setWidgetColorsByLayout] = useState(() => {
@@ -203,7 +237,6 @@ export function AppStateProvider({ children }) {
     const legacy = loadSaved('rotationOrder', DEFAULT_ROTATION_ORDER);
     return { [getSavedMainLayoutId()]: legacy };
   });
-  const [timerStyle, setTimerStyle] = useState(() => loadSaved('timerStyle', 'ring'));
   const [soundVolume, setSoundVolume] = useState(() => loadSaved('soundVolume', 0.7));
   const [performanceMode, setPerformanceMode] = useState(() => loadSaved('performanceMode', false));
   const [clockStyle, setClockStyle] = useState(() => loadSaved('clockStyle', 'digital'));
@@ -534,8 +567,7 @@ export function AppStateProvider({ children }) {
       const data = JSON.stringify({
         globalRoster,
         studentsByLayout,
-        totalTime,
-        autoRepeat,
+        timerByLayout,
         rightNowText,
         bannerFontSize,
         bannerMode,
@@ -557,7 +589,6 @@ export function AppStateProvider({ children }) {
         customSounds,
         stationColorsByLayout,
         rotationOrderByLayout,
-        timerStyle,
         soundVolume,
         performanceMode,
         clockStyle,
@@ -575,8 +606,7 @@ export function AppStateProvider({ children }) {
   }, [
     globalRoster,
     studentsByLayout,
-    totalTime,
-    autoRepeat,
+    timerByLayout,
     rightNowText,
     bannerFontSize,
     bannerMode,
@@ -598,7 +628,6 @@ export function AppStateProvider({ children }) {
     customSounds,
     stationColorsByLayout,
     rotationOrderByLayout,
-    timerStyle,
     soundVolume,
     performanceMode,
     clockStyle,
@@ -1006,6 +1035,7 @@ export function AppStateProvider({ children }) {
     setWidgetColorsByLayout((prev) => ({ ...prev, [id]: {} }));
     setGoalLaddersByLayout((prev) => ({ ...prev, [id]: createDefaultGoalLadder() }));
     setRotationOrderByLayout((prev) => ({ ...prev, [id]: [] }));
+    setTimerByLayout((prev) => ({ ...prev, [id]: { ...DEFAULT_TIMER } }));
     setActiveLayoutId(id);
   };
 
@@ -1284,24 +1314,26 @@ export function AppStateProvider({ children }) {
       const { payload } = event.data;
       isReceivingRef.current = true;
 
-      // Apply state updates (excluding students during sync)
+      // Apply state updates from teacher
       if (payload.timeRemaining !== undefined) setTimeRemaining(payload.timeRemaining);
       if (payload.isRunning !== undefined) setIsRunning(payload.isRunning);
       if (payload.totalTime !== undefined) setTotalTime(payload.totalTime);
-      // Don't sync students - let rotation events handle that
-      // if (payload.students) setStudentsByLayout(payload.students);
       if (payload.isAnimating !== undefined) setIsAnimating(payload.isAnimating);
       if (payload.animationTargets) setAnimationTargets(payload.animationTargets);
       if (payload.rightNowText !== undefined) setRightNowText(payload.rightNowText);
       if (payload.voiceLevel !== undefined) setVoiceLevel(payload.voiceLevel);
       if (payload.firstThen) setFirstThen(payload.firstThen);
-if (payload.stationConfigs) {
+      if (payload.stationConfigs || payload.floorPlanStudents) {
         setFloorPlansByLayout((prev) => {
           const set = prev[activeLayoutId];
           if (!set) return prev;
           const nextPlans = set.floorPlans.map((fp) =>
             fp.id === activeFloorPlanId
-              ? { ...fp, stationConfigs: payload.stationConfigs }
+              ? {
+                  ...fp,
+                  ...(payload.stationConfigs && { stationConfigs: payload.stationConfigs }),
+                  ...(payload.floorPlanStudents && { students: payload.floorPlanStudents }),
+                }
               : fp
           );
           return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
@@ -1332,7 +1364,7 @@ if (payload.stationConfigs) {
           timeRemaining,
           isRunning,
           totalTime,
-          students: studentsByLayout,
+          floorPlanStudents: students,
           isAnimating,
           animationTargets,
           rightNowText,
@@ -1350,7 +1382,7 @@ if (payload.stationConfigs) {
     timeRemaining,
     isRunning,
     totalTime,
-    studentsByLayout,
+    students,
     isAnimating,
     animationTargets,
     rightNowText,
