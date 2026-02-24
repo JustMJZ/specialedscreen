@@ -6,7 +6,7 @@ const TokenPopup = ({ student, goal, onAddToken, onRemoveToken, onResetTokens, o
   const isComplete = goal.tokens >= goal.goal;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center" onClick={onClose}>
       <div className="absolute inset-0 bg-black/30" />
       <div
         className="relative bg-white rounded-2xl shadow-2xl w-72 overflow-hidden"

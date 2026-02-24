@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useAppState } from '../../context/AppStateContext';
 
 const GoalLadder = ({
   title = 'Goal Ladder',
@@ -10,6 +11,7 @@ const GoalLadder = ({
   onReset,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const { isWidgetLocked } = useAppState();
 
   const safeSteps = useMemo(() => {
     if (Array.isArray(steps) && steps.length > 0) return steps;
@@ -69,23 +71,23 @@ const GoalLadder = ({
             aria-label="Goal title"
           />
         ) : (
-          <div className="text-xs font-bold tracking-widest uppercase text-gray-600 flex items-center gap-1">
+          <div className="text-xs font-bold tracking-widest uppercase text-gray-600 dark:text-gray-300 flex items-center gap-1">
             <span>🪜</span>
             <span>{title}</span>
           </div>
         )}
         <button
-          onClick={() => setIsEditing((prev) => !prev)}
+          onClick={() => !isWidgetLocked && setIsEditing((prev) => !prev)}
           className="text-[10px] text-gray-500 hover:text-gray-700 uppercase tracking-widest"
         >
           {isEditing ? 'Done' : 'Edit'}
         </button>
       </div>
-      <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-400">
+      <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500">
         <span>
           {completedCount} / {totalSteps} steps
         </span>
-        <span className="text-gray-600 font-bold">{progressPercent}%</span>
+        <span className="text-gray-600 dark:text-gray-300 font-bold">{progressPercent}%</span>
       </div>
       <div className="h-2 rounded-full bg-black/5 border border-emerald-200/70 overflow-hidden shadow-inner">
         <div
@@ -135,7 +137,7 @@ const GoalLadder = ({
             return (
               <div key={i} className="flex items-center gap-2 mb-2">
                 <button
-                  onClick={() => handleStepClick(i)}
+                  onClick={() => !isWidgetLocked && handleStepClick(i)}
                   className={`w-8 h-8 rounded-full border flex items-center justify-center text-xs font-black transition-all ${
                     isComplete
                       ? `${palette.chip} text-white shadow-md scale-105`
@@ -185,12 +187,12 @@ const GoalLadder = ({
               >
                 ✨
               </span>
-              Tap a rung to track progress
+              <span className="text-gray-400 dark:text-gray-500">Tap a rung to track progress</span>
             </div>
           )}
         </div>
       </div>
-      <div className="flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest text-gray-400">
+      <div className="flex items-center justify-center gap-3 text-[10px] uppercase tracking-widest text-gray-400 dark:text-gray-500">
         <button onClick={handleAddStep} className="hover:text-emerald-600">
           + Step
         </button>

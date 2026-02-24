@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, startTransition } from 'react';
 import {
   DEFAULT_STUDENTS,
   DEFAULT_TEACHER_NAMES,
@@ -143,20 +143,25 @@ export function AppStateProvider({ children }) {
   });
 
   const [selectedStudentId, setSelectedStudentId] = useState(null);
-  const [rightNowText, setRightNowText] = useState(() =>
-    loadSaved('rightNowText', 'Working Quietly')
-  );
-  const [bannerFontSize, setBannerFontSize] = useState(() => loadSaved('bannerFontSize', 28));
-  const [bannerMode, setBannerMode] = useState(() => loadSaved('bannerMode', 'static'));
-  const [bannerConfig, setBannerConfig] = useState(() =>
-    loadSaved('bannerConfig', {
-      messages: ['Great job! ⭐', 'Stay focused! 🎯', 'You can do it! 💪'],
-      rotateInterval: 10,
-      subject: 'Math',
-      subjectColor: '#6366f1',
-      subjectIcon: '➕',
-    })
-  );
+  const [bannerByLayout, setBannerByLayout] = useState(() => {
+    const saved = loadSaved('bannerByLayout', null);
+    if (saved && typeof saved === 'object') return saved;
+    // Migrate legacy global banner state to the main layout
+    return {
+      [getSavedMainLayoutId()]: {
+        text: loadSaved('rightNowText', 'Working Quietly'),
+        fontSize: loadSaved('bannerFontSize', 28),
+        mode: loadSaved('bannerMode', 'static'),
+        config: loadSaved('bannerConfig', {
+          messages: ['Great job! ⭐', 'Stay focused! 🎯', 'You can do it! 💪'],
+          rotateInterval: 10,
+          subject: 'Math',
+          subjectColor: '#6366f1',
+          subjectIcon: '➕',
+        }),
+      },
+    };
+  });
   const [firstThen, setFirstThen] = useState(() =>
     loadSaved('firstThen', {
       firstIcon: '📚',
@@ -239,6 +244,8 @@ export function AppStateProvider({ children }) {
   });
   const [soundVolume, setSoundVolume] = useState(() => loadSaved('soundVolume', 0.7));
   const [performanceMode, setPerformanceMode] = useState(() => loadSaved('performanceMode', false));
+  const [isDarkMode, setIsDarkMode] = useState(() => loadSaved('isDarkMode', false));
+  const [isWidgetLocked, setIsWidgetLocked] = useState(false);
   const [clockStyle, setClockStyle] = useState(() => loadSaved('clockStyle', 'digital'));
   const [showClockDate, setShowClockDate] = useState(() => loadSaved('showClockDate', true));
 
@@ -393,6 +400,7 @@ export function AppStateProvider({ children }) {
   const rotationTimeoutsRef = useRef([]);
   const triggerRotationRef = useRef(null);
   const rotationInProgressRef = useRef(false);
+  const playSoundRef = useRef(null);
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -471,6 +479,35 @@ export function AppStateProvider({ children }) {
   const stationColors = stationColorsByLayout[activeLayoutId] || DEFAULT_STATION_COLORS;
   const widgetColors = widgetColorsByLayout[activeLayoutId] || {};
   const goalLadder = goalLaddersByLayout[activeLayoutId] || createDefaultGoalLadder();
+
+  const DEFAULT_BANNER = {
+    text: 'Working Quietly',
+    fontSize: 28,
+    mode: 'static',
+    config: {
+      messages: ['Great job! ⭐', 'Stay focused! 🎯', 'You can do it! 💪'],
+      rotateInterval: 10,
+      subject: 'Math',
+      subjectColor: '#6366f1',
+      subjectIcon: '➕',
+    },
+  };
+  const activeBanner = bannerByLayout[activeLayoutId] || DEFAULT_BANNER;
+  const rightNowText = activeBanner.text;
+  const bannerFontSize = activeBanner.fontSize;
+  const bannerMode = activeBanner.mode;
+  const bannerConfig = activeBanner.config;
+
+  const updateBanner = (updates) => {
+    setBannerByLayout((prev) => ({
+      ...prev,
+      [activeLayoutId]: { ...(prev[activeLayoutId] || DEFAULT_BANNER), ...updates },
+    }));
+  };
+  const setRightNowText = (text) => updateBanner({ text });
+  const setBannerFontSize = (fontSize) => updateBanner({ fontSize });
+  const setBannerMode = (mode) => updateBanner({ mode });
+  const setBannerConfig = (config) => updateBanner({ config });
 
   const setGoalLadder = (updater) => {
     setGoalLaddersByLayout((prev) => {
@@ -561,17 +598,19 @@ export function AppStateProvider({ children }) {
     });
   }, []); // Run once on mount
 
-  // Persist state
+  // Persist state.
+  // Skip writes while the timer is running — it fires every second and would
+  // otherwise block the main thread with a full JSON.stringify + localStorage write
+  // on every tick. State is persisted on pause, stop, rotation, and all other changes.
+  // On reload, timeRemaining resets to totalTime (expected for a classroom timer).
   useEffect(() => {
+    if (isRunning) return;
     try {
       const data = JSON.stringify({
         globalRoster,
         studentsByLayout,
         timerByLayout,
-        rightNowText,
-        bannerFontSize,
-        bannerMode,
-        bannerConfig,
+        bannerByLayout,
         firstThen,
         rotationSound,
         voiceLevel,
@@ -591,6 +630,7 @@ export function AppStateProvider({ children }) {
         rotationOrderByLayout,
         soundVolume,
         performanceMode,
+        isDarkMode,
         clockStyle,
         showClockDate,
       });
@@ -600,17 +640,13 @@ export function AppStateProvider({ children }) {
       if (!window._storageWarningShown) {
         window._storageWarningShown = true;
         console.warn('Could not save data to localStorage:', e.message);
-        // Could add a toast notification here in the future
       }
     }
   }, [
     globalRoster,
     studentsByLayout,
     timerByLayout,
-    rightNowText,
-    bannerFontSize,
-    bannerMode,
-    bannerConfig,
+    bannerByLayout,
     firstThen,
     rotationSound,
     voiceLevel,
@@ -630,6 +666,7 @@ export function AppStateProvider({ children }) {
     rotationOrderByLayout,
     soundVolume,
     performanceMode,
+    isDarkMode,
     clockStyle,
     showClockDate,
   ]);
@@ -638,6 +675,8 @@ export function AppStateProvider({ children }) {
   // outside any state updater (state updaters must be pure; no side effects allowed).
   const _timerTimeRef = useRef(timeRemaining);
   _timerTimeRef.current = timeRemaining;
+  // Keep playSoundRef current so the timer interval can call it without stale closures
+  playSoundRef.current = () => playSound(rotationSound, customSounds, soundVolume);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -650,9 +689,11 @@ export function AppStateProvider({ children }) {
         } else {
           setTimeRemaining(0);
           setIsRunning(false);
+          playSoundRef.current?.();
         }
       } else {
-        setTimeRemaining(next);
+        // Low-priority update — lets React process mouse/keyboard events first
+        startTransition(() => setTimeRemaining(next));
       }
     }, 1000);
     return () => clearInterval(timer);
@@ -1149,6 +1190,8 @@ export function AppStateProvider({ children }) {
     setBannerMode,
     bannerConfig,
     setBannerConfig,
+    bannerByLayout,
+    setBannerByLayout,
     firstThen,
     setFirstThen,
     rotationSound,
@@ -1217,6 +1260,10 @@ export function AppStateProvider({ children }) {
     // UI state
     performanceMode,
     setPerformanceMode,
+    isDarkMode,
+    setIsDarkMode,
+    isWidgetLocked,
+    setIsWidgetLocked,
     isPresentationMode,
     setIsPresentationMode,
     isEditMode,

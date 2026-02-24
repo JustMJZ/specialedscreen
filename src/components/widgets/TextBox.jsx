@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppState } from '../../context/AppStateContext';
 
 const TextBox = ({ id, isLayoutEditMode }) => {
-  const { textBoxes = {}, setShowTextBoxEditor, setEditingTextBoxId } = useAppState();
+  const { textBoxes = {}, setShowTextBoxEditor, setEditingTextBoxId, isWidgetLocked } = useAppState();
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   // Get config for this specific textBox instance
@@ -21,7 +21,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
   const { title, content, fontSize, format, voiceName, ttsEnabled, fontFamily, borderStyle, textAlign } = config;
 
   const handleClick = () => {
-    if (isLayoutEditMode) return; // Don't open editor when dragging/resizing
+    if (isLayoutEditMode || isWidgetLocked) return;
     setEditingTextBoxId(id);
     setShowTextBoxEditor(true);
   };
@@ -222,7 +222,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
   return (
     <div
       onClick={handleClick}
-      className={`h-full w-full flex flex-col p-6 ${!isLayoutEditMode ? 'cursor-pointer hover:bg-black/5' : ''} transition-colors relative group ${getBorderClass(borderStyle)}`}
+      className={`h-full w-full flex flex-col p-6 ${!isLayoutEditMode && !isWidgetLocked ? 'cursor-pointer hover:bg-black/5' : ''} transition-colors relative group ${getBorderClass(borderStyle)}`}
     >
       {/* Action buttons */}
       <div className="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -230,7 +230,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
         {(content && content.trim()) && (
           <button
             onClick={handlePrint}
-            className="w-10 h-10 rounded-full bg-green-500/90 hover:bg-green-600 flex items-center justify-center text-white backdrop-blur-sm transition-all"
+            className="w-10 h-10 rounded-full bg-green-500/90 hover:bg-green-600 flex items-center justify-center text-white transition-all"
             title="Print"
           >
             🖨️
@@ -240,7 +240,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
         {ttsEnabled && (content && content.trim()) && (
           <button
             onClick={handleTextToSpeech}
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-all ${
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-all ${
               isSpeaking
                 ? 'bg-red-500 hover:bg-red-600 animate-pulse'
                 : 'bg-blue-500/90 hover:bg-blue-600'
@@ -251,7 +251,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
           </button>
         )}
         {/* Edit button */}
-        <div className="w-10 h-10 rounded-full bg-gray-700/80 hover:bg-gray-800 flex items-center justify-center text-white backdrop-blur-sm transition-colors">
+        <div className="w-10 h-10 rounded-full bg-gray-700/80 hover:bg-gray-800 flex items-center justify-center text-white transition-colors">
           📝
         </div>
       </div>
@@ -259,7 +259,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
       {/* Title */}
       {title && (
         <h3
-          className={`font-bold text-gray-800 mb-4 leading-tight ${getAlignmentClass(textAlign)}`}
+          className={`font-bold text-gray-800 dark:text-gray-100 mb-4 leading-tight ${getAlignmentClass(textAlign)}`}
           style={{ fontSize: `${fontSize * 1.4}px`, fontFamily }}
         >
           {renderTextWithHighlights(title)}
@@ -268,7 +268,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
 
       {/* Content */}
       <div
-        className={`text-gray-700 overflow-y-auto flex-1 leading-relaxed ${getAlignmentClass(textAlign)}`}
+        className={`text-gray-700 dark:text-gray-200 overflow-y-auto flex-1 leading-relaxed ${getAlignmentClass(textAlign)}`}
         style={{ fontSize: `${fontSize}px`, fontFamily }}
       >
         {formatContent(content)}
@@ -277,7 +277,7 @@ const TextBox = ({ id, isLayoutEditMode }) => {
       {/* Empty state hint */}
       {(!content || content.trim() === '') && (
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-center text-gray-400">
+          <div className="text-center text-gray-400 dark:text-gray-500">
             <div className="text-5xl mb-2">📝</div>
             <div className="text-sm font-medium">Click to add instructions</div>
           </div>

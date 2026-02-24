@@ -11,9 +11,7 @@ const ALL_WIDGET_IDS = Object.keys(widgetRegistry);
 // ── Shared design tokens ───────────────────────────────────────────────────
 
 const glassPanel = {
-  background: 'rgba(15,23,42,0.95)',
-  backdropFilter: 'blur(20px)',
-  WebkitBackdropFilter: 'blur(20px)',
+  background: 'rgba(15,23,42,0.97)',
   border: '1px solid rgba(255,255,255,0.10)',
   borderRadius: 14,
   boxShadow: '0 20px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(0,0,0,0.25)',
@@ -108,6 +106,8 @@ const FloatingControls = () => {
     rotationOrder, stationConfigs, stationColors, teacherNames, addStationToTab,
     isLayoutEditMode, toggleLayoutEditMode,
     performanceMode, setPerformanceMode,
+    isDarkMode, setIsDarkMode,
+    isWidgetLocked, setIsWidgetLocked,
     loadTemplate, saveCurrentLayoutAsTemplate,
   } = state;
 
@@ -174,8 +174,7 @@ const FloatingControls = () => {
         {/* ── Top bar ── */}
         <div style={{
           display: 'flex', alignItems: 'center', gap: 2,
-          background: 'rgba(15,23,42,0.88)',
-          backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+          background: 'rgba(15,23,42,0.97)',
           border: '1px solid rgba(255,255,255,0.10)',
           borderRadius: 99, padding: '4px 6px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
@@ -276,6 +275,18 @@ const FloatingControls = () => {
                     alert(result ? `Template "${name.trim()}" saved!` : 'Failed to save template.');
                     closeAllMenus();
                   }}
+                />
+                <MenuRow
+                  pip="🌙" gradient="linear-gradient(135deg,#3b82f6,#1e40af)"
+                  label="Dark Mode"
+                  right={<Toggle on={isDarkMode} />}
+                  onClick={() => setIsDarkMode(!isDarkMode)}
+                />
+                <MenuRow
+                  pip="🔒" gradient="linear-gradient(135deg,#64748b,#334155)"
+                  label="Widget Lock"
+                  right={<Toggle on={isWidgetLocked} />}
+                  onClick={() => setIsWidgetLocked(!isWidgetLocked)}
                 />
                 <MenuRow
                   pip="⚡" gradient="linear-gradient(135deg,#f59e0b,#ea580c)"

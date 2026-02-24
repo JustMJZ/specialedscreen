@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { EMOJI_OPTIONS } from '../../constants';
+import { useAppState } from '../../context/AppStateContext';
 
 const MODES = [
   { id: 'static',   label: 'Text' },
@@ -98,6 +99,7 @@ const CelebrationOverlay = ({ onDone }) => {
 
 // ── Main Banner ──────────────────────────────────────────────────────────────
 const Banner = ({ text, fontSize = 28, onEdit, onFontSizeChange, mode = 'static', onModeChange, config = {}, onConfigChange }) => {
+  const { isWidgetLocked } = useAppState();
   const [showEditor, setShowEditor] = useState(false);
   const [celebrating, setCelebrating] = useState(false);
 
@@ -167,8 +169,8 @@ const Banner = ({ text, fontSize = 28, onEdit, onFontSizeChange, mode = 'static'
       {celebrating && <CelebrationOverlay onDone={() => setCelebrating(false)} />}
 
       <div
-        className="h-full w-full flex items-center relative group cursor-pointer hover:opacity-95 transition-opacity overflow-hidden"
-        onClick={openEditor}
+        className={`h-full w-full flex items-center relative group overflow-hidden transition-opacity ${!isWidgetLocked ? 'cursor-pointer hover:opacity-95' : ''}`}
+        onClick={() => !isWidgetLocked && openEditor()}
       >
         {renderDisplay()}
         <button
@@ -182,13 +184,13 @@ const Banner = ({ text, fontSize = 28, onEdit, onFontSizeChange, mode = 'static'
 
       {showEditor && ReactDOM.createPortal(
         <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowEditor(false)} />
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowEditor(false)} />
           <div
-            className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
+            className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-5 border-b">
-              <h3 className="text-lg font-bold text-gray-800">Banner Settings</h3>
+            <div className="p-5 border-b border-gray-200 dark:border-slate-600">
+              <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">Banner Settings</h3>
             </div>
 
             {/* Mode tabs */}
@@ -350,8 +352,8 @@ const Banner = ({ text, fontSize = 28, onEdit, onFontSizeChange, mode = 'static'
               )}
             </div>
 
-            <div className="p-5 border-t flex gap-3">
-              <button onClick={() => setShowEditor(false)} className="flex-1 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 text-sm font-medium">
+            <div className="p-5 border-t border-gray-200 dark:border-slate-600 flex gap-3">
+              <button onClick={() => setShowEditor(false)} className="flex-1 px-4 py-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 text-sm font-medium">
                 Cancel
               </button>
               <button onClick={handleSave} className="flex-1 px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600">

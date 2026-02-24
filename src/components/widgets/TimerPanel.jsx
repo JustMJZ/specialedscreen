@@ -15,7 +15,7 @@ const Confetti = ({ active, performanceMode }) => {
       return;
     }
     const colors = ['#FF8A7A', '#5BC0BE', '#FFD166', '#B39DDB', '#7BC47F', '#FF6B9D', '#45B7D1'];
-    const p = Array.from({ length: 16 }, (_, i) => ({
+    const p = Array.from({ length: 8 }, (_, i) => ({
       id: i,
       x: 50 + (Math.random() - 0.5) * 10,
       y: 50,
@@ -107,7 +107,7 @@ const RingDisplay = ({ progress, mins, secs, isRunning }) => {
           textAnchor="middle"
           dominantBaseline="middle"
           style={{
-            fontSize: 48,
+            fontSize: 62,
             fontFamily: "'Fredoka One', cursive",
             fill: '#1F2937',
             letterSpacing: '1px',
@@ -154,7 +154,7 @@ const HourglassDisplay = ({ progress, mins, secs, barColor, isRunning }) => {
     >
       <div className="relative flex items-center justify-center" style={{ height: '100%', width: '100%' }}>
         <svg
-          viewBox="0 0 200 160"
+          viewBox="0 0 300 160"
           preserveAspectRatio="xMidYMid meet"
           style={{ maxHeight: '100%', maxWidth: '100%', width: 'auto', height: 'auto', filter: 'drop-shadow(0 6px 20px rgba(120,70,30,0.15))' }}
         >
@@ -394,12 +394,12 @@ const HourglassDisplay = ({ progress, mins, secs, barColor, isRunning }) => {
 
           {/* Time display */}
           <text
-            x="155"
+            x="210"
             y="80"
             textAnchor="middle"
             dominantBaseline="middle"
             style={{
-              fontSize: 38,
+              fontSize: 48,
               fontFamily: "'Fredoka One', cursive",
               fill: '#5D4E37',
               filter: 'drop-shadow(0 2px 4px rgba(93,78,55,0.2))',
@@ -602,7 +602,7 @@ const ClassicDisplay = ({ progress, mins, secs, isRunning, accentColor }) => {
 
       {/* Time digits */}
       <div style={{
-        fontSize: 'clamp(48px, 10vw, 88px)',
+        fontSize: 'clamp(60px, 12vw, 108px)',
         fontFamily: "'Fredoka One', cursive",
         fontWeight: 700, lineHeight: 1,
         color: '#ffffff',
@@ -953,10 +953,9 @@ const TimerPanel = ({ isKioskMode = false }) => {
         }
         .hourglass-glow {
           position: absolute;
-          width: 70%;
-          height: 80%;
-          background: radial-gradient(circle, rgba(251,191,36,0.35), transparent 65%);
-          filter: blur(6px);
+          width: 80%;
+          height: 90%;
+          background: radial-gradient(circle, rgba(251,191,36,0.28) 0%, rgba(251,191,36,0.12) 40%, transparent 72%);
           opacity: 0.9;
         }
         .hourglass-shine {
@@ -1007,11 +1006,10 @@ const TimerPanel = ({ isKioskMode = false }) => {
           font-size: 10px;
           font-weight: 700;
           color: #E0F2FE;
-          background: rgba(15, 23, 42, 0.55);
+          background: rgba(15, 23, 42, 0.80);
           border: 1px solid rgba(148,163,184,0.35);
           padding: 4px 8px;
           border-radius: 999px;
-          backdrop-filter: blur(6px);
           z-index: 5;
         }
         .space-chip-left {
@@ -1178,7 +1176,7 @@ const TimerPanel = ({ isKioskMode = false }) => {
           animation: ocean-fish 6s linear infinite;
         }
         .ocean-time {
-          font-size: clamp(34px, 7vw, 64px);
+          font-size: clamp(44px, 9vw, 80px);
           font-family: 'Fredoka One', cursive;
           color: #083344;
           background: transparent;
@@ -1262,7 +1260,7 @@ const TimerPanel = ({ isKioskMode = false }) => {
           animation: arcade-comet 1.6s ease-in-out infinite;
         }
         .arcade-time {
-          font-size: clamp(34px, 7vw, 64px);
+          font-size: clamp(44px, 9vw, 80px);
           font-family: 'Fredoka One', cursive;
           color: #F5D0FE;
           background: transparent;
@@ -1274,7 +1272,7 @@ const TimerPanel = ({ isKioskMode = false }) => {
           cursor: pointer;
         }
         .space-time {
-          font-size: clamp(34px, 7vw, 64px);
+          font-size: clamp(44px, 9vw, 80px);
           font-weight: 900;
           color: #E0F2FE;
           text-shadow: 0 0 14px rgba(56,189,248,0.7), 0 0 28px rgba(99,102,241,0.45);

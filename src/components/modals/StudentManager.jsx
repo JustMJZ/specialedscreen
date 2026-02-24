@@ -147,12 +147,12 @@ const StudentManager = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="student-manager-title"
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-6xl max-h-[90vh] flex flex-col overflow-hidden"
       >
           <div className="px-6 py-4 bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-between flex-shrink-0">
             <div>
@@ -169,9 +169,9 @@ const StudentManager = ({
               ✕
             </button>
           </div>
-        <div className="flex flex-1 min-h-0 bg-gray-50">
+        <div className="flex flex-1 min-h-0 bg-gray-50 dark:bg-slate-900">
           {/* Left column: Students */}
-          <div className="flex-1 p-6 overflow-y-auto border-r border-gray-200 bg-white">
+          <div className="flex-1 p-6 overflow-y-auto border-r border-gray-200 dark:border-slate-600 bg-white dark:bg-slate-800">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/30">
@@ -753,7 +753,7 @@ const StudentManager = ({
             )}
           </div>
         </div>
-        <div className="px-6 py-4 bg-white border-t border-gray-200 flex gap-3 justify-end flex-shrink-0">
+        <div className="px-6 py-4 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-600 flex gap-3 justify-end flex-shrink-0">
           <button
             onClick={onClose}
             className="px-6 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 font-medium transition-colors"
@@ -780,7 +780,7 @@ const StudentManager = ({
       {/* Remove All Confirmation Modal */}
       {showRemoveAllConfirm && (
         <div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100]"
+          className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000]"
           onClick={(e) => e.stopPropagation()}
         >
           <div

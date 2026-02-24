@@ -44,15 +44,15 @@ const GoalEditorModal = ({ students, goals, onUpdate, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="goal-editor-modal-title"
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden"
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-hidden"
       >
-          <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
-            <h2 id="goal-editor-modal-title" className="text-lg font-bold text-gray-800">🎯 Edit Student Goals</h2>
+          <div className="p-3 border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 flex items-center justify-between">
+            <h2 id="goal-editor-modal-title" className="text-lg font-bold text-gray-800 dark:text-gray-100">🎯 Edit Student Goals</h2>
             <button
               onClick={onClose}
               className="text-gray-500 hover:text-gray-700 text-xl"

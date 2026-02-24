@@ -14,7 +14,7 @@ const WidgetWrapper = React.forwardRef(
   ({ id, isLayoutEditMode, isKioskMode = false, onRemove, onResize, children, style, className, ...rest }, ref) => {
     const meta = widgetRegistry[id];
     const label = meta ? meta.label : id;
-    const { widgetColors, setWidgetColors, performanceMode } = useAppState();
+    const { widgetColors, setWidgetColors, performanceMode, isDarkMode } = useAppState();
     const skipAnimations = performanceMode || id === 'floorplan';
     const [showColorPicker, setShowColorPicker] = useState(false);
     const [colorTab, setColorTab] = useState('bg');
@@ -59,7 +59,7 @@ const WidgetWrapper = React.forwardRef(
                     e.stopPropagation();
                     onResize(id, -1);
                   }}
-                  className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white backdrop-blur-sm font-bold"
+                  className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white font-bold"
                   style={{ fontSize: 14 }}
                   title="Shrink"
                 >
@@ -70,7 +70,7 @@ const WidgetWrapper = React.forwardRef(
                     e.stopPropagation();
                     onResize(id, 1);
                   }}
-                  className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white backdrop-blur-sm font-bold"
+                  className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white font-bold"
                   style={{ fontSize: 14 }}
                   title="Expand"
                 >
@@ -83,7 +83,7 @@ const WidgetWrapper = React.forwardRef(
                 e.stopPropagation();
                 setShowColorPicker(!showColorPicker);
               }}
-              className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white backdrop-blur-sm"
+              className="w-5 h-5 flex items-center justify-center rounded bg-gray-500/70 hover:bg-gray-600/80 text-white"
               style={{ fontSize: 12 }}
               title="Change color"
             >
@@ -95,7 +95,7 @@ const WidgetWrapper = React.forwardRef(
                   e.stopPropagation();
                   onRemove(id);
                 }}
-                className="w-5 h-5 flex items-center justify-center rounded bg-red-500/80 hover:bg-red-600 text-white backdrop-blur-sm"
+                className="w-5 h-5 flex items-center justify-center rounded bg-red-500/80 hover:bg-red-600 text-white"
                 style={{ fontSize: 10 }}
                 title={`Remove ${label}`}
               >
@@ -106,29 +106,29 @@ const WidgetWrapper = React.forwardRef(
         )}
         {showColorPicker && isLayoutEditMode && !isKioskMode && (
           <div
-            className={`absolute top-8 z-[200] bg-white rounded-card shadow-widget-lg border p-2 max-h-[60vh] overflow-y-auto ${id === 'floorplan' || id === 'timerPanel' ? 'right-32' : 'right-1'}`}
+            className={`absolute top-8 z-[200] bg-white dark:bg-slate-800 rounded-card shadow-widget-lg border dark:border-slate-600 p-2 max-h-[60vh] overflow-y-auto ${id === 'floorplan' || id === 'timerPanel' ? 'right-32' : 'right-1'}`}
             style={{ width: 200 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+            <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
               Color
             </div>
             <div className="flex gap-1 mb-2">
               <button
                 onClick={() => setColorTab('bg')}
-                className={`flex-1 text-[11px] py-1 rounded font-bold ${colorTab === 'bg' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}
+                className={`flex-1 text-[11px] py-1 rounded font-bold ${colorTab === 'bg' ? 'bg-gray-700 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300'}`}
               >
                 Fill
               </button>
               <button
                 onClick={() => setColorTab('border')}
-                className={`flex-1 text-[11px] py-1 rounded font-bold ${colorTab === 'border' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}
+                className={`flex-1 text-[11px] py-1 rounded font-bold ${colorTab === 'border' ? 'bg-gray-700 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300'}`}
               >
                 Border
               </button>
               <button
                 onClick={() => setColorTab('text')}
-                className={`flex-1 text-[11px] py-1 rounded font-bold ${colorTab === 'text' ? 'bg-gray-700 text-white' : 'bg-gray-100 text-gray-500'}`}
+                className={`flex-1 text-[11px] py-1 rounded font-bold ${colorTab === 'text' ? 'bg-gray-700 text-white' : 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-gray-300'}`}
               >
                 Text
               </button>
@@ -156,7 +156,7 @@ const WidgetWrapper = React.forwardRef(
                 })}
               </div>
             </div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+            <div className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">
               Style
             </div>
             <div className="grid grid-cols-2 gap-1">
@@ -167,7 +167,7 @@ const WidgetWrapper = React.forwardRef(
                 <button
                   key={opt.label}
                   onClick={() => handleColorChange('style', opt.id)}
-                  className={`px-2 py-1 text-[11px] rounded font-bold text-left ${widgetStyle === opt.id ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-400' : 'bg-gray-100 text-gray-600'}`}
+                  className={`px-2 py-1 text-[11px] rounded font-bold text-left ${widgetStyle === opt.id ? 'bg-blue-100 text-blue-700 ring-2 ring-blue-400' : 'bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300'}`}
                 >
                   {opt.label}
                 </button>
@@ -182,25 +182,15 @@ const WidgetWrapper = React.forwardRef(
           style={{
             backgroundColor:
               widgetStyle === 'glass'
-                ? widgetBg || 'rgba(255,255,255,0.6)'
-                : widgetBg || '#ffffff',
+                ? widgetBg || (isDarkMode ? 'rgba(30,41,59,0.90)' : 'rgba(255,255,255,0.90)')
+                : widgetBg || (isDarkMode ? '#1e293b' : '#ffffff'),
             border: borderStyle,
             '--widget-border-color': widgetBorder || 'transparent',
             '--widget-text-color': widgetText || 'inherit',
             color: widgetText || 'inherit',
-            // Performance mode: disable expensive backdrop-filter
-            backdropFilter:
-              widgetStyle === 'glass' && !skipAnimations ? 'blur(12px) saturate(1.4)' : 'none',
-            WebkitBackdropFilter:
-              widgetStyle === 'glass' && !skipAnimations ? 'blur(12px) saturate(1.4)' : 'none',
-            // Performance mode: use simpler box-shadows
-            boxShadow: skipAnimations
-              ? widgetStyle === 'glass'
-                ? '0 4px 12px rgba(15, 23, 42, 0.1)'
-                : undefined
-              : widgetStyle === 'glass'
-                ? '0 10px 28px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(255,255,255,0.25)'
-                : undefined,
+            boxShadow: widgetStyle === 'glass'
+              ? '0 10px 28px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(255,255,255,0.25)'
+              : undefined,
           }}
         >
           {widgetText && (
@@ -222,27 +212,12 @@ const WidgetWrapper = React.forwardRef(
           )}
           {widgetStyle === 'glass' && !skipAnimations && (
             <>
-              <style>{`
-              @keyframes glass-sheen {
-                0% { transform: translateX(-140%) skewX(-12deg); opacity: 0; }
-                30% { opacity: 0.5; }
-                100% { transform: translateX(140%) skewX(-12deg); opacity: 0; }
-              }
-              @keyframes glass-float {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-3px); }
-              }
-              @keyframes glass-ripple {
-                0% { transform: scale(0.98); opacity: 0.35; }
-                50% { transform: scale(1.02); opacity: 0.6; }
-                100% { transform: scale(0.98); opacity: 0.35; }
-              }
-            `}</style>
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  background:
-                    'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.5) 100%)',
+                  background: isDarkMode
+                    ? 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.01) 45%, rgba(255,255,255,0.04) 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.5) 100%)',
                   borderRadius: 'inherit',
                 }}
               />
@@ -252,37 +227,23 @@ const WidgetWrapper = React.forwardRef(
                   background:
                     'radial-gradient(circle at 18% 12%, rgba(125,211,252,0.45), transparent 48%), radial-gradient(circle at 82% 88%, rgba(167,139,250,0.35), transparent 55%)',
                   borderRadius: 'inherit',
-                  animation: 'glass-float 5s ease-in-out infinite',
                 }}
               />
               <div
                 className="absolute inset-0 pointer-events-none"
                 style={{
-                  background:
-                    'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.35), transparent 55%)',
+                  background: isDarkMode
+                    ? 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.05), transparent 55%)'
+                    : 'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.35), transparent 55%)',
                   borderRadius: 'inherit',
-                  animation: 'glass-ripple 6s ease-in-out infinite',
                 }}
               />
               <div
                 className="absolute -inset-1 pointer-events-none"
                 style={{
                   borderRadius: 'inherit',
-                  border: '1px solid rgba(255,255,255,0.7)',
-                  boxShadow: 'inset 0 0 24px rgba(255,255,255,0.35)',
-                }}
-              />
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  background:
-                    'linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.45) 45%, transparent 70%)',
-                  width: '160%',
-                  height: '200%',
-                  left: '-30%',
-                  top: '-50%',
-                  animation: 'glass-sheen 5.5s linear infinite',
-                  mixBlendMode: 'screen',
+                  border: isDarkMode ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.7)',
+                  boxShadow: isDarkMode ? 'inset 0 0 24px rgba(255,255,255,0.05)' : 'inset 0 0 24px rgba(255,255,255,0.35)',
                 }}
               />
             </>
@@ -291,8 +252,9 @@ const WidgetWrapper = React.forwardRef(
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background:
-                  'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%)',
+                background: isDarkMode
+                  ? 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)'
+                  : 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.3) 100%)',
                 borderRadius: 'inherit',
               }}
             />

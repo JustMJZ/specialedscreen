@@ -2,6 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme color tokens ──────────────────────────────────────────────────── */
+:root {
+  --bg-app:       #FDF8F3;
+  --bg-card:      #ffffff;
+  --bg-surface:   #f9fafb;
+  --border-subtle:#e5e7eb;
+  --text-primary: #1f2937;
+  --text-secondary:#6b7280;
+}
+.dark {
+  --bg-app:       #0f172a;
+  --bg-card:      #1e293b;
+  --bg-surface:   #1e293b;
+  --border-subtle:#334155;
+  --text-primary: #f1f5f9;
+  --text-secondary:#94a3b8;
+}
+
 /* Smooth transitions by default for interactive elements */
 button,
 a,

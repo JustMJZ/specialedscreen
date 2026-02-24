@@ -10,6 +10,7 @@ const Clock = () => {
     setClockStyle,
     showClockDate = true,
     setShowClockDate,
+    isWidgetLocked,
   } = useAppState() || {};
   const [showSettings, setShowSettings] = useState(false);
   const containerRef = useRef(null);
@@ -53,7 +54,7 @@ const Clock = () => {
   const dateStr = time.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
   const cycleStyle = () => {
-    if (!setClockStyle) return;
+    if (!setClockStyle || isWidgetLocked) return;
     const currentIndex = CLOCK_STYLES.indexOf(clockStyle);
     const nextIndex = (currentIndex + 1) % CLOCK_STYLES.length;
     setClockStyle(CLOCK_STYLES[nextIndex]);
@@ -315,11 +316,11 @@ const Clock = () => {
       ref={containerRef}
       className="h-full w-full relative overflow-hidden"
       onClick={cycleStyle}
-      style={{ cursor: setClockStyle ? 'pointer' : 'default' }}
+      style={{ cursor: setClockStyle && !isWidgetLocked ? 'pointer' : 'default' }}
     >
       {renderClock()}
       {/* Settings button */}
-      {setShowClockDate && (
+      {setShowClockDate && !isWidgetLocked && (
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -334,23 +335,23 @@ const Clock = () => {
       )}
       {showSettings && setShowClockDate && (
         <div
-          className="absolute top-8 right-1 bg-white rounded-lg shadow-xl border p-2 z-50 min-w-[140px]"
+          className="absolute top-8 right-1 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-gray-200 dark:border-slate-600 p-2 z-50 min-w-[140px]"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Style</div>
+          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1">Style</div>
           <div className="grid grid-cols-2 gap-1 mb-2">
             {CLOCK_STYLES.map((style) => (
               <button
                 key={style}
                 onClick={() => setClockStyle(style)}
-                className={`px-2 py-1 text-xs rounded capitalize ${clockStyle === style ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                className={`px-2 py-1 text-xs rounded capitalize ${clockStyle === style ? 'bg-blue-100 text-blue-700 font-medium' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'}`}
               >
                 {style}
               </button>
             ))}
           </div>
-          <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Options</div>
-          <label className="flex items-center gap-2 text-xs text-slate-600 cursor-pointer">
+          <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase mb-1">Options</div>
+          <label className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-300 cursor-pointer">
             <input
               type="checkbox"
               checked={showClockDate}

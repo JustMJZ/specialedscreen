@@ -30,7 +30,7 @@ const FirstThen = ({ firstThen, onEdit }) => (
           boxShadow: '0 10px 30px rgba(37, 99, 235, 0.3), 0 1px 2px rgba(0, 0, 0, 0.05)',
         }}
       >
-        <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+        <div className="absolute top-3 left-3 bg-white/40 px-3 py-1 rounded-full">
           <div className="text-[9px] font-bold text-white/90 tracking-wider">FIRST</div>
         </div>
         <span
@@ -78,7 +78,7 @@ const FirstThen = ({ firstThen, onEdit }) => (
           boxShadow: '0 10px 30px rgba(5, 150, 105, 0.3), 0 1px 2px rgba(0, 0, 0, 0.05)',
         }}
       >
-        <div className="absolute top-3 right-3 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+        <div className="absolute top-3 right-3 bg-white/40 px-3 py-1 rounded-full">
           <div className="text-[9px] font-bold text-white/90 tracking-wider">THEN</div>
         </div>
         <span

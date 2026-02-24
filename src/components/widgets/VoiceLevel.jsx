@@ -21,7 +21,7 @@ const TOTAL_SEGMENTS = 9;
 
 const VoiceLevel = ({ level, onChange }) => {
   const [surge, setSurge] = useState(false);
-  const { widgetColors } = useAppState();
+  const { widgetColors, isWidgetLocked } = useAppState();
   const current = LEVELS[level] || LEVELS[0];
 
   // If the teacher has set a "Text" color via the widget color picker, use it
@@ -198,7 +198,7 @@ const VoiceLevel = ({ level, onChange }) => {
           return (
             <button
               key={l.id}
-              onClick={() => onChange(l.id)}
+              onClick={() => !isWidgetLocked && onChange(l.id)}
               style={{
                 flex: 1,
                 padding: '5px 2px 4px',

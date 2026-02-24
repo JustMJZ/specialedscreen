@@ -196,6 +196,7 @@ const AnimatedStudent = ({
         top,
         left,
         transition: isDragging || performanceMode ? 'none' : ANIMATION_TRANSITION,
+        transitionDelay: isDragging || performanceMode || !isAnimating ? '0ms' : `${index * 75}ms`,
         zIndex: isAnimating ? 20 : isKeyboardSelected ? 15 : 10,
         opacity: isEditMode ? 0.5 : isDragging ? 0.4 : 1,
         // Don't block pointer events when in edit mode or when a different student is being dragged

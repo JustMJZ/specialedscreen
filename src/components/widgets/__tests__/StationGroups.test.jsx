@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import StationGroups from '../StationGroups';
 import { DEFAULT_STATION_COLORS, DEFAULT_TEACHER_NAMES } from '../../../constants';
+import { renderWithContext } from '../../../test-utils';
 
 const mockStudents = [
   { id: '1', name: 'Alice', group: 'red', color: '#FF8A7A' },
@@ -34,7 +35,7 @@ describe('StationGroups', () => {
 
   describe('Station Display', () => {
     test('renders all stations from rotation order', () => {
-      const { container } = render(<StationGroups {...defaultProps} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} />);
 
       // Component should render without errors
       expect(container).toBeInTheDocument();
@@ -43,7 +44,7 @@ describe('StationGroups', () => {
     });
 
     test('displays station count badges', () => {
-      render(<StationGroups {...defaultProps} />);
+      renderWithContext(<StationGroups {...defaultProps} />);
 
       // Red has 2 students, blue has 1, green has 1
       const badges = screen.getAllByText(/\d/);
@@ -51,7 +52,7 @@ describe('StationGroups', () => {
     });
 
     test('shows empty state when no stations', () => {
-      const { container } = render(<StationGroups {...defaultProps} rotationOrder={[]} tabStationKeys={[]} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} rotationOrder={[]} tabStationKeys={[]} />);
 
       // Component should render without errors even with no stations
       expect(container).toBeInTheDocument();
@@ -60,16 +61,16 @@ describe('StationGroups', () => {
 
   describe('Student Groups', () => {
     test('displays students in correct groups', () => {
-      render(<StationGroups {...defaultProps} />);
+      renderWithContext(<StationGroups {...defaultProps} />);
 
       // Students should be displayed (may be grouped together in text)
-      const { container } = render(<StationGroups {...defaultProps} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} />);
       expect(container.textContent).toMatch(/Alice/);
       expect(container.textContent).toMatch(/Charlie/);
     });
 
     test('groups students by station color', () => {
-      const { container } = render(<StationGroups {...defaultProps} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} />);
 
       // Alice and Charlie should both be shown (in red group)
       expect(container.textContent).toMatch(/Alice/);
@@ -77,7 +78,7 @@ describe('StationGroups', () => {
     });
 
     test('shows correct student count per station', () => {
-      const { container } = render(<StationGroups {...defaultProps} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} />);
 
       // Verify component renders with students
       expect(container).toBeInTheDocument();
@@ -87,7 +88,7 @@ describe('StationGroups', () => {
 
   describe('Rotation Controls', () => {
     test('rotation toggle is available when setRotationOrder provided', () => {
-      render(<StationGroups {...defaultProps} />);
+      renderWithContext(<StationGroups {...defaultProps} />);
 
       // Look for rotation indicators (rotating vs stationary)
       const container = screen.getByText(/Red|Blue|Green|Alice Red/i).closest('div');
@@ -96,7 +97,7 @@ describe('StationGroups', () => {
 
     test('clicking rotation toggle updates rotation order', () => {
       const setRotationOrder = jest.fn();
-      render(<StationGroups {...defaultProps} setRotationOrder={setRotationOrder} />);
+      renderWithContext(<StationGroups {...defaultProps} setRotationOrder={setRotationOrder} />);
 
       // Find a station header and click its rotation toggle
       const redStation = screen.getByText(/Red|Blue|Green|Alice Red/i);
@@ -110,7 +111,7 @@ describe('StationGroups', () => {
     });
 
     test('does not allow rotation toggle when setRotationOrder is null', () => {
-      render(<StationGroups {...defaultProps} setRotationOrder={null} />);
+      renderWithContext(<StationGroups {...defaultProps} setRotationOrder={null} />);
 
       // Should still render but without interactive toggles
       expect(screen.getByText(/Red|Blue|Green|Alice Red/i)).toBeInTheDocument();
@@ -119,7 +120,7 @@ describe('StationGroups', () => {
 
   describe('Animation States', () => {
     test('applies animation class when isAnimating is true', () => {
-      const { container } = render(<StationGroups {...defaultProps} isAnimating={true} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} isAnimating={true} />);
 
       // Component should render during animation
       expect(container).toBeInTheDocument();
@@ -131,7 +132,7 @@ describe('StationGroups', () => {
         2: 'green', // Bob moving to green
       };
 
-      const { container } = render(
+      const { container } = renderWithContext(
         <StationGroups {...defaultProps} isAnimating={true} animationTargets={animationTargets} />
       );
 
@@ -140,7 +141,7 @@ describe('StationGroups', () => {
     });
 
     test('renders without animation when isAnimating is false', () => {
-      const { container } = render(<StationGroups {...defaultProps} isAnimating={false} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} isAnimating={false} />);
 
       // Normal rendering without animation
       expect(container).toBeInTheDocument();
@@ -155,15 +156,15 @@ describe('StationGroups', () => {
         blue: 'Teacher Jones',
       };
 
-      render(<StationGroups {...defaultProps} teacherNames={customNames} />);
+      renderWithContext(<StationGroups {...defaultProps} teacherNames={customNames} />);
 
       // Component renders with custom teacher names (may be in title attributes)
-      const { container } = render(<StationGroups {...defaultProps} teacherNames={customNames} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} teacherNames={customNames} />);
       expect(container).toBeInTheDocument();
     });
 
     test('falls back to default names when not provided', () => {
-      const { container } = render(<StationGroups {...defaultProps} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} />);
 
       // Component renders with default teacher names
       expect(container).toBeInTheDocument();
@@ -172,7 +173,7 @@ describe('StationGroups', () => {
 
   describe('Station Colors', () => {
     test('applies station colors from stationColors prop', () => {
-      render(<StationGroups {...defaultProps} />);
+      renderWithContext(<StationGroups {...defaultProps} />);
 
       // Colors are applied via inline styles, so we just verify rendering
       expect(screen.getByText(/Red|Blue|Green|Alice Red/i)).toBeInTheDocument();
@@ -185,7 +186,7 @@ describe('StationGroups', () => {
         red: { bg: '#FF0000', light: '#FFB3B3' },
       };
 
-      render(<StationGroups {...defaultProps} stationColors={customColors} />);
+      renderWithContext(<StationGroups {...defaultProps} stationColors={customColors} />);
 
       // Component should render with custom colors
       expect(screen.getByText(/Red|Blue|Green|Alice Red/i)).toBeInTheDocument();
@@ -194,7 +195,7 @@ describe('StationGroups', () => {
 
   describe('Edge Cases', () => {
     test('handles empty student array', () => {
-      render(<StationGroups {...defaultProps} students={[]} />);
+      renderWithContext(<StationGroups {...defaultProps} students={[]} />);
 
       // Should show station structure even with no students
       expect(screen.getByText(/Red|Blue|Green|Alice Red/i)).toBeInTheDocument();
@@ -203,14 +204,14 @@ describe('StationGroups', () => {
     test('handles students without group assignment', () => {
       const studentsWithoutGroups = [{ id: '1', name: 'Alice', group: null, color: '#FF8A7A' }];
 
-      render(<StationGroups {...defaultProps} students={studentsWithoutGroups} />);
+      renderWithContext(<StationGroups {...defaultProps} students={studentsWithoutGroups} />);
 
       // Should still render the component
       expect(screen.getByText(/Red|Blue|Green|Alice Red/i)).toBeInTheDocument();
     });
 
     test('handles missing rotation order', () => {
-      render(<StationGroups {...defaultProps} rotationOrder={[]} />);
+      renderWithContext(<StationGroups {...defaultProps} rotationOrder={[]} />);
 
       // Should show empty state or handle gracefully
       const container = document.querySelector('div');
@@ -221,7 +222,7 @@ describe('StationGroups', () => {
       const allStations = ['red', 'blue', 'green', 'yellow'];
       const rotationOnly = ['red', 'blue'];
 
-      render(
+      renderWithContext(
         <StationGroups
           {...defaultProps}
           tabStationKeys={allStations}
@@ -237,14 +238,14 @@ describe('StationGroups', () => {
 
   describe('Accessibility', () => {
     test('renders student names as text content', () => {
-      const { container } = render(<StationGroups {...defaultProps} />);
+      const { container } = renderWithContext(<StationGroups {...defaultProps} />);
 
       // Student names should be in the document (may be grouped)
       expect(container.textContent).toMatch(/Alice|Charlie/);
     });
 
     test('station headers have meaningful text', () => {
-      render(<StationGroups {...defaultProps} />);
+      renderWithContext(<StationGroups {...defaultProps} />);
 
       // Teacher names provide context for screen readers
       expect(screen.getByText(/Red|Blue|Green|Alice Red/i)).toBeInTheDocument();

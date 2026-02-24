@@ -26,15 +26,15 @@ const RosterManager = ({ roster, onUpdateRoster, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="roster-manager-title"
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
+        className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col"
       >
-          <div className="p-3 border-b bg-gray-50 flex items-center justify-between flex-shrink-0">
-            <h2 id="roster-manager-title" className="text-lg font-bold text-gray-800">
+          <div className="p-3 border-b border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 flex items-center justify-between flex-shrink-0">
+            <h2 id="roster-manager-title" className="text-lg font-bold text-gray-800 dark:text-gray-100">
               📋 Student Roster
             </h2>
             <button onClick={onClose} className="text-gray-500 hover:text-gray-700 text-xl" aria-label="Close modal">
@@ -210,7 +210,7 @@ const RosterManager = ({ roster, onUpdateRoster, onClose }) => {
             )}
           </div>
         </div>
-        <div className="p-3 border-t bg-gray-50 flex gap-2 justify-end flex-shrink-0">
+        <div className="p-3 border-t border-gray-200 dark:border-slate-600 bg-gray-50 dark:bg-slate-900 flex gap-2 justify-end flex-shrink-0">
           <button
             onClick={onClose}
             className="px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-200 text-sm"

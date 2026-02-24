@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import ReactDOM from 'react-dom';
+import { useAppState } from '../../context/AppStateContext';
 
 // ── Urgency levels ────────────────────────────────────────────────────────────
 const getUrgency = (ms) => {
@@ -89,12 +90,12 @@ const Ring = ({ progress, urgency, size = 110 }) => {
 
 // ── Arrived explosion overlay ─────────────────────────────────────────────────
 const ArrivedOverlay = ({ event, emoji, onDone }) => {
-  const pieces = Array.from({ length: 28 }, (_, i) => ({
+  const pieces = Array.from({ length: 10 }, (_, i) => ({
     id: i,
     e: ['🎉','🎊','⭐','🌟','✨','💥','🏆','👏'][i % 8],
-    left: `${Math.random() * 100}%`,
-    delay: `${Math.random() * 0.6}s`,
-    dur: `${1 + Math.random() * 0.6}s`,
+    left: `${(i / 10) * 90 + 5}%`,
+    delay: `${i * 0.06}s`,
+    dur: `${1.2 + (i % 3) * 0.2}s`,
   }));
 
   useEffect(() => {
@@ -105,7 +106,7 @@ const ArrivedOverlay = ({ event, emoji, onDone }) => {
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[9990] pointer-events-none flex items-center justify-center">
       <style>{`
-        @keyframes cdw-fall { 0%{transform:translateY(-80px) rotate(0deg);opacity:1} 100%{transform:translateY(105vh) rotate(720deg);opacity:0} }
+        @keyframes cdw-fall { 0%{transform:translateY(-80px) rotate(0deg);opacity:1} 100%{transform:translateY(105vh) rotate(180deg);opacity:0} }
         @keyframes cdw-arrived { 0%{transform:scale(0.3);opacity:0} 20%{transform:scale(1.2);opacity:1} 80%{transform:scale(1);opacity:1} 100%{transform:scale(1.05);opacity:0} }
       `}</style>
       {pieces.map((p) => (
@@ -128,6 +129,7 @@ const ArrivedOverlay = ({ event, emoji, onDone }) => {
 
 // ── Main widget ───────────────────────────────────────────────────────────────
 const CountdownWidget = ({ event, targetTime, onEdit }) => {
+  const { isWidgetLocked } = useAppState();
   const [diff, setDiff] = useState(null);
   const [editing, setEditing] = useState(false);
   const [newEvent, setNewEvent] = useState(event);
@@ -254,7 +256,7 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
 
       {editing && ReactDOM.createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditing(false)} />
+          <div className="absolute inset-0 bg-black/70" onClick={() => setEditing(false)} />
           <div
             className="relative w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden"
             style={{ background: `linear-gradient(145deg,${ec1},${ec2})` }}
@@ -310,7 +312,7 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
                 </button>
                 <button onClick={() => { onEdit(newEvent, newTime); setEditing(false); }}
                   className="flex-[2] py-3 rounded-2xl text-sm font-black text-white transition-all border-2 border-white/40 hover:border-white/80"
-                  style={{ background: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(8px)' }}>
+                  style={{ background: 'rgba(255,255,255,0.75)' }}>
                   Save Countdown ✓
                 </button>
               </div>
@@ -322,8 +324,8 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
 
       <div
         ref={containerRef}
-        onClick={() => setEditing(true)}
-        className="rounded-2xl h-full flex flex-col items-center justify-center relative overflow-hidden cursor-pointer select-none"
+        onClick={() => !isWidgetLocked && setEditing(true)}
+        className={`rounded-2xl h-full flex flex-col items-center justify-center relative overflow-hidden select-none ${!isWidgetLocked ? 'cursor-pointer' : 'cursor-default'}`}
         style={{ background: `linear-gradient(135deg,${c1},${c2})` }}
       >
         <style>{`
@@ -331,7 +333,7 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
           @keyframes cdw-breathe{ 0%,100%{transform:scale(1)} 50%{transform:scale(1.03)} }
           @keyframes cdw-throb  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.06)} }
           @keyframes cdw-shake  { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-4px)} 40%{transform:translateX(4px)} 60%{transform:translateX(-3px)} 80%{transform:translateX(3px)} }
-          @keyframes cdw-flash  { 0%,100%{opacity:1} 50%{opacity:0.6} }
+          @keyframes cdw-flash  { 0%,100%{opacity:1} 50%{opacity:0.55} }
         `}</style>
 
         {/* Floating particles */}
@@ -373,7 +375,7 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
                   fontSize: timeFz,
                   fontFamily: "'Baloo 2', cursive",
                   textShadow: '0 2px 10px rgba(0,0,0,0.25)',
-                  animation: urgency === 'critical' ? 'cdw-flash 0.5s infinite' : 'none',
+                  animation: urgency === 'critical' ? 'cdw-flash 1.4s infinite' : 'none',
                 }}
               >
                 {timeDisplay}
@@ -387,7 +389,7 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
             style={{
               fontSize: subFz,
               textShadow: '0 1px 4px rgba(0,0,0,0.2)',
-              animation: urgency === 'critical' ? 'cdw-flash 0.4s infinite' : 'none',
+              animation: urgency === 'critical' ? 'cdw-flash 1.2s infinite' : 'none',
             }}
           >
             {subLabel}
@@ -395,7 +397,9 @@ const CountdownWidget = ({ event, targetTime, onEdit }) => {
         </div>
 
         {/* Edit hint */}
-        <div className="absolute bottom-1.5 right-2.5 text-white/40 font-medium" style={{ fontSize: Math.max(7, Math.min(10, unit * 0.05)) }}>tap to edit</div>
+        {!isWidgetLocked && (
+          <div className="absolute bottom-1.5 right-2.5 text-white/40 font-medium" style={{ fontSize: Math.max(7, Math.min(10, unit * 0.05)) }}>tap to edit</div>
+        )}
       </div>
     </>
   );

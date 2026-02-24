@@ -1,5 +1,6 @@
 import React from 'react';
 import { COLORS } from '../../constants';
+import { useAppState } from '../../context/AppStateContext';
 
 const StationGroups = ({
   students,
@@ -12,6 +13,7 @@ const StationGroups = ({
   setRotationOrder,
   performanceMode = false,
 }) => {
+  const { isWidgetLocked } = useAppState();
   const allGroups = tabStationKeys || rotationOrder;
   const rotatingSet = new Set(rotationOrder);
   const rotating = allGroups.filter((k) => rotatingSet.has(k));
@@ -19,7 +21,7 @@ const StationGroups = ({
   const ordered = [...rotating, ...stationary];
 
   const toggleRotation = (color) => {
-    if (!setRotationOrder) return;
+    if (!setRotationOrder || isWidgetLocked) return;
     if (rotatingSet.has(color)) {
       setRotationOrder(rotationOrder.filter((k) => k !== color));
     } else {
@@ -31,8 +33,8 @@ const StationGroups = ({
     <div className="h-full flex flex-col min-h-0">
       <style>{`
         @keyframes sg-glow {
-          0%, 100% { box-shadow: 0 0 8px 0px var(--sg-glow-color); }
-          50%       { box-shadow: 0 0 20px 4px var(--sg-glow-color); }
+          0%, 100% { transform: scale(1); }
+          50%       { transform: scale(1.02); }
         }
         @keyframes sg-float {
           0%, 100% { transform: translateY(0); }
@@ -74,7 +76,7 @@ const StationGroups = ({
                     : isTarget
                       ? 'sg-glow 1.2s ease-in-out infinite'
                       : 'sg-float 4s ease-in-out infinite',
-                '--sg-glow-color': `${bg}88`,
+                boxShadow: !performanceMode && isTarget ? `0 0 16px 4px ${bg}88` : undefined,
                 transition: 'opacity 0.4s ease, border-color 0.3s ease',
               }}
             >

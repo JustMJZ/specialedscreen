@@ -14,14 +14,34 @@ const getAudioContext = () => {
   return _sharedCtx;
 };
 
-export const playSynthSound = async (soundId, volume = 0.7) => {
+// Unlock AudioContext on the first real user gesture so it's ready when
+// the timer fires (setInterval is not a user gesture and can't resume it).
+const _unlockAudio = () => {
   try {
     const ctx = getAudioContext();
-    // Chrome suspends AudioContext until user gesture; must await resume
-    if (ctx.state === 'suspended') {
-      await ctx.resume();
-    }
-    const now = ctx.currentTime;
+    if (ctx.state === 'suspended') ctx.resume();
+  } catch (e) {}
+  document.removeEventListener('pointerdown', _unlockAudio, true);
+  document.removeEventListener('keydown', _unlockAudio, true);
+};
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerdown', _unlockAudio, true);
+  document.addEventListener('keydown', _unlockAudio, true);
+}
+
+// LOOKAHEAD_S: schedule notes this many seconds ahead of currentTime.
+// Gives the audio engine a buffer so a CPU spike at rotation moment
+// doesn't cause the sound to fire late or be skipped.
+const LOOKAHEAD_S = 0.1;
+
+export const playSynthSound = (soundId, volume = 0.7) => {
+  try {
+    const ctx = getAudioContext();
+    // Kick off resume (non-blocking). If the context is already running this
+    // is a no-op. Notes are scheduled with LOOKAHEAD_S offset so they still
+    // fire correctly even if resume takes a few milliseconds to take effect.
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime + LOOKAHEAD_S;
     const vol = Math.max(0, Math.min(1, volume));
 
     // Master volume node - increased default volume

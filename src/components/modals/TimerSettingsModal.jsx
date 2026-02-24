@@ -72,7 +72,7 @@ const TimerSettingsModal = ({
 
   return ReactDOM.createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-[9999]" />
+      <div className="absolute inset-0 bg-black/60 z-[9999]" />
 
       <div
         role="dialog"

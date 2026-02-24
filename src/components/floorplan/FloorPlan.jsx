@@ -37,6 +37,13 @@ const FloorPlan = ({ isKioskMode = false }) => {
 
   // Track previous container size to detect actual resizes (not initial mount)
   const prevSizeRef = useRef(null);
+  const clampTimerRef = useRef(null);
+
+  // Always-current refs so the ResizeObserver callback never captures a stale closure
+  const setStationConfigsRef = useRef(setStationConfigs);
+  const setCustomBoxesRef = useRef(setCustomBoxes);
+  setStationConfigsRef.current = setStationConfigs;
+  setCustomBoxesRef.current = setCustomBoxes;
 
   // Drag and drop state
   const [draggedStudentId, setDraggedStudentId] = useState(null);
@@ -48,7 +55,10 @@ const FloorPlan = ({ isKioskMode = false }) => {
   const [keyboardTargetStation, setKeyboardTargetStation] = useState(null);
   const [showKeyboardInstructions, setShowKeyboardInstructions] = useState(false);
 
-  // When the floor plan container resizes, clamp all stations and boxes back into bounds
+  // When the floor plan container resizes, clamp all stations and boxes back into bounds.
+  // Uses refs for the setter functions so the observer never captures a stale closure
+  // (old observer firing after a layout switch would otherwise corrupt the previous layout's positions).
+  // Debounced so transient sizes during layout transitions don't trigger a permanent clamp.
   useEffect(() => {
     const container = floorPlanRef.current;
     if (!container) return;
@@ -68,70 +78,77 @@ const FloorPlan = ({ isKioskMode = false }) => {
         if (prevSizeRef.current.w === cw && prevSizeRef.current.h === ch) return;
         prevSizeRef.current = { w: cw, h: ch };
 
-        const margin = 5;
+        // Debounce: wait for the container to settle before clamping
+        clearTimeout(clampTimerRef.current);
+        clampTimerRef.current = setTimeout(() => {
+          const margin = 5;
 
-        // Clamp stations
-        setStationConfigs((prev) => {
-          let changed = false;
-          const next = { ...prev };
-          for (const key of Object.keys(next)) {
-            const s = next[key];
-            const clampedW = Math.min(s.width, cw - margin * 2);
-            const clampedH = Math.min(s.height, ch - margin * 2);
-            const clampedL = Math.min(s.left, cw - clampedW - margin);
-            const clampedT = Math.min(s.top, ch - clampedH - margin);
-            if (
-              clampedW !== s.width ||
-              clampedH !== s.height ||
-              clampedL !== s.left ||
-              clampedT !== s.top
-            ) {
-              next[key] = {
-                ...s,
-                width: Math.max(50, clampedW),
-                height: Math.max(40, clampedH),
-                left: Math.max(margin, clampedL),
-                top: Math.max(margin, clampedT),
-              };
-              changed = true;
+          // Clamp stations — always-current ref avoids stale activeLayoutId in closure
+          setStationConfigsRef.current((prev) => {
+            let changed = false;
+            const next = { ...prev };
+            for (const key of Object.keys(next)) {
+              const s = next[key];
+              const clampedW = Math.min(s.width, cw - margin * 2);
+              const clampedH = Math.min(s.height, ch - margin * 2);
+              const clampedL = Math.min(s.left, cw - clampedW - margin);
+              const clampedT = Math.min(s.top, ch - clampedH - margin);
+              if (
+                clampedW !== s.width ||
+                clampedH !== s.height ||
+                clampedL !== s.left ||
+                clampedT !== s.top
+              ) {
+                next[key] = {
+                  ...s,
+                  width: Math.max(50, clampedW),
+                  height: Math.max(40, clampedH),
+                  left: Math.max(margin, clampedL),
+                  top: Math.max(margin, clampedT),
+                };
+                changed = true;
+              }
             }
-          }
-          return changed ? next : prev;
-        });
-
-        // Clamp custom boxes
-        setCustomBoxes((prev) => {
-          let changed = false;
-          const next = prev.map((b) => {
-            const clampedW = Math.min(b.width, cw - margin * 2);
-            const clampedH = Math.min(b.height, ch - margin * 2);
-            const clampedL = Math.min(b.left, cw - clampedW - margin);
-            const clampedT = Math.min(b.top, ch - clampedH - margin);
-            if (
-              clampedW !== b.width ||
-              clampedH !== b.height ||
-              clampedL !== b.left ||
-              clampedT !== b.top
-            ) {
-              changed = true;
-              return {
-                ...b,
-                width: Math.max(30, clampedW),
-                height: Math.max(30, clampedH),
-                left: Math.max(margin, clampedL),
-                top: Math.max(margin, clampedT),
-              };
-            }
-            return b;
+            return changed ? next : prev;
           });
-          return changed ? next : prev;
-        });
+
+          // Clamp custom boxes
+          setCustomBoxesRef.current((prev) => {
+            let changed = false;
+            const next = prev.map((b) => {
+              const clampedW = Math.min(b.width, cw - margin * 2);
+              const clampedH = Math.min(b.height, ch - margin * 2);
+              const clampedL = Math.min(b.left, cw - clampedW - margin);
+              const clampedT = Math.min(b.top, ch - clampedH - margin);
+              if (
+                clampedW !== b.width ||
+                clampedH !== b.height ||
+                clampedL !== b.left ||
+                clampedT !== b.top
+              ) {
+                changed = true;
+                return {
+                  ...b,
+                  width: Math.max(30, clampedW),
+                  height: Math.max(30, clampedH),
+                  left: Math.max(margin, clampedL),
+                  top: Math.max(margin, clampedT),
+                };
+              }
+              return b;
+            });
+            return changed ? next : prev;
+          });
+        }, 150);
       }
     });
 
     observer.observe(container);
-    return () => observer.disconnect();
-  }, [floorPlanRef, setStationConfigs, setCustomBoxes]);
+    return () => {
+      observer.disconnect();
+      clearTimeout(clampTimerRef.current);
+    };
+  }, [floorPlanRef]);
 
   // Cleanup animation timeouts on unmount
   useEffect(() => {

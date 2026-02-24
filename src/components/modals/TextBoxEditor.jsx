@@ -262,12 +262,12 @@ const TextBoxEditor = ({ textBoxId, config, onUpdate, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby="textbox-editor-title"
-        className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
+        className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden"
       >
         {/* Header */}
         <div className="px-6 py-4 bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-between flex-shrink-0">
@@ -622,7 +622,7 @@ const TextBoxEditor = ({ textBoxId, config, onUpdate, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-white border-t border-gray-200 flex gap-3 justify-end flex-shrink-0">
+        <div className="px-6 py-4 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-600 flex gap-3 justify-end flex-shrink-0">
           <button
             onClick={onClose}
             className="px-6 py-2.5 rounded-xl text-gray-700 hover:bg-gray-100 font-medium transition-colors"
