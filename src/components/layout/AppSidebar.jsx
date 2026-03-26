@@ -10,7 +10,7 @@ const SIDEBAR_ITEMS = [
         <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
       </svg>
     ),
-    href: () => window.location.origin + '/specialedscreen/whiteboard',
+    href: () => window.location.origin + '/specialedscreen/#/whiteboard',
   },
   {
     id: 'notes',
@@ -24,7 +24,7 @@ const SIDEBAR_ITEMS = [
         <polyline points="10 9 9 9 8 9" />
       </svg>
     ),
-    href: () => window.location.origin + '/specialedscreen/notes',
+    href: () => window.location.origin + '/specialedscreen/#/notes',
   },
 ];
 

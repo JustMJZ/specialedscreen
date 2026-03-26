@@ -1,6 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import AuthGate from './components/auth/AuthGate';
@@ -22,7 +22,7 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <ErrorBoundary>
-      <BrowserRouter basename="/specialedscreen">
+      <HashRouter>
         <AuthGate>
         <Routes>
           <Route path="/" element={<SpecialEdScreen />} />
@@ -53,7 +53,7 @@ root.render(
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         </AuthGate>
-      </BrowserRouter>
+      </HashRouter>
     </ErrorBoundary>
   </React.StrictMode>
 );
