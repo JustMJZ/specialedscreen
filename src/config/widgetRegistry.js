@@ -63,6 +63,7 @@ const widgetRegistry = {
     minH: 3,
     defaultW: 6,
     defaultH: 6,
+    multiInstance: true,
   },
   goalLadder: {
     label: 'Goal Ladder',

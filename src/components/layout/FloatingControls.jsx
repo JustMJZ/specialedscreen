@@ -94,7 +94,7 @@ const MenuRow = ({ pip, gradient, label, onClick, right, danger }) => {
 
 // ── Main component ─────────────────────────────────────────────────────────
 
-const FloatingControls = () => {
+const FloatingControls = ({ onOpenSidebar }) => {
   const state = useAppState();
   const {
     layoutTabs, activeLayoutId, setActiveLayoutId,
@@ -137,7 +137,12 @@ const FloatingControls = () => {
   const activeTab = layoutTabs?.find((t) => t.id === activeLayoutId);
   const missingStations = rotationOrder.filter((c) => !stationConfigs[c]);
   const activeWidgetIds = state._activeWidgetIds || [];
-  const hiddenWidgets = ALL_WIDGET_IDS.filter((id) => !activeWidgetIds.includes(id));
+  // For multi-instance widgets, extract base types from instance IDs (e.g. 'textBox__123' → 'textBox')
+  const activeBaseTypes = activeWidgetIds.map((id) => { const s = id.indexOf('__'); return s !== -1 ? id.slice(0, s) : id; });
+  const hiddenWidgets = ALL_WIDGET_IDS.filter((id) => {
+    if (widgetRegistry[id]?.multiInstance) return false; // always addable
+    return !activeBaseTypes.includes(id);
+  });
 
   const closeAllMenus = () => {
     setShowTabMenu(false);
@@ -179,6 +184,22 @@ const FloatingControls = () => {
           borderRadius: 99, padding: '4px 6px',
           boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
         }}>
+
+          {/* Hamburger — opens feature sidebar */}
+          <BarButton
+            base={barBtnBase}
+            onClick={onOpenSidebar}
+            title="Features"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <line x1="1" y1="3.5" x2="13" y2="3.5" />
+              <line x1="1" y1="7" x2="13" y2="7" />
+              <line x1="1" y1="10.5" x2="13" y2="10.5" />
+            </svg>
+          </BarButton>
+
+          {/* Divider */}
+          <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.15)', margin: '0 2px' }} />
 
           {/* Layout tab selector */}
           <div className="relative">
@@ -335,7 +356,12 @@ const FloatingControls = () => {
               onClick={() => { setShowWidgetsMenu(!showWidgetsMenu); setShowTabMenu(false); setShowToolsMenu(false); }}
               title="Widgets"
             >
-              <span>Widgets</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="1" y="1" width="5" height="5" rx="1" />
+                <rect x="8" y="1" width="5" height="5" rx="1" />
+                <rect x="1" y="8" width="5" height="5" rx="1" />
+                <rect x="8" y="8" width="5" height="5" rx="1" />
+              </svg>
               {hiddenWidgets.length > 0 && (
                 <span style={{ background: 'rgba(34,197,94,0.25)', color: '#4ade80', fontSize: 10, fontWeight: 700, padding: '1px 5px', borderRadius: 99 }}>
                   {hiddenWidgets.length}
@@ -350,15 +376,17 @@ const FloatingControls = () => {
                 </div>
                 {ALL_WIDGET_IDS.map((id) => {
                   const meta = widgetRegistry[id];
-                  const isActive = activeWidgetIds.includes(id);
+                  const isMulti = !!meta?.multiInstance;
+                  const isActive = !isMulti && activeBaseTypes.includes(id);
                   return (
                     <WidgetRow
                       key={id}
                       icon={meta.icon}
                       label={meta.label}
                       isActive={isActive}
+                      isMulti={isMulti}
                       onClick={() => {
-                        if (isActive) { if (state._removeWidget) state._removeWidget(id); }
+                        if (!isMulti && isActive) { if (state._removeWidget) state._removeWidget(id); }
                         else { if (state._addWidget) state._addWidget(id); }
                       }}
                     />
@@ -387,24 +415,6 @@ const FloatingControls = () => {
             {isLayoutEditMode ? '✓ Done' : '📐'}
           </BarButton>
 
-          {/* Divider */}
-          <div style={{ width: 1, height: 16, background: 'rgba(255,255,255,0.15)', margin: '0 2px' }} />
-
-          {/* Student View */}
-          <a
-            href={window.location.origin + '/specialedscreen/kiosk'}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Open student-facing kiosk view"
-            style={{ ...barBtnBase, color: '#a5b4fc', textDecoration: 'none' }}
-            onMouseEnter={e => e.currentTarget.style.background = 'rgba(99,102,241,0.22)'}
-            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
-          >
-            <span>Student View</span>
-            <span style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#fff', fontSize: 8, fontWeight: 800, padding: '2px 5px', borderRadius: 4, lineHeight: 1.4 }}>
-              BETA
-            </span>
-          </a>
         </div>
 
         {isExpanded && (
@@ -507,7 +517,7 @@ const StationRow = ({ color, border, label, onClick }) => {
 };
 
 // Individual widget toggle row
-const WidgetRow = ({ icon, label, isActive, onClick }) => {
+const WidgetRow = ({ icon, label, isActive, isMulti, onClick }) => {
   const [hovered, setHovered] = useState(false);
   return (
     <button
@@ -525,7 +535,7 @@ const WidgetRow = ({ icon, label, isActive, onClick }) => {
       <span style={{ flex: 1 }}>{label}</span>
       {isActive
         ? <span style={{ color: '#f87171', fontSize: 11, fontWeight: 700 }}>Remove</span>
-        : <span style={{ color: '#4ade80', fontSize: 11, fontWeight: 700 }}>+ Add</span>
+        : <span style={{ color: '#4ade80', fontSize: 11, fontWeight: 700 }}>{isMulti ? '+ Add Another' : '+ Add'}</span>
       }
     </button>
   );

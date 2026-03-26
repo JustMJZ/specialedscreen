@@ -659,7 +659,7 @@ const ClassicDisplay = ({ progress, mins, secs, isRunning, accentColor }) => {
 };
 
 /* ── Main TimerPanel ── */
-const TimerPanel = ({ isKioskMode = false }) => {
+const TimerPanel = () => {
   const {
     timeRemaining,
     totalTime,
@@ -1319,8 +1319,7 @@ const TimerPanel = ({ isKioskMode = false }) => {
       {!isImmersive && (
         <div className="flex items-center justify-between px-2 pt-1">
           <div className="text-[11px] font-bold text-gray-400">⏱ TIMER</div>
-          {!isKioskMode && (
-            <button
+          <button
               onClick={() => setShowSettings(true)}
               className={`px-2 py-0.5 rounded text-[10px] ${
                 blendMode
@@ -1330,7 +1329,6 @@ const TimerPanel = ({ isKioskMode = false }) => {
             >
               ⚙ Options
             </button>
-          )}
         </div>
       )}
       {isImmersive ? (
@@ -1340,20 +1338,18 @@ const TimerPanel = ({ isKioskMode = false }) => {
           >
             {isOcean ? '🌊 Ocean' : isArcade ? '🕹️ Arcade' : '🪐 Space'}
           </div>
-          {!isKioskMode && (
-            <button
+          <button
               onClick={() => setShowSettings(true)}
               className={`space-chip space-chip-right ${isOcean ? 'ocean-chip' : isArcade ? 'arcade-chip' : ''}`}
             >
               ⚙ Options
             </button>
-          )}
           <div className="space-shell-body">
             {isSpace && <SpaceDisplay {...displayProps} />}
             {isOcean && <OceanDisplay {...displayProps} />}
             {isArcade && <ArcadeDisplay {...displayProps} />}
           </div>
-          {!isKioskMode && <div className="space-controls">{controls}</div>}
+          <div className="space-controls">{controls}</div>
         </div>
       ) : (
         <div
@@ -1370,7 +1366,7 @@ const TimerPanel = ({ isKioskMode = false }) => {
           </div>
         </div>
       )}
-      {!isImmersive && !isKioskMode && <div className="pb-1">{controls}</div>}
+      {!isImmersive && <div className="pb-1">{controls}</div>}
 
       {/* Settings Modal */}
       <TimerSettingsModal

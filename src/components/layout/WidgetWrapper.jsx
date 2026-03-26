@@ -11,7 +11,7 @@ const WIDGET_COLORS = [
 ];
 
 const WidgetWrapper = React.forwardRef(
-  ({ id, isLayoutEditMode, isKioskMode = false, onRemove, onResize, children, style, className, ...rest }, ref) => {
+  ({ id, isLayoutEditMode, onRemove, onResize, children, style, className, ...rest }, ref) => {
     const meta = widgetRegistry[id];
     const label = meta ? meta.label : id;
     const { widgetColors, setWidgetColors, performanceMode, isDarkMode } = useAppState();
@@ -50,7 +50,7 @@ const WidgetWrapper = React.forwardRef(
 
     return (
       <div ref={ref} style={wrapperStyle} className={className} {...rest}>
-        {isLayoutEditMode && !isKioskMode && (
+        {isLayoutEditMode && (
           <div className={`absolute top-1 z-[100] flex items-center gap-1 ${id === 'floorplan' || id === 'timerPanel' ? 'right-32' : 'right-1'}`}>
             {onResize && (
               <>
@@ -104,7 +104,7 @@ const WidgetWrapper = React.forwardRef(
             )}
           </div>
         )}
-        {showColorPicker && isLayoutEditMode && !isKioskMode && (
+        {showColorPicker && isLayoutEditMode && (
           <div
             className={`absolute top-8 z-[200] bg-white dark:bg-slate-800 rounded-card shadow-widget-lg border dark:border-slate-600 p-2 max-h-[60vh] overflow-y-auto ${id === 'floorplan' || id === 'timerPanel' ? 'right-32' : 'right-1'}`}
             style={{ width: 200 }}
@@ -416,9 +416,6 @@ const WidgetWrapper = React.forwardRef(
                 }}
               />
             </>
-          )}
-          {isKioskMode && (
-            <div className="absolute inset-0 z-[9999] cursor-default" />
           )}
           {children}
         </div>

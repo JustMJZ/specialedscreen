@@ -5,7 +5,7 @@ import DraggableStation from './DraggableStation';
 import DraggableBox from './DraggableBox';
 import AnimatedStudent from './AnimatedStudent';
 
-const FloorPlan = ({ isKioskMode = false }) => {
+const FloorPlan = () => {
   const {
     students,
     stationConfigs,
@@ -325,8 +325,7 @@ const FloorPlan = ({ isKioskMode = false }) => {
 
   return (
     <div className="flex flex-col gap-0 h-full">
-      {!isKioskMode && (
-        <div className="flex items-center justify-between px-1 pb-0">
+      <div className="flex items-center justify-between px-1 pb-0">
           <FloorPlanTabs />
           <div className="flex items-center gap-1">
             {isEditMode ? (
@@ -382,8 +381,7 @@ const FloorPlan = ({ isKioskMode = false }) => {
               {isEditMode ? '✓ Done' : '✏️ Edit'}
             </button>
           </div>
-        </div>
-      )}
+      </div>
       <div className="bg-transparent rounded-b-xl rounded-tr-xl shadow-lg p-2 flex-1 flex flex-col min-h-0">
         <div
           ref={floorPlanRef}

@@ -17,6 +17,8 @@ import {
   normalizeRotationOrder,
 } from './stateUtils';
 import { TEMPLATES, applyTemplate } from '../config/templates';
+import { useAuth } from '../hooks/useAuth';
+import { fetchCloudAppState, saveCloudAppState } from '../lib/appStateSync';
 
 // Legacy migration: Old versions stored layout under a different key.
 // This function migrates users from the old format to the new unified storage.
@@ -117,6 +119,9 @@ export function useAppState() {
 }
 
 export function AppStateProvider({ children }) {
+  const { userId } = useAuth();
+  const cloudSaveTimer = useRef(null);
+
   const [globalRoster, setGlobalRoster] = useState(() =>
     loadSaved('globalRoster', [])
   );
@@ -635,6 +640,16 @@ export function AppStateProvider({ children }) {
         showClockDate,
       });
       localStorage.setItem(STORAGE_KEY, data);
+
+      // Cloud sync — debounced so rapid changes don't spam the API
+      if (userId) {
+        clearTimeout(cloudSaveTimer.current);
+        cloudSaveTimer.current = setTimeout(() => {
+          saveCloudAppState(userId, JSON.parse(data)).catch((err) =>
+            console.warn('Cloud save failed:', err.message)
+          );
+        }, 2000);
+      }
     } catch (e) {
       // Storage quota exceeded or other error - warn user once per session
       if (!window._storageWarningShown) {
@@ -671,6 +686,45 @@ export function AppStateProvider({ children }) {
     showClockDate,
   ]);
 
+  // Cloud load — fires once after auth resolves. Applies cloud state if it exists,
+  // allowing cross-device/cross-browser sync. Local state is already set from
+  // localStorage so the app is usable immediately while this fetch happens.
+  const cloudLoaded = useRef(false);
+  useEffect(() => {
+    if (!userId || cloudLoaded.current) return;
+    cloudLoaded.current = true;
+    fetchCloudAppState(userId).then((row) => {
+      if (!row?.data) return;
+      const d = row.data;
+      if (d.globalRoster !== undefined) setGlobalRoster(d.globalRoster);
+      if (d.studentsByLayout !== undefined) setStudentsByLayout(d.studentsByLayout);
+      if (d.timerByLayout !== undefined) setTimerByLayout(d.timerByLayout);
+      if (d.bannerByLayout !== undefined) setBannerByLayout(d.bannerByLayout);
+      if (d.firstThen !== undefined) setFirstThen(d.firstThen);
+      if (d.rotationSound !== undefined) setRotationSound(d.rotationSound);
+      if (d.voiceLevel !== undefined) setVoiceLevel(d.voiceLevel);
+      if (d.countdownEvent !== undefined) setCountdownEvent(d.countdownEvent);
+      if (d.countdownTime !== undefined) setCountdownTime(d.countdownTime);
+      if (d.googleSlidesUrl !== undefined) setGoogleSlidesUrl(d.googleSlidesUrl);
+      if (d.youtubeVideoUrl !== undefined) setYoutubeVideoUrl(d.youtubeVideoUrl);
+      if (d.textBoxes !== undefined) setTextBoxes(d.textBoxes);
+      if (d.layoutTabs !== undefined) setLayoutTabs(d.layoutTabs);
+      if (d.activeLayoutId !== undefined) setActiveLayoutId(d.activeLayoutId);
+      if (d.widgetColorsByLayout !== undefined) setWidgetColorsByLayout(d.widgetColorsByLayout);
+      if (d.goalLaddersByLayout !== undefined) setGoalLaddersByLayout(d.goalLaddersByLayout);
+      if (d.studentGoals !== undefined) setStudentGoals(d.studentGoals);
+      if (d.floorPlansByLayout !== undefined) setFloorPlansByLayout(d.floorPlansByLayout);
+      if (d.customSounds !== undefined) setCustomSounds(d.customSounds);
+      if (d.stationColorsByLayout !== undefined) setStationColorsByLayout(d.stationColorsByLayout);
+      if (d.rotationOrderByLayout !== undefined) setRotationOrderByLayout(d.rotationOrderByLayout);
+      if (d.soundVolume !== undefined) setSoundVolume(d.soundVolume);
+      if (d.performanceMode !== undefined) setPerformanceMode(d.performanceMode);
+      if (d.isDarkMode !== undefined) setIsDarkMode(d.isDarkMode);
+      if (d.clockStyle !== undefined) setClockStyle(d.clockStyle);
+      if (d.showClockDate !== undefined) setShowClockDate(d.showClockDate);
+    }).catch((err) => console.warn('Cloud load failed:', err.message));
+  }, [userId]);
+
   // Timer effect — uses a local ref to track time so triggerRotation is called
   // outside any state updater (state updaters must be pure; no side effects allowed).
   const _timerTimeRef = useRef(timeRemaining);
@@ -706,11 +760,6 @@ export function AppStateProvider({ children }) {
     if (!activeRotationOrder || activeRotationOrder.length === 0) return;
 
     rotationInProgressRef.current = true;
-
-    // Broadcast rotation trigger to kiosk mode (only from teacher mode)
-    if (!isKioskMode && broadcastChannelRef.current) {
-      broadcastChannelRef.current.postMessage({ type: 'ROTATION_TRIGGER' });
-    }
 
     // Clear any pending rotation timeouts to prevent race conditions
     rotationTimeoutsRef.current.forEach((id) => clearTimeout(id));
@@ -1327,117 +1376,6 @@ export function AppStateProvider({ children }) {
     toggleEditMode,
     toggleLayoutEditMode,
   };
-
-  // ══════════════════════════════════════════════════════════════════════════
-  // BroadcastChannel: Real-time sync between teacher mode and kiosk mode
-  // ══════════════════════════════════════════════════════════════════════════
-  const isKioskMode = typeof window !== 'undefined' && window.location.pathname.includes('/kiosk');
-  const broadcastChannelRef = useRef(null);
-  const isReceivingRef = useRef(false); // Prevent broadcast loops
-  // Set up BroadcastChannel for tab synchronization
-  useEffect(() => {
-    // Only use BroadcastChannel if supported
-    if (typeof window === 'undefined' || !window.BroadcastChannel) {
-      return;
-    }
-
-    const channel = new BroadcastChannel('specialedscreen-sync');
-    broadcastChannelRef.current = channel;
-
-    // Listen for messages from other tabs
-    channel.onmessage = (event) => {
-      if (!event.data) return;
-
-      // Handle rotation trigger events separately - execute same rotation in kiosk
-      if (event.data.type === 'ROTATION_TRIGGER') {
-        if (triggerRotationRef.current && typeof triggerRotationRef.current === 'function') {
-          triggerRotationRef.current();
-        }
-        return;
-      }
-
-      if (event.data.type !== 'STATE_SYNC') return;
-
-      const { payload } = event.data;
-      isReceivingRef.current = true;
-
-      // Apply state updates from teacher
-      if (payload.timeRemaining !== undefined) setTimeRemaining(payload.timeRemaining);
-      if (payload.isRunning !== undefined) setIsRunning(payload.isRunning);
-      if (payload.totalTime !== undefined) setTotalTime(payload.totalTime);
-      if (payload.isAnimating !== undefined) setIsAnimating(payload.isAnimating);
-      if (payload.animationTargets) setAnimationTargets(payload.animationTargets);
-      if (payload.rightNowText !== undefined) setRightNowText(payload.rightNowText);
-      if (payload.voiceLevel !== undefined) setVoiceLevel(payload.voiceLevel);
-      if (payload.firstThen) setFirstThen(payload.firstThen);
-      if (payload.stationConfigs || payload.floorPlanStudents) {
-        setFloorPlansByLayout((prev) => {
-          const set = prev[activeLayoutId];
-          if (!set) return prev;
-          const nextPlans = set.floorPlans.map((fp) =>
-            fp.id === activeFloorPlanId
-              ? {
-                  ...fp,
-                  ...(payload.stationConfigs && { stationConfigs: payload.stationConfigs }),
-                  ...(payload.floorPlanStudents && { students: payload.floorPlanStudents }),
-                }
-              : fp
-          );
-          return { ...prev, [activeLayoutId]: { ...set, floorPlans: nextPlans } };
-        });
-      }
-
-      // Reset flag after a short delay
-      setTimeout(() => {
-        isReceivingRef.current = false;
-      }, 50);
-    };
-
-    return () => {
-      channel.close();
-    };
-  }, [activeLayoutId, activeFloorPlanId]);
-
-  // Broadcast state changes from teacher mode
-  useEffect(() => {
-    if (isKioskMode || !broadcastChannelRef.current || isReceivingRef.current) {
-      return; // Only broadcast from teacher mode, not during receiving
-    }
-
-    const broadcast = () => {
-      broadcastChannelRef.current?.postMessage({
-        type: 'STATE_SYNC',
-        payload: {
-          timeRemaining,
-          isRunning,
-          totalTime,
-          floorPlanStudents: students,
-          isAnimating,
-          animationTargets,
-          rightNowText,
-          voiceLevel,
-          firstThen,
-          stationConfigs,
-        },
-      });
-    };
-
-    // Broadcast changes (debounced to avoid spam)
-    const timeoutId = setTimeout(broadcast, 100);
-    return () => clearTimeout(timeoutId);
-  }, [
-    timeRemaining,
-    isRunning,
-    totalTime,
-    students,
-    isAnimating,
-    animationTargets,
-    rightNowText,
-    voiceLevel,
-    firstThen,
-    stationConfigs,
-    isKioskMode,
-  ]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

@@ -24,9 +24,16 @@ const YouTubeVideo = lazy(() => import('../widgets/YouTubeVideo'));
 const FeelingsCheckin = lazy(() => import('../widgets/FeelingsCheckin'));
 const TextBox = lazy(() => import('../widgets/TextBox'));
 
+// Multi-instance widgets use 'type__timestamp' as their layout ID.
+// This extracts the base type from either format.
+function getWidgetType(id) {
+  const sep = id.indexOf('__');
+  return sep !== -1 ? id.slice(0, sep) : id;
+}
+
 function applyMinSizes(layout) {
   return layout.map((item) => {
-    const meta = widgetRegistry[item.i];
+    const meta = widgetRegistry[getWidgetType(item.i)];
     if (!meta) return item;
     return {
       ...item,
@@ -36,7 +43,7 @@ function applyMinSizes(layout) {
   });
 }
 
-const WidgetGrid = ({ isKioskMode = false }) => {
+const WidgetGrid = () => {
   const state = useAppState();
   const {
     isLayoutEditMode,
@@ -160,7 +167,7 @@ const WidgetGrid = ({ isKioskMode = false }) => {
           if (tab.id !== activeLayoutTab?.id) return tab;
           const updated = (tab.layout || []).map((item) => {
             if (item.i !== widgetId) return item;
-            const meta = widgetRegistry[widgetId];
+            const meta = widgetRegistry[getWidgetType(widgetId)];
             const minW = meta?.minW || 1;
             const minH = meta?.minH || 1;
             return {
@@ -182,11 +189,13 @@ const WidgetGrid = ({ isKioskMode = false }) => {
         prev.map((tab) => {
           if (tab.id !== activeLayoutTab?.id) return tab;
           const existing = tab.layout || [];
-          if (existing.some((item) => item.i === widgetId)) return tab;
           const meta = widgetRegistry[widgetId];
-          // Place at top-left (0,0) - react-grid-layout will compact and adjust
+          // Single-instance widgets: block duplicates
+          if (!meta?.multiInstance && existing.some((item) => item.i === widgetId)) return tab;
+          // Multi-instance widgets: generate a unique instance ID
+          const instanceId = meta?.multiInstance ? `${widgetId}__${Date.now()}` : widgetId;
           const newItem = {
-            i: widgetId,
+            i: instanceId,
             x: 0,
             y: 0,
             w: meta ? meta.defaultW : 5,
@@ -209,7 +218,8 @@ const WidgetGrid = ({ isKioskMode = false }) => {
   }, [resetLayout, removeWidget, addWidget, layoutWithMins, state]);
 
   const renderWidget = (id) => {
-    switch (id) {
+    const type = getWidgetType(id);
+    switch (type) {
       case 'banner':
         return (
           <Banner
@@ -224,9 +234,9 @@ const WidgetGrid = ({ isKioskMode = false }) => {
           />
         );
       case 'floorplan':
-        return <FloorPlan isKioskMode={isKioskMode} />;
+        return <FloorPlan />;
       case 'timerPanel':
-        return <TimerPanel isKioskMode={isKioskMode} />;
+        return <TimerPanel />;
       case 'tokenBoard':
         return <TokenBoardCard />;
       case 'voiceLevel':
@@ -320,7 +330,6 @@ const WidgetGrid = ({ isKioskMode = false }) => {
             key={item.i}
             id={item.i}
             isLayoutEditMode={isLayoutEditMode}
-            isKioskMode={isKioskMode}
             onRemove={removeWidget}
             onResize={resizeWidget}
           >
