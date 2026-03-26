@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/specialedscreen/static/css/main.6f9667b7.css",
-    "main.js": "/specialedscreen/static/js/main.908aae60.js",
+    "main.js": "/specialedscreen/static/js/main.2067cb01.js",
     "static/js/9811.18dc2fa8.chunk.js": "/specialedscreen/static/js/9811.18dc2fa8.chunk.js",
     "static/css/7083.24ea6d63.chunk.css": "/specialedscreen/static/css/7083.24ea6d63.chunk.css",
     "static/js/7083.6a2df524.chunk.js": "/specialedscreen/static/js/7083.6a2df524.chunk.js",
@@ -135,7 +135,7 @@
     "static/media/Assistant-SemiBold.woff2": "/specialedscreen/static/media/Assistant-SemiBold.590ad9e4bfdad16dca50.woff2",
     "index.html": "/specialedscreen/index.html",
     "main.6f9667b7.css.map": "/specialedscreen/static/css/main.6f9667b7.css.map",
-    "main.908aae60.js.map": "/specialedscreen/static/js/main.908aae60.js.map",
+    "main.2067cb01.js.map": "/specialedscreen/static/js/main.2067cb01.js.map",
     "9811.18dc2fa8.chunk.js.map": "/specialedscreen/static/js/9811.18dc2fa8.chunk.js.map",
     "7083.24ea6d63.chunk.css.map": "/specialedscreen/static/css/7083.24ea6d63.chunk.css.map",
     "7083.6a2df524.chunk.js.map": "/specialedscreen/static/js/7083.6a2df524.chunk.js.map",
@@ -262,6 +262,6 @@
   },
   "entrypoints": [
     "static/css/main.6f9667b7.css",
-    "static/js/main.908aae60.js"
+    "static/js/main.2067cb01.js"
   ]
 }
