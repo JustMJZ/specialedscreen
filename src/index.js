@@ -8,6 +8,7 @@ import SpecialEdScreen from './SpecialEdScreen';
 
 const WhiteboardPage = lazy(() => import('./components/whiteboard/WhiteboardPage'));
 const NotesPage = lazy(() => import('./components/notes/NotesPage'));
+const SchedulePage = lazy(() => import('./components/schedule/SchedulePage'));
 
 // Initialize performance monitoring in development
 if (process.env.NODE_ENV === 'development') {
@@ -47,6 +48,18 @@ root.render(
                 </div>
               }>
                 <NotesPage />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/schedule"
+            element={
+              <Suspense fallback={
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#0f172a', color: '#e2e8f0', fontSize: 14 }}>
+                  Loading schedule…
+                </div>
+              }>
+                <SchedulePage />
               </Suspense>
             }
           />

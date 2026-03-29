@@ -1,0 +1,91 @@
+/* Force FullCalendar to light mode regardless of OS preference */
+.schedule-calendar-wrapper {
+  color-scheme: light;
+}
+
+.schedule-calendar-wrapper .fc {
+  background: #ffffff;
+  color: #1e293b;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.schedule-calendar-wrapper .fc-theme-standard td,
+.schedule-calendar-wrapper .fc-theme-standard th,
+.schedule-calendar-wrapper .fc-theme-standard .fc-scrollgrid {
+  border-color: #e2e8f0;
+}
+
+.schedule-calendar-wrapper .fc-col-header-cell {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 8px 0;
+}
+
+.schedule-calendar-wrapper .fc-timegrid-slot {
+  height: 48px;
+}
+
+.schedule-calendar-wrapper .fc-scroller {
+  scroll-behavior: smooth;
+  overflow-y: auto !important;
+}
+
+.schedule-calendar-wrapper .fc-timegrid-slot-label {
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.schedule-calendar-wrapper .fc-daygrid-day-number,
+.schedule-calendar-wrapper .fc-col-header-cell-cushion {
+  color: #475569;
+  text-decoration: none;
+}
+
+.schedule-calendar-wrapper .fc-day-today {
+  background: #f0f4ff !important;
+}
+
+.schedule-calendar-wrapper .fc-button-primary {
+  background: #6366f1 !important;
+  border-color: #6366f1 !important;
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  border-radius: 7px !important;
+}
+
+.schedule-calendar-wrapper .fc-button-primary:hover {
+  background: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+}
+
+.schedule-calendar-wrapper .fc-button-active {
+  background: #4f46e5 !important;
+  border-color: #4f46e5 !important;
+}
+
+.schedule-calendar-wrapper .fc-toolbar-title {
+  font-size: 15px !important;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.schedule-calendar-wrapper .fc-highlight {
+  background: rgba(99, 102, 241, 0.15) !important;
+}
+
+.schedule-calendar-wrapper .fc-now-indicator-line {
+  border-color: #ef4444;
+}
+
+.schedule-calendar-wrapper .fc-event {
+  border-radius: 5px;
+  font-size: 12px;
+  padding: 1px 4px;
+  cursor: pointer;
+}
