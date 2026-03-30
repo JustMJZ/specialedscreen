@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkspecialedscreen=self.webpackChunkspecialedscreen||[]).push([[6531],{6531(e,s,a){a.r(s),a.d(s,{WorkerUrl:()=>c});var r=a(229),c=(a(88390),a(43881),new URL("file:///C:/Projects/specialedscreen/node_modules/@excalidraw/excalidraw/dist/prod/subset-worker.chunk.js"));typeof window>"u"&&typeof self<"u"&&(self.onmessage=async e=>{if(e.data.command===r.a.Subset){let s=await(0,r.c)(e.data.arrayBuffer,e.data.codePoints);self.postMessage(s,{transfer:[s]})}})}}]);
+//# sourceMappingURL=6531.56b882f4.chunk.js.map
