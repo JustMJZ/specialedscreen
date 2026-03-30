@@ -4,6 +4,16 @@ import NotesEditor from './NotesEditor';
 import { useAuth } from '../../hooks/useAuth';
 import { supabase } from '../../lib/supabase';
 
+const C = {
+  coral:     '#FB7F6E',
+  coralLight:'#FFF1EF',
+  teal:      '#14B8A6',
+  cream:     '#FFFBF7',
+  border:    '#FDE8E4',
+  text:      '#334155',
+  muted:     '#94a3b8',
+};
+
 function createDoc(title) {
   return {
     id: `doc_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -68,7 +78,6 @@ export default function NotesPage() {
     initialised.current = true;
 
     if (!userId) {
-      // Auth failed — fall back to empty state
       setLoading(false);
       return;
     }
@@ -78,7 +87,6 @@ export default function NotesPage() {
         let loaded = await fetchDocs(userId);
 
         if (loaded.length === 0) {
-          // First time — seed defaults
           const defaults = [
             createDoc('Sub Plans'),
             createDoc('Teacher Notes'),
@@ -163,7 +171,7 @@ export default function NotesPage() {
       <div style={{
         width: '100vw', height: '100vh', display: 'flex',
         alignItems: 'center', justifyContent: 'center',
-        background: '#0f172a', color: 'rgba(148,163,184,0.6)', fontSize: 14,
+        background: C.cream, color: C.muted, fontSize: 14,
       }}>
         Loading notes…
       </div>
@@ -171,7 +179,7 @@ export default function NotesPage() {
   }
 
   return (
-    <div style={{ width: '100vw', height: '100vh', display: 'flex', overflow: 'hidden' }}>
+    <div style={{ width: '100vw', height: '100vh', display: 'flex', overflow: 'hidden', background: C.cream }}>
 
       {/* ── Sidebar ── */}
       <div
@@ -179,31 +187,39 @@ export default function NotesPage() {
         style={{
           width: 230,
           flexShrink: 0,
-          background: 'rgba(15,23,42,0.98)',
-          borderRight: '1px solid rgba(255,255,255,0.07)',
+          background: '#fff',
+          borderRight: `1px solid ${C.border}`,
           display: 'flex',
           flexDirection: 'column',
         }}
       >
         {/* Header */}
-        <div style={{ padding: '18px 14px 12px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <div style={{
-            fontSize: 11, fontWeight: 700, color: 'rgba(148,163,184,0.5)',
-            textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 10,
-          }}>
-            Documents
+        <div style={{
+          padding: '0 0 0',
+          background: `linear-gradient(135deg, ${C.coral} 0%, #f97316 100%)`,
+          flexShrink: 0,
+        }}>
+          <div style={{ padding: '18px 14px 14px' }}>
+            <div style={{
+              fontSize: 14, fontWeight: 800, color: '#fff',
+              letterSpacing: '0.02em', marginBottom: 10,
+            }}>
+              Documents
+            </div>
+            <button
+              onClick={handleNewDoc}
+              style={{
+                width: '100%', padding: '7px 12px', borderRadius: 8,
+                background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.35)',
+                color: '#fff', fontSize: 12, fontWeight: 600,
+                cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6,
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+              onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+            >
+              + New Document
+            </button>
           </div>
-          <button
-            onClick={handleNewDoc}
-            style={{
-              width: '100%', padding: '7px 12px', borderRadius: 8,
-              background: 'rgba(99,102,241,0.18)', border: '1px solid rgba(99,102,241,0.3)',
-              color: '#a5b4fc', fontSize: 12, fontWeight: 600,
-              cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 6,
-            }}
-          >
-            + New Document
-          </button>
         </div>
 
         {/* Document list */}
@@ -227,23 +243,23 @@ export default function NotesPage() {
             />
           ))}
           {docs.length === 0 && (
-            <div style={{ padding: '24px 10px', fontSize: 12, color: 'rgba(148,163,184,0.4)', textAlign: 'center' }}>
+            <div style={{ padding: '24px 10px', fontSize: 12, color: C.muted, textAlign: 'center' }}>
               No documents yet
             </div>
           )}
         </div>
 
         {/* Back to dashboard */}
-        <div style={{ padding: '12px 10px', borderTop: '1px solid rgba(255,255,255,0.07)', flexShrink: 0 }}>
+        <div style={{ padding: '12px 10px', borderTop: `1px solid ${C.border}`, flexShrink: 0 }}>
           <Link
             to="/"
             style={{
               display: 'flex', alignItems: 'center', gap: 6,
               padding: '7px 10px', borderRadius: 8,
-              color: 'rgba(148,163,184,0.55)', fontSize: 12, fontWeight: 500,
+              color: C.muted, fontSize: 12, fontWeight: 500,
               textDecoration: 'none', transition: 'background 0.1s',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.06)'}
+            onMouseEnter={(e) => e.currentTarget.style.background = C.coralLight}
             onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           >
             ← Dashboard
@@ -260,7 +276,7 @@ export default function NotesPage() {
               style={{
                 padding: '10px 56px 0',
                 background: '#fff',
-                borderBottom: '1px solid #f1f5f9',
+                borderBottom: `1px solid ${C.border}`,
                 flexShrink: 0,
               }}
             >
@@ -278,7 +294,7 @@ export default function NotesPage() {
         ) : (
           <div style={{
             flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#94a3b8', flexDirection: 'column', gap: 8,
+            color: C.muted, flexDirection: 'column', gap: 8,
           }}>
             <div style={{ fontSize: 32 }}>📄</div>
             <div style={{ fontSize: 14 }}>Select or create a document</div>
@@ -305,7 +321,7 @@ function DocTitleInput({ doc, onRename }) {
       style={{
         width: '100%', border: 'none', outline: 'none',
         fontSize: 22, fontWeight: 700, fontFamily: 'Georgia, serif',
-        color: '#0f172a', background: 'transparent',
+        color: C.text, background: 'transparent',
         padding: '10px 0', lineHeight: 1.3,
       }}
       placeholder="Untitled"
@@ -327,11 +343,12 @@ function DocRow({ doc, isActive, isRenaming, renameValue, onSelect, onDoubleClic
       style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '8px 10px', borderRadius: 8, marginBottom: 2, cursor: 'pointer',
-        background: isActive ? 'rgba(99,102,241,0.2)' : hovered ? 'rgba(255,255,255,0.05)' : 'transparent',
+        background: isActive ? C.coralLight : hovered ? '#fafafa' : 'transparent',
+        border: `1px solid ${isActive ? C.border : 'transparent'}`,
         transition: 'background 0.1s',
       }}
     >
-      <span style={{ fontSize: 13, flexShrink: 0, opacity: 0.5 }}>📄</span>
+      <span style={{ fontSize: 13, flexShrink: 0, opacity: 0.6 }}>📄</span>
 
       <div style={{ flex: 1, minWidth: 0 }}>
         {isRenaming ? (
@@ -343,21 +360,21 @@ function DocRow({ doc, isActive, isRenaming, renameValue, onSelect, onDoubleClic
             autoFocus
             onClick={(e) => e.stopPropagation()}
             style={{
-              width: '100%', background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(99,102,241,0.5)', borderRadius: 4,
-              color: '#e2e8f0', fontSize: 12, padding: '1px 4px', outline: 'none',
+              width: '100%', background: C.coralLight,
+              border: `1px solid ${C.coral}`, borderRadius: 4,
+              color: C.text, fontSize: 12, padding: '1px 4px', outline: 'none',
             }}
           />
         ) : (
           <>
             <div style={{
-              fontSize: 12, fontWeight: isActive ? 600 : 400,
-              color: isActive ? '#a5b4fc' : '#cbd5e1',
+              fontSize: 12, fontWeight: isActive ? 700 : 400,
+              color: isActive ? C.coral : C.text,
               overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
             }}>
               {doc.title}
             </div>
-            <div style={{ fontSize: 10, color: 'rgba(148,163,184,0.4)', marginTop: 1 }}>
+            <div style={{ fontSize: 10, color: C.muted, marginTop: 1 }}>
               {formatDate(doc.updatedAt)}
             </div>
           </>

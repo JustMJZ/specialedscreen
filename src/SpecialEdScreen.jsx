@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { AppStateProvider, useAppState } from './context/AppStateContext';
+import { useAppState } from './context/AppStateContext';
 import FloatingControls from './components/layout/FloatingControls';
 import AppSidebar from './components/layout/AppSidebar';
+import StudentsPanel from './components/students/StudentsPanel';
 import WidgetGrid from './components/layout/WidgetGrid';
 import Modals from './components/modals';
 import RotationAnnouncement from './components/shared/RotationAnnouncement';
@@ -12,6 +13,7 @@ import WelcomeModal from './components/modals/WelcomeModal';
 function ScreenLayout() {
   const { showAnnouncement, announcementPhase, showWelcomeModal, loadTemplate, skipWelcome, isDarkMode } = useAppState();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [studentsPanelOpen, setStudentsPanelOpen] = useState(false);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -31,7 +33,12 @@ function ScreenLayout() {
       )}
       <RotationAnnouncement show={showAnnouncement} phase={announcementPhase} />
       <Modals />
-      <AppSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <AppSidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        onOpenStudents={() => { setSidebarOpen(false); setStudentsPanelOpen(true); }}
+      />
+      <StudentsPanel isOpen={studentsPanelOpen} onClose={() => setStudentsPanelOpen(false)} />
       <FloatingControls onOpenSidebar={() => setSidebarOpen(true)} />
       <KeyboardShortcuts />
       <BackupReminder />
@@ -44,9 +51,5 @@ function ScreenLayout() {
 }
 
 export default function SpecialEdScreen() {
-  return (
-    <AppStateProvider>
-      <ScreenLayout />
-    </AppStateProvider>
-  );
+  return <ScreenLayout />;
 }

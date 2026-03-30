@@ -8,7 +8,7 @@ const RosterManager = lazy(() => import('./RosterManager'));
 const FirstThenEditor = lazy(() => import('./FirstThenEditor'));
 const GoalEditorModal = lazy(() => import('./GoalEditorModal'));
 const CustomBoxEditor = lazy(() => import('./CustomBoxEditor'));
-const TokenPopup = lazy(() => import('./TokenPopup'));
+const StudentProfileModal = lazy(() => import('./StudentProfileModal'));
 const TextBoxEditor = lazy(() => import('./TextBoxEditor'));
 
 const Modals = () => {
@@ -35,6 +35,8 @@ const Modals = () => {
     setStudents,
     globalRoster,
     setGlobalRoster,
+    floorPlansByLayout,
+    setFloorPlansByLayout,
     teacherNames,
     setTeacherNames,
     stationColors,
@@ -46,6 +48,12 @@ const Modals = () => {
     setFirstThen,
     studentGoals,
     setStudentGoals,
+    tokenHistory,
+    setTokenHistory,
+    studentNotes,
+    setStudentNotes,
+    studentGoalLadders,
+    setStudentGoalLadders,
     customBoxes,
     setCustomBoxes,
     tabStationKeys,
@@ -97,7 +105,32 @@ const Modals = () => {
         <Suspense fallback={<LoadingSpinner />}>
           <RosterManager
             roster={globalRoster}
-            onUpdateRoster={setGlobalRoster}
+            onUpdateRoster={(updatedRoster) => {
+              setGlobalRoster(updatedRoster);
+              // Sync name/photo/emoji to any floor plan students linked via rosterId
+              const rosterMap = new Map(updatedRoster.map((r) => [r.id, r]));
+              setFloorPlansByLayout((prev) => {
+                const next = {};
+                for (const layoutId of Object.keys(prev)) {
+                  const layoutSet = prev[layoutId];
+                  next[layoutId] = {
+                    ...layoutSet,
+                    floorPlans: layoutSet.floorPlans.map((fp) => ({
+                      ...fp,
+                      students: (fp.students || []).map((s) => {
+                        if (!s.rosterId) return s;
+                        const r = rosterMap.get(s.rosterId);
+                        if (!r) return s;
+                        return { ...s, name: r.name, photo: r.photo ?? null, emoji: r.emoji ?? null };
+                      }),
+                    })),
+                  };
+                }
+                return next;
+              });
+            }}
+            studentGoals={studentGoals}
+            onUpdateGoals={setStudentGoals}
             onClose={() => setShowRosterManager(false)}
           />
         </Suspense>
@@ -126,19 +159,26 @@ const Modals = () => {
       {selectedStudentId &&
         (() => {
           const student = students.find((s) => s.id === selectedStudentId);
-          const goal = studentGoals[selectedStudentId] || {
+          // Key all data by rosterId so it matches globalRoster lookups in StudentsPanel
+          const dataKey = student?.rosterId || selectedStudentId;
+          const goal = studentGoals[dataKey] || {
             tokens: 0,
             goal: 5,
             reward: '🎮 Free Time',
             active: false,
           };
+          const today = new Date().toISOString().slice(0, 10);
           return (
             <Suspense fallback={<LoadingSpinner />}>
-              <TokenPopup
+              <StudentProfileModal
                 student={student}
                 goal={goal}
+                tokenHistory={tokenHistory}
+                studentNotes={studentNotes}
+                studentGoalLadders={studentGoalLadders}
+                dataKey={dataKey}
                 onAddToken={() => {
-                  const g = studentGoals[selectedStudentId] || {
+                  const g = studentGoals[dataKey] || {
                     tokens: 0,
                     goal: 5,
                     reward: '🎮 Free Time',
@@ -147,25 +187,36 @@ const Modals = () => {
                   if (g.tokens < g.goal) {
                     setStudentGoals((prev) => ({
                       ...prev,
-                      [selectedStudentId]: { ...g, tokens: g.tokens + 1 },
+                      [dataKey]: { ...g, tokens: g.tokens + 1 },
                     }));
+                    setTokenHistory((prev) => {
+                      const h = prev[dataKey] || {};
+                      return { ...prev, [dataKey]: { ...h, [today]: (h[today] || 0) + 1 } };
+                    });
                   }
                 }}
                 onRemoveToken={() => {
-                  const g = studentGoals[selectedStudentId] || {
+                  const g = studentGoals[dataKey] || {
                     tokens: 0,
                     goal: 5,
                     reward: '🎮 Free Time',
                     active: true,
                   };
-                  if (g.tokens > 0)
+                  if (g.tokens > 0) {
                     setStudentGoals((prev) => ({
                       ...prev,
-                      [selectedStudentId]: { ...g, tokens: g.tokens - 1 },
+                      [dataKey]: { ...g, tokens: g.tokens - 1 },
                     }));
+                    setTokenHistory((prev) => {
+                      const h = prev[dataKey] || {};
+                      const cur = h[today] || 0;
+                      if (cur <= 0) return prev;
+                      return { ...prev, [dataKey]: { ...h, [today]: cur - 1 } };
+                    });
+                  }
                 }}
                 onResetTokens={() => {
-                  const g = studentGoals[selectedStudentId] || {
+                  const g = studentGoals[dataKey] || {
                     tokens: 0,
                     goal: 5,
                     reward: '🎮 Free Time',
@@ -173,8 +224,14 @@ const Modals = () => {
                   };
                   setStudentGoals((prev) => ({
                     ...prev,
-                    [selectedStudentId]: { ...g, tokens: 0 },
+                    [dataKey]: { ...g, tokens: 0 },
                   }));
+                }}
+                onUpdateNotes={(key, text) => {
+                  setStudentNotes((prev) => ({ ...prev, [key]: text }));
+                }}
+                onUpdateGoalLadder={(key, updated) => {
+                  setStudentGoalLadders((prev) => ({ ...prev, [key]: updated }));
                 }}
                 onClose={() => setSelectedStudentId(null)}
               />

@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
-import { STUDENT_EMOJI_OPTIONS, STATION_COLOR_OPTIONS, TOKEN_EMOJI_OPTIONS } from '../../constants';
-import EmojiPicker from './EmojiPicker';
+import { STATION_COLOR_OPTIONS, TOKEN_EMOJI_OPTIONS } from '../../constants';
 
 const REWARD_OPTIONS = [
   '🎮 Free Time',
@@ -73,31 +72,11 @@ const StudentManager = ({
   }, [rotationOrder, stationConfigs]);
   const [editingOrder, setEditingOrder] = useState([...initialOrder]);
   const [editingCustomColors, setEditingCustomColors] = useState({ ...customStationColors });
-  const [editingGoals, setEditingGoals] = useState({ ...studentGoals });
-  const [emojiPickerFor, setEmojiPickerFor] = useState(null);
-  const [goalOpenFor, setGoalOpenFor] = useState(null);
   const [showRosterMenu, setShowRosterMenu] = useState(false);
   const [selectedRosterIds, setSelectedRosterIds] = useState([]);
   const [selectedForRemoval, setSelectedForRemoval] = useState([]);
   const [showRemoveAllConfirm, setShowRemoveAllConfirm] = useState(false);
 
-  const handlePhotoUpload = (studentId, file) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setEditingStudents((prev) =>
-        prev.map((s) => (s.id === studentId ? { ...s, photo: e.target.result } : s))
-      );
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleGoalChange = (studentId, field, value) => {
-    setEditingGoals((prev) => ({
-      ...prev,
-      [studentId]: { ...(prev[studentId] || DEFAULT_GOAL), [field]: value },
-    }));
-  };
 
   const addRosterStudentToLayout = (r) => {
     if (!r) return;
@@ -277,8 +256,6 @@ const StudentManager = ({
             )}
             <div className="space-y-3">
               {editingStudents.map((student) => {
-                const goal = editingGoals[student.id] || DEFAULT_GOAL;
-                const isGoalOpen = goalOpenFor === student.id;
                 return (
                   <div key={student.id} className="p-3 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-200 hover:border-gray-300 transition-all hover:shadow-sm">
                     <div className="flex items-center gap-3">
@@ -352,164 +329,6 @@ const StudentManager = ({
                         ))}
                       </select>
                     </div>
-                    <div className="flex items-center gap-1 mt-1 ml-16">
-                      <button
-                        onClick={() => setGoalOpenFor(isGoalOpen ? null : student.id)}
-                        className={`text-xs px-1.5 py-0.5 rounded ${isGoalOpen ? 'bg-amber-200 text-amber-700' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'}`}
-                      >
-                        🎯 Tokens {goal.active ? `(${goal.tokens}/${goal.goal})` : ''}
-                      </button>
-                      <label className="cursor-pointer text-xs px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded hover:bg-blue-100">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => handlePhotoUpload(student.id, e.target.files[0])}
-                        />
-                        📷 Photo
-                      </label>
-                      <button
-                        onClick={() =>
-                          setEmojiPickerFor(emojiPickerFor === student.id ? null : student.id)
-                        }
-                        className={`text-xs px-1.5 py-0.5 rounded ${emojiPickerFor === student.id ? 'bg-purple-200 text-purple-700' : 'bg-purple-50 text-purple-600 hover:bg-purple-100'}`}
-                      >
-                        😀 Emoji
-                      </button>
-                      {(student.photo || student.emoji) && (
-                        <button
-                          onClick={() =>
-                            setEditingStudents((prev) =>
-                              prev.map((s) =>
-                                s.id === student.id ? { ...s, photo: null, emoji: null } : s
-                              )
-                            )
-                          }
-                          className="text-xs px-1.5 py-0.5 bg-red-50 text-red-500 rounded hover:bg-red-100"
-                        >
-                          ✕ Clear
-                        </button>
-                      )}
-                    </div>
-                    {/* Inline token goal editor */}
-                    {isGoalOpen && (
-                      <div className="mt-2 ml-16 p-2 bg-amber-50 rounded-lg border border-amber-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <label className="flex items-center gap-1 text-xs font-bold text-gray-600">
-                            <input
-                              type="checkbox"
-                              checked={goal.active}
-                              onChange={(e) =>
-                                handleGoalChange(student.id, 'active', e.target.checked)
-                              }
-                            />
-                            Active
-                          </label>
-                        </div>
-                        {goal.active && (
-                          <>
-                            <div className="flex gap-2 mb-2">
-                              <div className="flex-1">
-                                <label className="text-xs text-gray-500">Goal</label>
-                                <input
-                                  type="number"
-                                  min="1"
-                                  max="20"
-                                  value={goal.goal}
-                                  onChange={(e) =>
-                                    handleGoalChange(
-                                      student.id,
-                                      'goal',
-                                      parseInt(e.target.value) || 5
-                                    )
-                                  }
-                                  className="w-full px-2 py-1 border rounded text-sm"
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <label className="text-xs text-gray-500">Current</label>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max={goal.goal}
-                                  value={goal.tokens}
-                                  onChange={(e) =>
-                                    handleGoalChange(
-                                      student.id,
-                                      'tokens',
-                                      Math.min(goal.goal, parseInt(e.target.value) || 0)
-                                    )
-                                  }
-                                  className="w-full px-2 py-1 border rounded text-sm"
-                                />
-                              </div>
-                            </div>
-                            <div className="mb-2">
-                              <label className="text-xs text-gray-500">Reward</label>
-                              <select
-                                value={
-                                  REWARD_OPTIONS.includes(goal.reward) ? goal.reward : '__custom__'
-                                }
-                                onChange={(e) =>
-                                  handleGoalChange(
-                                    student.id,
-                                    'reward',
-                                    e.target.value === '__custom__' ? '' : e.target.value
-                                  )
-                                }
-                                className="w-full px-2 py-1 border rounded text-sm"
-                              >
-                                {REWARD_OPTIONS.map((r) => (
-                                  <option key={r} value={r}>
-                                    {r}
-                                  </option>
-                                ))}
-                                <option value="__custom__">✏️ Custom...</option>
-                              </select>
-                              {!REWARD_OPTIONS.includes(goal.reward) && (
-                                <input
-                                  type="text"
-                                  value={goal.reward}
-                                  onChange={(e) =>
-                                    handleGoalChange(student.id, 'reward', e.target.value)
-                                  }
-                                  placeholder="Type custom reward..."
-                                  className="w-full px-2 py-1 border rounded text-sm mt-1"
-                                />
-                              )}
-                            </div>
-                            <div>
-                              <label className="text-xs text-gray-500">Token Emoji</label>
-                              <div className="flex flex-wrap gap-1 mt-0.5">
-                                {TOKEN_EMOJI_OPTIONS.map((em) => (
-                                  <button
-                                    key={em}
-                                    onClick={() => handleGoalChange(student.id, 'tokenEmoji', em)}
-                                    className={`w-6 h-6 rounded text-sm hover:bg-gray-100 ${(goal.tokenEmoji || '⭐') === em ? 'bg-amber-100 ring-1 ring-amber-400' : 'bg-white'}`}
-                                  >
-                                    {em}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                    {emojiPickerFor === student.id && (
-                      <EmojiPicker
-                        emojis={STUDENT_EMOJI_OPTIONS}
-                        selected={student.emoji}
-                        onSelect={(em) => {
-                          setEditingStudents((prev) =>
-                            prev.map((s) =>
-                              s.id === student.id ? { ...s, emoji: em, photo: null } : s
-                            )
-                          );
-                          setEmojiPickerFor(null);
-                        }}
-                      />
-                    )}
                   </div>
                 );
               })}
@@ -767,7 +586,6 @@ const StudentManager = ({
               onUpdateStationColors(editingColors);
               onUpdateRotationOrder(editingOrder);
               if (onUpdateCustomStationColors) onUpdateCustomStationColors(editingCustomColors);
-              if (onUpdateGoals) onUpdateGoals(editingGoals);
               onClose();
             }}
             className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold transition-all shadow-lg shadow-indigo-500/30"

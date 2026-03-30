@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import ErrorBoundary from './components/ErrorBoundary';
 import AuthGate from './components/auth/AuthGate';
+import { AppStateProvider } from './context/AppStateContext';
 import SpecialEdScreen from './SpecialEdScreen';
 
 const WhiteboardPage = lazy(() => import('./components/whiteboard/WhiteboardPage'));
@@ -25,6 +26,7 @@ root.render(
     <ErrorBoundary>
       <HashRouter>
         <AuthGate>
+        <AppStateProvider>
         <Routes>
           <Route path="/" element={<SpecialEdScreen />} />
           <Route
@@ -63,8 +65,10 @@ root.render(
               </Suspense>
             }
           />
+          <Route path="/students" element={<Navigate to="/" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </AppStateProvider>
         </AuthGate>
       </HashRouter>
     </ErrorBoundary>

@@ -1,6 +1,29 @@
 import React, { useEffect, useState } from 'react';
 
+const C = {
+  coral:     '#FB7F6E',
+  coralLight:'#FFF1EF',
+  teal:      '#14B8A6',
+  cream:     '#FFFBF7',
+  border:    '#FDE8E4',
+  text:      '#334155',
+  muted:     '#94a3b8',
+};
+
 const SIDEBAR_ITEMS = [
+  {
+    id: 'students',
+    label: 'Students',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+    action: true,
+  },
   {
     id: 'whiteboard',
     label: 'Whiteboard',
@@ -41,7 +64,7 @@ const SIDEBAR_ITEMS = [
   },
 ];
 
-export default function AppSidebar({ isOpen, onClose }) {
+export default function AppSidebar({ isOpen, onClose, onOpenStudents }) {
   useEffect(() => {
     if (!isOpen) return;
     const handleKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -57,7 +80,7 @@ export default function AppSidebar({ isOpen, onClose }) {
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.55)',
+          background: 'rgba(51,65,85,0.45)',
           zIndex: 200,
           opacity: isOpen ? 1 : 0,
           pointerEvents: isOpen ? 'auto' : 'none',
@@ -79,9 +102,9 @@ export default function AppSidebar({ isOpen, onClose }) {
           zIndex: 201,
           transform: isOpen ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.24s cubic-bezier(0.4,0,0.2,1)',
-          background: 'rgba(15,23,42,0.98)',
-          borderRight: '1px solid rgba(255,255,255,0.07)',
-          boxShadow: '6px 0 40px rgba(0,0,0,0.6)',
+          background: C.cream,
+          borderRight: `1px solid ${C.border}`,
+          boxShadow: '6px 0 40px rgba(51,65,85,0.18)',
           display: 'flex',
           flexDirection: 'column',
         }}
@@ -92,15 +115,14 @@ export default function AppSidebar({ isOpen, onClose }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '18px 16px 14px',
-          borderBottom: '1px solid rgba(255,255,255,0.07)',
+          background: `linear-gradient(135deg, ${C.coral} 0%, #f97316 100%)`,
           flexShrink: 0,
         }}>
           <span style={{
-            fontSize: 11,
-            fontWeight: 700,
-            color: 'rgba(148,163,184,0.5)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.1em',
+            fontSize: 14,
+            fontWeight: 800,
+            color: '#fff',
+            letterSpacing: '0.02em',
           }}>
             Features
           </span>
@@ -108,29 +130,34 @@ export default function AppSidebar({ isOpen, onClose }) {
             onClick={onClose}
             aria-label="Close menu"
             style={{
-              background: 'none',
+              background: 'rgba(255,255,255,0.2)',
               border: 'none',
               cursor: 'pointer',
-              color: 'rgba(148,163,184,0.5)',
-              fontSize: 16,
-              lineHeight: 1,
-              padding: '4px',
-              borderRadius: 6,
+              color: '#fff',
+              fontSize: 14,
+              width: 28,
+              height: 28,
+              borderRadius: 8,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
-            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(148,163,184,0.5)'}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
           >
             ✕
           </button>
         </div>
 
         {/* Nav */}
-        <nav style={{ flex: 1, padding: '10px 10px' }}>
+        <nav style={{ flex: 1, padding: '10px 10px', background: C.cream }}>
           {SIDEBAR_ITEMS.map((item) => (
-            <SidebarItem key={item.id} item={item} onClose={onClose} />
+            <SidebarItem
+              key={item.id}
+              item={item}
+              onClose={onClose}
+              onAction={item.id === 'students' ? onOpenStudents : undefined}
+            />
           ))}
         </nav>
       </div>
@@ -138,8 +165,44 @@ export default function AppSidebar({ isOpen, onClose }) {
   );
 }
 
-function SidebarItem({ item, onClose }) {
+function SidebarItem({ item, onClose, onAction }) {
   const [hovered, setHovered] = useState(false);
+
+  const iconBox = {
+    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+    width: 34, height: 34, borderRadius: 9,
+    background: hovered ? C.coral : C.coralLight,
+    flexShrink: 0,
+    color: hovered ? '#fff' : C.coral,
+    transition: 'background 0.12s, color 0.12s',
+  };
+
+  const rowStyle = {
+    display: 'flex', alignItems: 'center', gap: 12,
+    padding: '9px 12px', borderRadius: 10, width: '100%',
+    background: hovered ? C.coralLight : 'transparent',
+    border: `1px solid ${hovered ? C.border : 'transparent'}`,
+    cursor: 'pointer',
+    transition: 'background 0.12s, border-color 0.12s',
+    marginBottom: 4,
+    color: C.text, textAlign: 'left',
+    textDecoration: 'none',
+    boxSizing: 'border-box',
+  };
+
+  if (item.action) {
+    return (
+      <button
+        onClick={() => onAction?.()}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{ ...rowStyle, border: `1px solid ${hovered ? C.border : 'transparent'}` }}
+      >
+        <span style={iconBox}>{item.icon}</span>
+        <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>{item.label}</span>
+      </button>
+    );
+  }
 
   return (
     <a
@@ -149,38 +212,15 @@ function SidebarItem({ item, onClose }) {
       onClick={onClose}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '10px 12px',
-        borderRadius: 10,
-        background: hovered ? 'rgba(255,255,255,0.07)' : 'transparent',
-        textDecoration: 'none',
-        transition: 'background 0.12s',
-        marginBottom: 4,
-        color: '#e2e8f0',
-      }}
+      style={rowStyle}
     >
-      <span style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: 34,
-        height: 34,
-        borderRadius: 9,
-        background: 'rgba(255,255,255,0.08)',
-        flexShrink: 0,
-        color: '#94a3b8',
-      }}>
-        {item.icon}
-      </span>
-      <span style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>
+      <span style={iconBox}>{item.icon}</span>
+      <span style={{ flex: 1, fontSize: 13, fontWeight: 600 }}>
         {item.label}
       </span>
       {item.badge && (
         <span style={{
-          background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+          background: `linear-gradient(135deg, ${C.coral}, #f97316)`,
           color: '#fff',
           fontSize: 8,
           fontWeight: 800,

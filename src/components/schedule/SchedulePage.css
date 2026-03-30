@@ -52,31 +52,31 @@
 }
 
 .schedule-calendar-wrapper .fc-button-primary {
-  background: #6366f1 !important;
-  border-color: #6366f1 !important;
+  background: #FB7F6E !important;
+  border-color: #FB7F6E !important;
   font-size: 12px !important;
   padding: 5px 12px !important;
   border-radius: 7px !important;
 }
 
 .schedule-calendar-wrapper .fc-button-primary:hover {
-  background: #4f46e5 !important;
-  border-color: #4f46e5 !important;
+  background: #f97316 !important;
+  border-color: #f97316 !important;
 }
 
 .schedule-calendar-wrapper .fc-button-active {
-  background: #4f46e5 !important;
-  border-color: #4f46e5 !important;
+  background: #f97316 !important;
+  border-color: #f97316 !important;
 }
 
 .schedule-calendar-wrapper .fc-toolbar-title {
   font-size: 15px !important;
   font-weight: 600;
-  color: #1e293b;
+  color: #334155;
 }
 
 .schedule-calendar-wrapper .fc-highlight {
-  background: rgba(99, 102, 241, 0.15) !important;
+  background: rgba(251, 127, 110, 0.12) !important;
 }
 
 .schedule-calendar-wrapper .fc-now-indicator-line {

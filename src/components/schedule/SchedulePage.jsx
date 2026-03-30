@@ -9,9 +9,19 @@ import './SchedulePage.css';
 
 const SUPABASE_TABLE = 'schedule_events';
 
+const C = {
+  coral:     '#FB7F6E',
+  coralLight:'#FFF1EF',
+  teal:      '#14B8A6',
+  cream:     '#FFFBF7',
+  border:    '#FDE8E4',
+  text:      '#334155',
+  muted:     '#94a3b8',
+};
+
 const CALENDAR_COLORS = {
-  personal: '#6366f1',
-  school: '#10b981',
+  personal: '#FB7F6E',
+  school: '#14B8A6',
   iep: '#f59e0b',
 };
 
@@ -160,36 +170,40 @@ export default function SchedulePage() {
   }
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0f172a' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: C.cream }}>
       {/* Header */}
       <div style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.07)', flexShrink: 0,
+        padding: '14px 20px',
+        background: `linear-gradient(135deg, ${C.coral} 0%, #f97316 100%)`,
+        flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 18 }}>📅</span>
-          <span style={{ color: '#e2e8f0', fontSize: 15, fontWeight: 600 }}>Schedule</span>
+          <span style={{ color: '#fff', fontSize: 15, fontWeight: 800 }}>Schedule</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginRight: 8 }}>
             {Object.entries(CALENDAR_COLORS).map(([key, color]) => (
-              <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#94a3b8' }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block' }} />
+              <span key={key} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: 'rgba(255,255,255,0.85)' }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, display: 'inline-block', border: '1px solid rgba(255,255,255,0.4)' }} />
                 {key.charAt(0).toUpperCase() + key.slice(1)}
               </span>
             ))}
           </div>
           <button
             onClick={() => { setEditId(null); setForm(defaultForm()); setSaveError(''); setShowForm(true); }}
-            style={{ background: '#6366f1', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 13, fontWeight: 600, padding: '7px 14px', borderRadius: 8 }}
+            style={{ background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.35)', cursor: 'pointer', color: '#fff', fontSize: 13, fontWeight: 600, padding: '7px 14px', borderRadius: 8 }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
           >
             + Add Event
           </button>
           <button
             onClick={() => window.close()}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(148,163,184,0.5)', fontSize: 16, padding: '4px 8px', borderRadius: 6 }}
-            onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
-            onMouseLeave={e => e.currentTarget.style.color = 'rgba(148,163,184,0.5)'}
+            style={{ background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 16, padding: '4px 8px', borderRadius: 6, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
           >
             ✕
           </button>
@@ -243,25 +257,27 @@ export default function SchedulePage() {
       {/* Event Form Modal */}
       {showForm && (
         <>
-          <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 300, backdropFilter: 'blur(4px)' }} />
+          <div onClick={() => setShowForm(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(51,65,85,0.45)', zIndex: 300, backdropFilter: 'blur(2px)' }} />
           <div style={{
             position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-            zIndex: 301, background: '#0f172a', border: '1px solid rgba(255,255,255,0.12)',
+            zIndex: 301, background: '#fff', border: `1px solid ${C.border}`,
             borderRadius: 18, width: 460, overflow: 'hidden',
-            boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
+            boxShadow: '0 24px 60px rgba(51,65,85,0.2)',
           }}>
             {/* Modal header strip */}
             <div style={{
               padding: '20px 24px 16px',
-              borderBottom: '1px solid rgba(255,255,255,0.07)',
+              background: `linear-gradient(135deg, ${C.coral} 0%, #f97316 100%)`,
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
             }}>
-              <span style={{ color: '#f1f5f9', fontSize: 16, fontWeight: 700, letterSpacing: '-0.01em' }}>
+              <span style={{ color: '#fff', fontSize: 16, fontWeight: 800, letterSpacing: '-0.01em' }}>
                 {editId ? 'Edit Event' : 'New Event'}
               </span>
               <button
                 onClick={() => setShowForm(false)}
-                style={{ background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', color: '#94a3b8', width: 28, height: 28, borderRadius: 8, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', color: '#fff', width: 28, height: 28, borderRadius: 8, fontSize: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.35)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
               >✕</button>
             </div>
 
@@ -304,8 +320,8 @@ export default function SchedulePage() {
                 <label style={labelStyle}>Calendar</label>
                 <div style={{ display: 'flex', gap: 8 }}>
                   {[
-                    { id: 'personal', label: 'Personal', color: '#6366f1' },
-                    { id: 'school',   label: 'School',   color: '#10b981' },
+                    { id: 'personal', label: 'Personal', color: C.coral },
+                    { id: 'school',   label: 'School',   color: C.teal },
                     { id: 'iep',      label: 'IEP',      color: '#f59e0b' },
                   ].map(opt => (
                     <button
@@ -315,9 +331,9 @@ export default function SchedulePage() {
                         flex: 1,
                         padding: '8px 0',
                         borderRadius: 9,
-                        border: form.calendarId === opt.id ? `2px solid ${opt.color}` : '2px solid rgba(255,255,255,0.08)',
-                        background: form.calendarId === opt.id ? `${opt.color}22` : 'rgba(255,255,255,0.04)',
-                        color: form.calendarId === opt.id ? opt.color : '#64748b',
+                        border: form.calendarId === opt.id ? `2px solid ${opt.color}` : `2px solid ${C.border}`,
+                        background: form.calendarId === opt.id ? `${opt.color}18` : C.coralLight,
+                        color: form.calendarId === opt.id ? opt.color : C.muted,
                         cursor: 'pointer',
                         fontSize: 12,
                         fontWeight: 600,
@@ -337,7 +353,7 @@ export default function SchedulePage() {
 
               {/* Description */}
               <div>
-                <label style={labelStyle}>Description <span style={{ color: '#475569', fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
+                <label style={labelStyle}>Description <span style={{ color: C.muted, fontWeight: 400, textTransform: 'none', letterSpacing: 0 }}>(optional)</span></label>
                 <textarea
                   placeholder="Add details..."
                   value={form.description}
@@ -350,7 +366,7 @@ export default function SchedulePage() {
 
             {/* Footer */}
             {saveError && (
-              <div style={{ margin: '0 24px', padding: '8px 12px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#f87171', fontSize: 12 }}>
+              <div style={{ margin: '0 24px', padding: '8px 12px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 8, color: '#ef4444', fontSize: 12 }}>
                 {saveError}
               </div>
             )}
@@ -359,11 +375,12 @@ export default function SchedulePage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: editId ? 'space-between' : 'flex-end',
+              borderTop: `1px solid ${C.border}`,
             }}>
               {editId && (
                 <button
                   onClick={handleDelete}
-                  style={{ background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171', cursor: 'pointer', padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500 }}
+                  style={{ background: 'transparent', border: '1px solid rgba(239,68,68,0.3)', color: '#ef4444', cursor: 'pointer', padding: '8px 16px', borderRadius: 9, fontSize: 13, fontWeight: 500 }}
                 >
                   Delete event
                 </button>
@@ -371,7 +388,7 @@ export default function SchedulePage() {
               <div style={{ display: 'flex', gap: 8 }}>
                 <button
                   onClick={() => setShowForm(false)}
-                  style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '9px 18px', borderRadius: 9, fontSize: 13, fontWeight: 500 }}
+                  style={{ background: C.coralLight, border: `1px solid ${C.border}`, color: C.text, cursor: 'pointer', padding: '9px 18px', borderRadius: 9, fontSize: 13, fontWeight: 500 }}
                 >
                   Cancel
                 </button>
@@ -379,10 +396,10 @@ export default function SchedulePage() {
                   onClick={handleSave}
                   disabled={saving || !form.title.trim()}
                   style={{
-                    background: form.title.trim() ? '#6366f1' : 'rgba(99,102,241,0.3)',
+                    background: form.title.trim() ? `linear-gradient(135deg, ${C.coral}, #f97316)` : C.border,
                     border: 'none', color: '#fff', cursor: form.title.trim() ? 'pointer' : 'default',
                     padding: '9px 20px', borderRadius: 9, fontSize: 13, fontWeight: 600,
-                    transition: 'background 0.15s',
+                    transition: 'opacity 0.15s',
                   }}
                 >
                   {saving ? 'Saving…' : editId ? 'Save changes' : 'Create event'}
@@ -397,11 +414,11 @@ export default function SchedulePage() {
 }
 
 const inputStyle = {
-  width: '100%', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)',
-  borderRadius: 8, padding: '8px 10px', color: '#e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
+  width: '100%', background: '#FFFBF7', border: '1px solid #FDE8E4',
+  borderRadius: 8, padding: '8px 10px', color: '#334155', fontSize: 13, outline: 'none', boxSizing: 'border-box',
 };
 
 const labelStyle = {
-  display: 'block', color: 'rgba(148,163,184,0.7)', fontSize: 11, fontWeight: 600,
+  display: 'block', color: '#94a3b8', fontSize: 11, fontWeight: 600,
   marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em',
 };

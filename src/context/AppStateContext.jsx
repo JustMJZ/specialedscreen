@@ -234,6 +234,9 @@ export function AppStateProvider({ children }) {
     return { [getSavedMainLayoutId()]: createDefaultGoalLadder() };
   });
   const [studentGoals, setStudentGoals] = useState(() => loadSaved('studentGoals', {}));
+  const [tokenHistory, setTokenHistory] = useState(() => loadSaved('tokenHistory', {}));
+  const [studentNotes, setStudentNotes] = useState(() => loadSaved('studentNotes', {}));
+  const [studentGoalLadders, setStudentGoalLadders] = useState(() => loadSaved('studentGoalLadders', {}));
   const [customSounds, setCustomSounds] = useState(() => loadSaved('customSounds', []));
   const [stationColorsByLayout, setStationColorsByLayout] = useState(() => {
     const saved = loadSaved('stationColorsByLayout', null);
@@ -629,6 +632,9 @@ export function AppStateProvider({ children }) {
         widgetColorsByLayout,
         goalLaddersByLayout,
         studentGoals,
+        tokenHistory,
+        studentNotes,
+        studentGoalLadders,
         floorPlansByLayout,
         customSounds,
         stationColorsByLayout,
@@ -675,6 +681,9 @@ export function AppStateProvider({ children }) {
     widgetColorsByLayout,
     goalLaddersByLayout,
     studentGoals,
+    tokenHistory,
+    studentNotes,
+    studentGoalLadders,
     floorPlansByLayout,
     customSounds,
     stationColorsByLayout,
@@ -713,6 +722,9 @@ export function AppStateProvider({ children }) {
       if (d.widgetColorsByLayout !== undefined) setWidgetColorsByLayout(d.widgetColorsByLayout);
       if (d.goalLaddersByLayout !== undefined) setGoalLaddersByLayout(d.goalLaddersByLayout);
       if (d.studentGoals !== undefined) setStudentGoals(d.studentGoals);
+      if (d.tokenHistory !== undefined) setTokenHistory(d.tokenHistory);
+      if (d.studentNotes !== undefined) setStudentNotes(d.studentNotes);
+      if (d.studentGoalLadders !== undefined) setStudentGoalLadders(d.studentGoalLadders);
       if (d.floorPlansByLayout !== undefined) setFloorPlansByLayout(d.floorPlansByLayout);
       if (d.customSounds !== undefined) setCustomSounds(d.customSounds);
       if (d.stationColorsByLayout !== undefined) setStationColorsByLayout(d.stationColorsByLayout);
@@ -1271,6 +1283,12 @@ export function AppStateProvider({ children }) {
     setGoalLadder,
     studentGoals,
     setStudentGoals,
+    tokenHistory,
+    setTokenHistory,
+    studentNotes,
+    setStudentNotes,
+    studentGoalLadders,
+    setStudentGoalLadders,
     customSounds,
     setCustomSounds,
     stationColors,
@@ -1286,6 +1304,8 @@ export function AppStateProvider({ children }) {
     showClockDate,
     setShowClockDate,
     floorPlans,
+    floorPlansByLayout,
+    setFloorPlansByLayout,
     activeFloorPlanId,
     setActiveFloorPlanId,
     renamingTabId,
