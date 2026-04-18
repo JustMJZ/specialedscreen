@@ -54,6 +54,8 @@ const Modals = () => {
     setStudentNotes,
     studentGoalLadders,
     setStudentGoalLadders,
+    studentSchedules,
+    setStudentSchedules,
     customBoxes,
     setCustomBoxes,
     tabStationKeys,
@@ -176,7 +178,11 @@ const Modals = () => {
                 tokenHistory={tokenHistory}
                 studentNotes={studentNotes}
                 studentGoalLadders={studentGoalLadders}
+                studentSchedules={studentSchedules}
                 dataKey={dataKey}
+                onUpdateSchedule={(key, updated) => {
+                  setStudentSchedules(prev => ({ ...prev, [key]: updated }));
+                }}
                 onAddToken={() => {
                   const g = studentGoals[dataKey] || {
                     tokens: 0,

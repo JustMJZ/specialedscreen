@@ -72,10 +72,12 @@ export default function StudentsPanel({ isOpen, onClose }) {
     tokenHistory,
     studentNotes,
     studentGoalLadders,
+    studentSchedules,
     setStudentGoals,
     setTokenHistory,
     setStudentNotes,
     setStudentGoalLadders,
+    setStudentSchedules,
   } = useAppState();
 
   const [selectedId, setSelectedId] = useState(null);
@@ -240,7 +242,11 @@ export default function StudentsPanel({ isOpen, onClose }) {
             tokenHistory={tokenHistory}
             studentNotes={studentNotes}
             studentGoalLadders={studentGoalLadders}
+            studentSchedules={studentSchedules}
             dataKey={selectedId}
+            onUpdateSchedule={(key, updated) => {
+              setStudentSchedules(prev => ({ ...prev, [key]: updated }));
+            }}
             onAddToken={() => {
               const g = studentGoals[selectedId] || { tokens: 0, goal: 5, reward: '', active: true };
               if (g.tokens < g.goal) {

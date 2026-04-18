@@ -237,6 +237,7 @@ export function AppStateProvider({ children }) {
   const [tokenHistory, setTokenHistory] = useState(() => loadSaved('tokenHistory', {}));
   const [studentNotes, setStudentNotes] = useState(() => loadSaved('studentNotes', {}));
   const [studentGoalLadders, setStudentGoalLadders] = useState(() => loadSaved('studentGoalLadders', {}));
+  const [studentSchedules, setStudentSchedules] = useState(() => loadSaved('studentSchedules', {}));
   const [customSounds, setCustomSounds] = useState(() => loadSaved('customSounds', []));
   const [stationColorsByLayout, setStationColorsByLayout] = useState(() => {
     const saved = loadSaved('stationColorsByLayout', null);
@@ -635,6 +636,7 @@ export function AppStateProvider({ children }) {
         tokenHistory,
         studentNotes,
         studentGoalLadders,
+        studentSchedules,
         floorPlansByLayout,
         customSounds,
         stationColorsByLayout,
@@ -684,6 +686,7 @@ export function AppStateProvider({ children }) {
     tokenHistory,
     studentNotes,
     studentGoalLadders,
+    studentSchedules,
     floorPlansByLayout,
     customSounds,
     stationColorsByLayout,
@@ -725,6 +728,7 @@ export function AppStateProvider({ children }) {
       if (d.tokenHistory !== undefined) setTokenHistory(d.tokenHistory);
       if (d.studentNotes !== undefined) setStudentNotes(d.studentNotes);
       if (d.studentGoalLadders !== undefined) setStudentGoalLadders(d.studentGoalLadders);
+      if (d.studentSchedules !== undefined) setStudentSchedules(d.studentSchedules);
       if (d.floorPlansByLayout !== undefined) setFloorPlansByLayout(d.floorPlansByLayout);
       if (d.customSounds !== undefined) setCustomSounds(d.customSounds);
       if (d.stationColorsByLayout !== undefined) setStationColorsByLayout(d.stationColorsByLayout);
@@ -1289,6 +1293,8 @@ export function AppStateProvider({ children }) {
     setStudentNotes,
     studentGoalLadders,
     setStudentGoalLadders,
+    studentSchedules,
+    setStudentSchedules,
     customSounds,
     setCustomSounds,
     stationColors,

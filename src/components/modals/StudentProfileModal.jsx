@@ -19,6 +19,238 @@ const STEP_COLORS = ['#FB7F6E','#f97316','#eab308','#22c55e','#14B8A6','#8b5cf6'
 
 const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+const WEEK_DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+const SERVICE_COLORS = ['#FB7F6E','#14B8A6','#8b5cf6','#f97316','#22c55e','#3b82f6','#ec4899','#f59e0b'];
+const SERVICE_PRESETS = ['Speech Therapy','Occupational Therapy','Physical Therapy','Resource Room','Counseling','Reading Support','Math Support'];
+
+function formatTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`;
+}
+
+function ServiceForm({ form, setForm, onSave, onCancel, isNew }) {
+  const set = (field, val) => setForm(f => ({ ...f, [field]: val }));
+  const toggleDay = (day) => setForm(f => ({
+    ...f, days: f.days.includes(day) ? f.days.filter(d => d !== day) : [...f.days, day],
+  }));
+  const canSave = form.service.trim().length > 0;
+  return (
+    <div style={{ background: '#fff', border: `2px solid ${form.color || C.coral}55`, borderRadius: 12, padding: 14 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 12 }}>
+        {isNew ? 'New Service' : 'Edit Service'}
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <div>
+          <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 4 }}>Service *</label>
+          <input value={form.service} onChange={e => set('service', e.target.value)}
+            placeholder="e.g. Speech Therapy" list="svc-presets"
+            style={{ width: '100%', boxSizing: 'border-box', background: '#F8FAFC', border: `1px solid ${C.border}`, borderRadius: 7, padding: '7px 10px', color: C.text, fontSize: 13, outline: 'none' }}
+            onFocus={e => e.target.style.borderColor = C.coral}
+            onBlur={e => e.target.style.borderColor = C.border} />
+          <datalist id="svc-presets">{SERVICE_PRESETS.map(s => <option key={s} value={s} />)}</datalist>
+        </div>
+        <div>
+          <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Days</label>
+          <div style={{ display: 'flex', gap: 5 }}>
+            {WEEK_DAYS.map(day => {
+              const active = form.days.includes(day);
+              return (
+                <button key={day} onClick={() => toggleDay(day)} type="button" style={{
+                  flex: 1, padding: '6px 0', borderRadius: 7, fontSize: 11, fontWeight: 700, cursor: 'pointer',
+                  background: active ? (form.color || C.coral) : '#F8FAFC',
+                  color: active ? '#fff' : C.muted,
+                  border: `1px solid ${active ? (form.color || C.coral) : C.border}`,
+                  transition: 'all 0.15s',
+                }}>{day}</button>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div>
+            <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 4 }}>Start Time</label>
+            <input type="time" value={form.startTime} onChange={e => set('startTime', e.target.value)}
+              style={{ width: '100%', boxSizing: 'border-box', background: '#F8FAFC', border: `1px solid ${C.border}`, borderRadius: 7, padding: '7px 8px', color: C.text, fontSize: 13, outline: 'none' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 4 }}>End Time</label>
+            <input type="time" value={form.endTime} onChange={e => set('endTime', e.target.value)}
+              style={{ width: '100%', boxSizing: 'border-box', background: '#F8FAFC', border: `1px solid ${C.border}`, borderRadius: 7, padding: '7px 8px', color: C.text, fontSize: 13, outline: 'none' }} />
+          </div>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+          <div>
+            <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 4 }}>Provider</label>
+            <input value={form.provider} onChange={e => set('provider', e.target.value)} placeholder="Ms. Johnson"
+              style={{ width: '100%', boxSizing: 'border-box', background: '#F8FAFC', border: `1px solid ${C.border}`, borderRadius: 7, padding: '7px 8px', color: C.text, fontSize: 13, outline: 'none' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 4 }}>Location</label>
+            <input value={form.location} onChange={e => set('location', e.target.value)} placeholder="Room 12"
+              style={{ width: '100%', boxSizing: 'border-box', background: '#F8FAFC', border: `1px solid ${C.border}`, borderRadius: 7, padding: '7px 8px', color: C.text, fontSize: 13, outline: 'none' }} />
+          </div>
+        </div>
+        <div>
+          <label style={{ fontSize: 11, color: C.muted, display: 'block', marginBottom: 6 }}>Color</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {SERVICE_COLORS.map(c => (
+              <button key={c} onClick={() => set('color', c)} type="button" style={{
+                width: 26, height: 26, borderRadius: '50%', background: c, cursor: 'pointer', flexShrink: 0,
+                border: `3px solid ${form.color === c ? '#334155' : 'transparent'}`,
+                transition: 'border 0.15s',
+              }} />
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', paddingTop: 4 }}>
+          <button onClick={onCancel} style={{ padding: '7px 14px', borderRadius: 8, border: `1px solid ${C.border}`, background: '#fff', color: C.muted, fontSize: 12, cursor: 'pointer' }}>Cancel</button>
+          <button onClick={onSave} disabled={!canSave} style={{
+            padding: '7px 16px', borderRadius: 8, border: 'none',
+            background: canSave ? C.coral : '#F1F5F9',
+            color: canSave ? '#fff' : '#CBD5E1',
+            fontSize: 12, fontWeight: 700, cursor: canSave ? 'pointer' : 'not-allowed',
+          }}>Save</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function makeEmptyForm() {
+  return { service: '', provider: '', location: '', days: [], startTime: '09:00', endTime: '09:30', color: SERVICE_COLORS[0] };
+}
+
+function ScheduleTab({ schedule, onUpdate }) {
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState(makeEmptyForm);
+  const entries = schedule || [];
+
+  const startAdd = () => { setForm(makeEmptyForm()); setEditing('new'); };
+  const startEdit = (entry) => { setForm({ ...entry }); setEditing(entry.id); };
+  const cancel = () => setEditing(null);
+  const save = () => {
+    if (!form.service.trim()) return;
+    if (editing === 'new') {
+      onUpdate([...entries, { ...form, id: `svc-${Date.now()}` }]);
+    } else {
+      onUpdate(entries.map(e => e.id === editing ? { ...form } : e));
+    }
+    setEditing(null);
+  };
+  const remove = (id) => onUpdate(entries.filter(e => e.id !== id));
+
+  // Weekly overview: which services fall on each day
+  const dayMap = Object.fromEntries(WEEK_DAYS.map(d => [d, []]));
+  entries.forEach(e => (e.days || []).forEach(d => { if (dayMap[d]) dayMap[d].push(e); }));
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+      {/* Weekly overview strip */}
+      <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: 14 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: C.muted, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>Weekly Overview</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
+          {WEEK_DAYS.map(day => {
+            const dayEntries = dayMap[day];
+            return (
+              <div key={day} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: dayEntries.length > 0 ? C.text : C.muted, marginBottom: 5, textTransform: 'uppercase' }}>{day}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minHeight: 12 }}>
+                  {dayEntries.length === 0
+                    ? <div style={{ height: 5, borderRadius: 4, background: '#F1F5F9' }} />
+                    : dayEntries.map(e => (
+                        <div key={e.id} style={{ height: 5, borderRadius: 4, background: e.color || C.coral }} title={e.service} />
+                      ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {entries.length > 0 && (
+          <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {entries.map(e => (
+              <span key={e.id} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 20, background: `${e.color || C.coral}18`, color: e.color || C.coral, border: `1px solid ${e.color || C.coral}33` }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: e.color || C.coral, flexShrink: 0 }} />
+                {e.service}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Service entries */}
+      {entries.length === 0 && editing !== 'new' && (
+        <div style={{ textAlign: 'center', padding: '24px 16px', color: C.muted, fontSize: 13 }}>
+          No services scheduled yet.
+          <span style={{ display: 'block', fontSize: 11, marginTop: 4 }}>Add speech, OT, PT, and other pull-out services.</span>
+        </div>
+      )}
+
+      {entries.map(entry => (
+        editing === entry.id ? (
+          <ServiceForm key={entry.id} form={form} setForm={setForm} onSave={save} onCancel={cancel} />
+        ) : (
+          <div key={entry.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 12, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <div style={{ width: 4, alignSelf: 'stretch', borderRadius: 4, background: entry.color || C.coral, flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 7 }}>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: C.text }}>{entry.service}</div>
+                  {(entry.provider || entry.location) && (
+                    <div style={{ fontSize: 11, color: C.muted, marginTop: 2 }}>
+                      {[entry.provider, entry.location].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                  <button onClick={() => startEdit(entry)} style={{ background: '#F8FAFC', border: `1px solid ${C.border}`, borderRadius: 6, padding: '3px 8px', fontSize: 11, cursor: 'pointer', color: C.muted }}>Edit</button>
+                  <button onClick={() => remove(entry.id)} style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', borderRadius: 6, padding: '3px 8px', fontSize: 11, cursor: 'pointer', color: '#DC2626' }}>✕</button>
+                </div>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: 3 }}>
+                  {WEEK_DAYS.map(d => {
+                    const active = entry.days?.includes(d);
+                    return (
+                      <span key={d} style={{
+                        fontSize: 10, fontWeight: 700, padding: '2px 6px', borderRadius: 4,
+                        background: active ? `${entry.color || C.coral}20` : '#F1F5F9',
+                        color: active ? (entry.color || C.coral) : '#CBD5E1',
+                        border: `1px solid ${active ? `${entry.color || C.coral}44` : '#E2E8F0'}`,
+                      }}>{d}</span>
+                    );
+                  })}
+                </div>
+                {(entry.startTime || entry.endTime) && (
+                  <span style={{ fontSize: 11, color: C.muted }}>
+                    {formatTime(entry.startTime)}{entry.endTime ? ` – ${formatTime(entry.endTime)}` : ''}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )
+      ))}
+
+      {editing === 'new' && (
+        <ServiceForm form={form} setForm={setForm} onSave={save} onCancel={cancel} isNew />
+      )}
+
+      {editing === null && (
+        <button onClick={startAdd} style={{
+          width: '100%', padding: '10px', borderRadius: 10,
+          border: `2px dashed ${C.border}`, background: 'transparent',
+          color: C.coral, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+          transition: 'border-color 0.15s, color 0.15s',
+        }}
+          onMouseEnter={e => e.currentTarget.style.borderColor = C.coral}
+          onMouseLeave={e => e.currentTarget.style.borderColor = C.border}
+        >+ Add Service</button>
+      )}
+    </div>
+  );
+}
+
 function todayStr() { return new Date().toISOString().slice(0, 10); }
 
 function last7Days() {
@@ -145,15 +377,16 @@ function GoalLadderTab({ ladder, onUpdate }) {
 
 /* ── Main Modal ───────────────────────────────────────────────────────────── */
 const StudentProfileModal = ({
-  student, goal, tokenHistory, studentNotes, studentGoalLadders, dataKey,
-  onAddToken, onRemoveToken, onResetTokens, onUpdateNotes, onUpdateGoalLadder, onClose,
+  student, goal, tokenHistory, studentNotes, studentGoalLadders, studentSchedules, dataKey,
+  onAddToken, onRemoveToken, onResetTokens, onUpdateNotes, onUpdateGoalLadder, onUpdateSchedule, onClose,
 }) => {
   const [tab, setTab] = useState('tokens');
 
-  const key     = dataKey || student?.id;
-  const history = tokenHistory?.[key] || {};
-  const notes   = studentNotes?.[key] || '';
-  const ladder  = studentGoalLadders?.[key] || DEFAULT_LADDER;
+  const key      = dataKey || student?.id;
+  const history  = tokenHistory?.[key] || {};
+  const notes    = studentNotes?.[key] || '';
+  const ladder   = studentGoalLadders?.[key] || DEFAULT_LADDER;
+  const schedule = studentSchedules?.[key] || [];
 
   const chartData = useMemo(() => last7Days().map(dateStr => ({
     day: DAYS[new Date(dateStr + 'T12:00:00').getDay()],
@@ -181,6 +414,7 @@ const StudentProfileModal = ({
     { id: 'tokens',   label: 'Token Board' },
     { id: 'goals',    label: 'Goals' },
     { id: 'overview', label: 'Overview' },
+    { id: 'schedule', label: 'Schedule' },
   ];
 
   return (
@@ -322,6 +556,14 @@ const StudentProfileModal = ({
           {/* ── GOALS TAB ── */}
           {tab === 'goals' && (
             <GoalLadderTab ladder={ladder} onUpdate={(updated) => onUpdateGoalLadder(key, updated)} />
+          )}
+
+          {/* ── SCHEDULE ── */}
+          {tab === 'schedule' && (
+            <ScheduleTab
+              schedule={schedule}
+              onUpdate={(updated) => onUpdateSchedule(key, updated)}
+            />
           )}
 
           {/* ── OVERVIEW ── */}
